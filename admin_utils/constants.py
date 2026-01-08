@@ -1,8 +1,10 @@
 """
 Constants for references collection.
 """
-
-import torch
+try:
+    import torch
+except ImportError:
+    print('Library "torch" not installed. Failed to import.')
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Selected {DEVICE} for all reference collection tasks")

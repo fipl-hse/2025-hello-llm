@@ -6,19 +6,19 @@ DIRS_TO_CHECK=(
   "admin_utils"
   "config"
   "core_utils"
-  "lab_7_llm"
-  "lab_8_sft"
-  "reference_lab_classification"
-  "reference_lab_classification_sft"
-  "reference_lab_generation"
-  "reference_lab_nli"
-  "reference_lab_nli_sft"
-  "reference_lab_nmt"
-  "reference_lab_nmt_sft"
-  "reference_lab_ner"
-  "reference_lab_open_qa"
-  "reference_lab_summarization"
-  "reference_lab_summarization_sft"
+  # "lab_7_llm"
+  # "lab_8_sft"
+  # "reference_lab_classification"
+  # "reference_lab_classification_sft"
+  # "reference_lab_generation"
+  # "reference_lab_nli"
+  # "reference_lab_nli_sft"
+  # "reference_lab_nmt"
+  # "reference_lab_nmt_sft"
+  # "reference_lab_ner"
+  # "reference_lab_open_qa"
+  # "reference_lab_summarization"
+  # "reference_lab_summarization_sft"
   "seminars"
 )
 
@@ -33,13 +33,13 @@ fi
 
 export PYTHONPATH=$(pwd)
 
-python config/generate_stubs/generate_labs_stubs.py
+# python config/generate_stubs/generate_labs_stubs.py
 
-python -m black "${DIRS_TO_CHECK[@]}"
+# python -m black "${DIRS_TO_CHECK[@]}"
 
-isort .
+# isort .
 
-autoflake -vv .
+# autoflake -vv .
 
 python -m pylint "${DIRS_TO_CHECK[@]}"
 

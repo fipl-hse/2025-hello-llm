@@ -128,10 +128,10 @@ disable_error_code = [
 
 [[tool.mypy.overrides]]
 module = [
-    'admin_utils.get_datasets_analytics',
-    'admin_utils.get_inference_analytics',
-    'admin_utils.get_references',
-    'admin_utils.get_sft_references',
+    'admin_utils.references.get_datasets_analytics',
+    'admin_utils.references.get_inference_analytics',
+    'admin_utils.references.get_references',
+    'admin_utils.references.get_sft_references',
 ]
 disable_error_code = [
     'import-not-found',

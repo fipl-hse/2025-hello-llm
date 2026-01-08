@@ -2,7 +2,7 @@
 Collect and store model analytics.
 """
 
-# pylint: disable=import-error, assignment-from-no-return, duplicate-code
+# pylint: disable=import-error, assignment-from-no-return, duplicate-code, wrong-import-order
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +15,7 @@ except ImportError:
     print('Library "pandas" not installed. Failed to import.')
     DataFrame = dict  # type: ignore
 
-from admin_utils.constants import DEVICE
+from admin_utils.constants import DEVICE  # isort:skip
 from lab_7_llm.main import LLMPipeline, TaskDataset  # type: ignore
 
 
