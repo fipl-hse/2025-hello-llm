@@ -16,7 +16,7 @@ except ImportError:
     DataFrame = dict  # type: ignore
 
 from admin_utils.constants import DEVICE  # isort:skip
-from lab_7_llm.main import LLMPipeline, TaskDataset  # type: ignore
+from lab_7_llm.main import LLMPipeline, TaskDataset
 
 
 def get_references(path: Path) -> Any:

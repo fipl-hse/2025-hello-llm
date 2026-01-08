@@ -42,6 +42,8 @@ fi
 
 export PYTHONPATH=$(pwd)
 
+autoflake -vv .
+
 if [[ "$1" != "public" ]]; then
   python config/generate_stubs/generate_labs_stubs.py
 fi
@@ -49,8 +51,6 @@ fi
 python -m black "${DIRS_TO_CHECK[@]}"
 
 isort .
-
-autoflake -vv .
 
 python -m pylint "${DIRS_TO_CHECK[@]}"
 

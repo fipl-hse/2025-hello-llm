@@ -4,6 +4,7 @@ markers = [
     "mark6: tests for level 6",
     "mark8: tests for level 8",
     "mark10: tests for level 10",
+    "lab_7_llm: tests for lab 7",
 ]
 norecursedirs = [
     "venv*"
@@ -121,6 +122,8 @@ disable_error_code = [
 module = [
     'core_utils.llm.llm_pipeline',
     'core_utils.llm.sft_pipeline',
+    'lab_7_llm.service',
+    'lab_7_llm.main',
 ]
 disable_error_code = [
     'no-any-unimported'
@@ -151,6 +154,15 @@ module = [
 disable_error_code = [
     'empty-body',
     'name-defined'
+]
+
+[[tool.mypy.overrides]]
+module = [
+    'admin_utils.constants',
+    'lab_7_llm.tests.web_service_test',
+]
+disable_error_code = [
+    'no-redef',
 ]
 
 [tool.logging]

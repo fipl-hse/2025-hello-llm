@@ -1,5 +1,15 @@
 {
-    "labs": [],
+    "labs": [
+        {
+            "name": "lab_7_llm",
+            "coverage": 83,
+            "stubs": [
+                "main.py",
+                "service.py",
+                "start.py"
+            ]
+        }
+    ],
     "addons": [
         {
             "name": "admin_utils",
@@ -25,9 +35,30 @@
             "artyomtugaryov",
             "EIzharikov",
             "sofianurtdinova",
-            "AnPruch"
+            "AnPruch",
+            "Evgraff2005"
         ],
         "pr_name_regex": "Laboratory work #\\d, \\w+ \\w+ - 2\\dFPL\\d",
         "pr_name_example": "Laboratory work #1, Andrei Kashchikhin - 21FPL2"
+    },
+    "stubs_config": {
+        "accepted_modules": {
+            "typing": [
+                "*"
+            ],
+            "pathlib": [
+                "Path"
+            ],
+            "json": [
+                "load"
+            ]
+        },
+        "specific_file_rules": {
+            "service.py": {
+                "replacement": {
+                    "lab_7_llm": "app, pipeline = None, None"
+                }
+            }
+        }
     }
 }

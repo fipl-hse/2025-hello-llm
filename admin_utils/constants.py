@@ -8,7 +8,7 @@ try:
 except ImportError:
     print('Library "torch" not installed. Failed to import.')
 
-    class torch:  # type: ignore
+    class torch:
         """
         Mock class for public repo that does not have requirements.
         """

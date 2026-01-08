@@ -42,6 +42,7 @@ nitpick_ignore = [
     ("py:class", "optional"),
     ("py:class", "FastAPI"),
     ("py:class", "LLMPipeline"),
+    ("py:class", "AutoTokenizer"),
 ]
 
 language = "en"

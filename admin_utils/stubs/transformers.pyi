@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Callable, Optional, Protocol
 
 import torch  # type: ignore
 from torch.utils.data.dataset import Dataset
@@ -30,6 +30,7 @@ class Trainer:
         model: torch.nn.Module,
         args: TrainingArguments,
         train_dataset: Dataset | list[dict[str, Any]],
+        data_collator: Callable[[AutoTokenizer], torch.Tensor] | None = None,
     ): ...
     def save_model(self, path: Path) -> None: ...
     def train(self) -> None: ...

@@ -105,6 +105,7 @@ based
 baseexception
 basemodel
 batch
+batchencoding
 batches
 bca
 bcd
@@ -166,6 +167,7 @@ cat
 ccdv
 cd
 cedr
+centos
 change
 changes
 changing
@@ -513,6 +515,7 @@ govreport
 gpt
 gram
 grams
+graphviz
 greedy
 greedyrulestudent
 greedytextgenerator
@@ -539,6 +542,7 @@ hf
 high
 higher
 highly
+homebrew
 how
 however
 html
@@ -700,6 +704,7 @@ lutz
 mac
 machine
 macos
+macports
 made
 main
 mainparams
@@ -986,6 +991,7 @@ real-time
 real-world
 reasons
 recognize
+redhat
 reduce
 reducing
 ref

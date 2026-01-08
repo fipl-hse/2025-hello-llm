@@ -64,7 +64,7 @@ jobs:
         run: |
           source venv/bin/activate
           export PYTHONPATH=$(pwd)
-          python -m pylint admin_utils config core_utils seminars
+          python config/static_checks/check_lint.py --repository_type "$REPOSITORY_TYPE"
 
   mypy-checks:
     name: Mypy checks
