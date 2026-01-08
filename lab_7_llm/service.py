@@ -2,16 +2,15 @@
 Web service for model inference.
 """
 
-# pylint: disable=too-few-public-methods, undefined-variable, unused-import, assignment-from-no-return, duplicate-code
-from pathlib import Path
+# pylint: disable=too-few-public-methods
 
 
-def init_application() -> tuple[FastAPI, AbstractLLMPipeline]:
+def init_application() -> tuple:
     """
     Initialize core application.
 
     Returns:
-        tuple[FastAPI, AbstractLLMPipeline]: instance of server and pipeline
+        tuple: tuple of two objects, instance of FastAPI server and LLMPipeline pipeline.
     """
 
 

@@ -7,19 +7,22 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Callable
 
-import torch
-from transformers import AutoTokenizer
-
 try:
     from peft import LoraConfig
 except ImportError:
     print('Library "peft" not installed. Failed to import.')
 
 try:
+    import torch
     from torch.utils.data.dataset import Dataset
 except ImportError:
     print('Library "torch" not installed. Failed to import.')
     Dataset = None  # type: ignore
+
+try:
+    from transformers import AutoTokenizer
+except ImportError:
+    print('Library "transformers" not installed. Failed to import.')
 
 from core_utils.llm.llm_pipeline import HFModelLike
 
