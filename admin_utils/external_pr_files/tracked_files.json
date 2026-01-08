@@ -1,0 +1,70 @@
+[
+  {
+    "source": "lab_7_llm/main_stub.py",
+    "target": "lab_7_llm/main.py"
+  },
+  {
+    "source": "lab_7_llm/README.rst",
+    "target": "source/docs/llm_2025/labs/lab_7/lab_7.rst"
+  },
+  {
+    "source": "lab_7_llm/service_stub.py",
+    "target": "lab_7_llm/service.py"
+  },
+  {
+    "source": "core_utils/llm/core_utils_llm.api.rst",
+    "target": "source/docs/llm_2025/labs/lab_7/core_utils.api.rst"
+  },
+  {
+    "source": "lab_7_llm/lab_7_llm.api.rst",
+    "target": "source/docs/llm_2025/labs/lab_7/lab_7.api.rst"
+  },
+  {
+    "source": "README.rst",
+    "target": "source/docs/llm_2025/general_info.rst"
+  },
+  {
+    "source": "docs/public/TASK_CLASSIFICATION.rst",
+    "target": "source/docs/llm_2025/task_cards/TASK_CLASSIFICATION.rst"
+  },
+  {
+    "source": "docs/public/TASK_GENERATION.rst",
+    "target": "source/docs/llm_2025/task_cards/TASK_GENERATION.rst"
+  },
+  {
+    "source": "docs/public/TASK_NER.rst",
+    "target": "source/docs/llm_2025/task_cards/TASK_NER.rst"
+  },
+  {
+    "source": "docs/public/TASK_NLI.rst",
+    "target": "source/docs/llm_2025/task_cards/TASK_NLI.rst"
+  },
+  {
+    "source": "docs/public/TASK_NMT.rst",
+    "target": "source/docs/llm_2025/task_cards/TASK_NMT.rst"
+  },
+  {
+    "source": "docs/public/TASK_SUMMARIZATION.rst",
+    "target": "source/docs/llm_2025/task_cards/TASK_SUMMARIZATION.rst"
+  },
+  {
+    "source": "docs/public/lectures_content_ru.rst",
+    "target": "source/docs/llm_2025/lectures_content_ru.rst"
+  },
+  {
+    "source": "docs/public/FAQ.rst",
+    "target": "source/docs/useful_docs/general_docs/FAQ.rst"
+  },
+  {
+    "source": "docs/public/fork_update.rst",
+    "target": "source/docs/useful_docs/general_docs/fork_update.rst"
+  },
+  {
+    "source": "docs/public/starting_guide_ru.rst",
+    "target": "source/docs/useful_docs/general_docs/starting_guide_ru.rst"
+  },
+  {
+    "source": "docs/public/tests.rst",
+    "target": "source/docs/useful_docs/general_docs/tests.rst"
+  }
+]
