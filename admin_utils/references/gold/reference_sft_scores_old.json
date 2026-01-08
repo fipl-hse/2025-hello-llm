@@ -1,0 +1,146 @@
+{
+    "Helsinki-NLP/opus-mt-en-fr": {
+        "enimai/MuST-C-fr": {
+            "bleu": 0.45415
+        }
+    },
+    "Helsinki-NLP/opus-mt-ru-en": {
+        "shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2": {
+            "bleu": 0.37501
+        }
+    },
+    "Helsinki-NLP/opus-mt-ru-es": {
+        "nuvocare/Ted2020_en_es_fr_de_it_ca_pl_ru_nl": {
+            "bleu": 0.30907
+        }
+    },
+    "IlyaGusev/rubertconv_toxic_clf": {
+        "Arsive/toxicity_classification_jigsaw": {
+            "f1": 0.63636
+        },
+        "s-nlp/en_paradetox_toxicity": {
+            "f1": 0.45454
+        }
+    },
+    "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli": {
+        "mnli": {
+            "accuracy": 0.90909
+        }
+    },
+    "UrukHan/t5-russian-summarization": {
+        "CarlBrendt/Summ_Dialog_News": {
+            "bleu": 0.00414,
+            "rouge": 0.00000
+        },
+        "IlyaGusev/gazeta": {
+            "bleu": 0.00458,
+            "rouge": 0.06060
+        },
+        "d0rj/curation-corpus-ru": {
+            "bleu": 0.00008,
+            "rouge": 0.05569
+        }
+    },
+    "XSY/albert-base-v2-imdb-calssification": {
+        "imdb": {
+            "f1": 0.81818
+        }
+    },
+    "aiknowyou/it-emotion-analyzer": {
+        "dair-ai/emotion": {
+            "f1": 0.45454
+        }
+    },
+    "blanchefort/rubert-base-cased-sentiment-rusentiment": {
+        "blinoff/kinopoisk": {
+            "f1": 0.54545
+        }
+    },
+    "cointegrated/rubert-base-cased-nli-threeway": {
+        "cointegrated/nli-rus-translated-v2021": {
+            "accuracy": 0.72727
+        },
+        "xnli": {
+            "accuracy": 0.36363
+        }
+    },
+    "cointegrated/rubert-tiny-bilingual-nli": {
+        "terra": {
+            "accuracy": 0.45454
+        }
+    },
+    "fabriceyhc/bert-base-uncased-ag_news": {
+        "ag_news": {
+            "f1": 1.00000
+        }
+    },
+    "google-t5/t5-small": {
+        "RocioUrquijo/en_de": {
+            "bleu": 0.22482
+        }
+    },
+    "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": {
+        "ccdv/govreport-summarization": {
+            "bleu": 0.00001,
+            "rouge": 0.08519
+        },
+        "ccdv/pubmed-summarization": {
+            "bleu": 0.00394,
+            "rouge": 0.10433
+        }
+    },
+    "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": {
+        "ccdv/govreport-summarization": {
+            "bleu": 0.00000,
+            "rouge": 0.07430
+        },
+        "ccdv/pubmed-summarization": {
+            "bleu": 0.00416,
+            "rouge": 0.12277
+        },
+        "cnn_dailymail": {
+            "bleu": 0.06859,
+            "rouge": 0.24586
+        }
+    },
+    "nandakishormpai/t5-small-machine-articles-tag-generation": {
+        "ccdv/govreport-summarization": {
+            "bleu": 0.00000,
+            "rouge": 0.03299
+        },
+        "ccdv/pubmed-summarization": {
+            "bleu": 0.00010,
+            "rouge": 0.04945
+        },
+        "cnn_dailymail": {
+            "bleu": 0.07347,
+            "rouge": 0.19514
+        }
+    },
+    "s-nlp/russian_toxicity_classifier": {
+        "d0rj/rudetoxifier_data": {
+            "f1": 1.00000
+        },
+        "s-nlp/ru_non_detoxified": {
+            "f1": 0.75000
+        },
+        "s-nlp/ru_paradetox_toxicity": {
+            "f1": 0.72727
+        }
+    },
+    "stevhliu/my_awesome_billsum_model": {
+        "CarlBrendt/Summ_Dialog_News": {
+            "bleu": 0.00000,
+            "rouge": 0.03636
+        },
+        "d0rj/curation-corpus-ru": {
+            "bleu": 0.00000,
+            "rouge": 0.13769
+        }
+    },
+    "tatiana-merz/turkic-cyrillic-classifier": {
+        "tatiana-merz/cyrillic_turkic_langs": {
+            "f1": 1.00000
+        }
+    }
+}

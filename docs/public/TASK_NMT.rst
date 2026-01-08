@@ -1,0 +1,91 @@
+.. _nmt-label:
+
+Neural Machine Translation
+==========================
+
+Models
+------
+
++-------------------------------------------------------------------------------------+------+
+| Model                                                                               | Lang |
++=====================================================================================+======+
+| `Helsinki-NLP/opus-mt-en-fr                                                         | EN   |
+| <https://huggingface.co/Helsinki-NLP/opus-mt-en-fr>`__                              |      |
++-------------------------------------------------------------------------------------+------+
+| `t5-small <https://huggingface.co/t5-small>`__                                      | EN   |
++-------------------------------------------------------------------------------------+------+
+| `Helsinki-NLP/opus-mt-ru-en                                                         | RU   |
+| <https://huggingface.co/Helsinki-NLP/opus-mt-ru-en>`__                              |      |
++-------------------------------------------------------------------------------------+------+
+| `Helsinki-NLP/opus-mt-ru-es                                                         | RU   |
+| <https://huggingface.co/Helsinki-NLP/opus-mt-ru-es>`__                              |      |
++-------------------------------------------------------------------------------------+------+
+
+Datasets
+--------
+
+1. `enimai/MuST-C-fr <https://huggingface.co/datasets/enimai/MuST-C-fr>`__
+
+   1. **Lang**: EN
+   2. **Rows**: 2630
+   3. **Preprocess**:
+
+      1. Rename column ``en`` to ``source``.
+      2. Rename column ``fr`` to ``target``.
+      3. Delete duplicates in dataset.
+      4. Reset indexes.
+
+2. `RocioUrquijo/en_de <https://huggingface.co/datasets/RocioUrquijo/en_de>`__
+
+   1. **Lang**: EN
+   2. **Rows**: 700
+   3. **Preprocess**:
+
+      1. Rename column ``en`` to ``source``.
+      2. Rename column ``de`` to ``target``.
+      3. Delete duplicates in dataset.
+      4. Add prefix *Translate from English to German:*  for each ``source`` row.
+      5. Reset indexes.
+
+3. `shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2 <https://huggingface.co/datasets/shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2>`__
+
+   1. **Lang**: RU
+   2. **Rows**: 600
+   3. **Preprocess**:
+
+      1. Drop columns ``ru_annotated``, ``styles``.
+      2. Rename column ``ru`` to ``source``.
+      3. Rename column ``en`` to ``target``.
+      4. Reset indexes.
+
+4. `nuvocare/Ted2020_en_es_fr_de_it_ca_pl_ru_nl <https://huggingface.co/datasets/nuvocare/Ted2020_en_es_fr_de_it_ca_pl_ru_nl>`__
+
+   1. **Lang**: RU
+   2. **Rows**: 7210
+   3. **Preprocess**:
+
+      1. Drop columns ``de``, ``en``, ``fr``, ``it``, ``nl``, ``pl``.
+      2. Rename column ``ru`` to ``source``.
+      3. Rename column ``es`` to ``target``.
+      4. Delete empty rows in dataset.
+      5. Delete duplicates in dataset.
+      6. Reset indexes.
+
+Supervised Fine-Tuning (SFT) Parameters
+---------------------------------------
+
+.. note:: Set the parameter
+          ``target_modules=["k_proj", "v_proj", "q_proj", "out_proj"]`` for the
+          `Helsinki-NLP/opus-mt-en-fr <https://huggingface.co/Helsinki-NLP/opus-mt-en-fr>`__,
+          `Helsinki-NLP/opus-mt-ru-en <https://huggingface.co/Helsinki-NLP/opus-mt-ru-en>`__,
+          `Helsinki-NLP/opus-mt-ru-es <https://huggingface.co/Helsinki-NLP/opus-mt-ru-es>`__
+          models.
+
+.. note:: Set the parameter ``learning_rate=1e-4`` for the
+          `Helsinki-NLP/opus-mt-ru-es <https://huggingface.co/Helsinki-NLP/opus-mt-ru-es>`__
+          model as SFT parameter.
+
+Metrics
+-------
+
+-  BLEU

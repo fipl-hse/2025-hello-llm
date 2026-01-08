@@ -1,0 +1,728 @@
+{
+    "Babelscape/wikineural-multilingual-ner": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 177269769,
+        "output_shape": [
+            1,
+            512,
+            9
+        ],
+        "size": 709079076,
+        "vocab_size": 119547
+    },
+    "EleutherAI/gpt-neo-125m": {
+        "embedding_size": 2048,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                2048
+            ],
+            "input_ids": [
+                1,
+                2048
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 163795968,
+        "output_shape": [
+            1,
+            2048,
+            50257
+        ],
+        "size": 655183872,
+        "vocab_size": 50257
+    },
+    "EleutherAI/pythia-160m-deduped": {
+        "embedding_size": 2048,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                2048
+            ],
+            "input_ids": [
+                1,
+                2048
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 162322944,
+        "output_shape": [
+            1,
+            2048,
+            50304
+        ],
+        "size": 649291776,
+        "vocab_size": 50304
+    },
+    "Helsinki-NLP/opus-mt-en-fr": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 512,
+        "num_trainable_params": 184937472,
+        "output_shape": [
+            1,
+            512,
+            59514
+        ],
+        "size": 422420480,
+        "vocab_size": 59514
+    },
+    "Helsinki-NLP/opus-mt-ru-en": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 512,
+        "num_trainable_params": 191089664,
+        "output_shape": [
+            1,
+            512,
+            62518
+        ],
+        "size": 434724864,
+        "vocab_size": 62518
+    },
+    "Helsinki-NLP/opus-mt-ru-es": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 512,
+        "num_trainable_params": 192957440,
+        "output_shape": [
+            1,
+            512,
+            63430
+        ],
+        "size": 438460416,
+        "vocab_size": 63430
+    },
+    "IlyaGusev/rubertconv_toxic_clf": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 177854978,
+        "output_shape": [
+            1,
+            2
+        ],
+        "size": 711419912,
+        "vocab_size": 119547
+    },
+    "JackFram/llama-68m": {
+        "embedding_size": 2048,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                2048
+            ],
+            "input_ids": [
+                1,
+                2048
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 68030208,
+        "output_shape": [
+            1,
+            2048,
+            32000
+        ],
+        "size": 272120832,
+        "vocab_size": 32000
+    },
+    "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 184424451,
+        "output_shape": [
+            1,
+            3
+        ],
+        "size": 736124940,
+        "vocab_size": 128100
+    },
+    "UrukHan/t5-russian-summarization": {
+        "embedding_size": 768,
+        "input_shape": [
+            1,
+            768
+        ],
+        "max_context_length": 64,
+        "num_trainable_params": 381880704,
+        "output_shape": [
+            1,
+            768,
+            32128
+        ],
+        "size": 990311424,
+        "vocab_size": 32128
+    },
+    "VMware/electra-small-mrqa": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 17453498,
+        "output_shape": [
+            1,
+            512,
+            30522
+        ],
+        "size": 69813992,
+        "vocab_size": 30522
+    },
+    "XSY/albert-base-v2-imdb-calssification": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 11685122,
+        "output_shape": [
+            1,
+            2
+        ],
+        "size": 46740488,
+        "vocab_size": 30000
+    },
+    "aiknowyou/it-emotion-analyzer": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 96,
+        "num_trainable_params": 109932294,
+        "output_shape": [
+            1,
+            6
+        ],
+        "size": 439729176,
+        "vocab_size": 31102
+    },
+    "blanchefort/rubert-base-cased-sentiment-rusentiment": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 177855747,
+        "output_shape": [
+            1,
+            3
+        ],
+        "size": 711422988,
+        "vocab_size": 119547
+    },
+    "cointegrated/rubert-base-cased-nli-threeway": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 177855747,
+        "output_shape": [
+            1,
+            3
+        ],
+        "size": 711422988,
+        "vocab_size": 119547
+    },
+    "cointegrated/rubert-tiny-bilingual-nli": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 11784794,
+        "output_shape": [
+            1,
+            2
+        ],
+        "size": 47139176,
+        "vocab_size": 29564
+    },
+    "cointegrated/rubert-tiny-toxicity": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 11785733,
+        "output_shape": [
+            1,
+            5
+        ],
+        "size": 47142932,
+        "vocab_size": 29564
+    },
+    "cointegrated/rubert-tiny2-cedr-emotion-detection": {
+        "embedding_size": 2048,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                2048
+            ],
+            "input_ids": [
+                1,
+                2048
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 29195646,
+        "output_shape": [
+            1,
+            6
+        ],
+        "size": 116782584,
+        "vocab_size": 83828
+    },
+    "cross-encoder/qnli-distilroberta-base": {
+        "embedding_size": 514,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                514
+            ],
+            "input_ids": [
+                1,
+                514
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 82119169,
+        "output_shape": [
+            1,
+            1
+        ],
+        "size": 328476676,
+        "vocab_size": 50265
+    },
+    "dmitry-vorobiev/rubert_ria_headlines": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 48,
+        "num_trainable_params": 476006907,
+        "output_shape": [
+            1,
+            512,
+            119547
+        ],
+        "size": 1904027628,
+        "vocab_size": 119547
+    },
+    "dslim/distilbert-NER": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 65197833,
+        "output_shape": [
+            1,
+            512,
+            9
+        ],
+        "size": 260791332,
+        "vocab_size": 28996
+    },
+    "fabriceyhc/bert-base-uncased-ag_news": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 109485316,
+        "output_shape": [
+            1,
+            4
+        ],
+        "size": 437941264,
+        "vocab_size": 30522
+    },
+    "google-t5/t5-small": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 20,
+        "num_trainable_params": 128736512,
+        "output_shape": [
+            1,
+            512,
+            32128
+        ],
+        "size": 307824640,
+        "vocab_size": 32128
+    },
+    "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 142,
+        "num_trainable_params": 31240506,
+        "output_shape": [
+            1,
+            512,
+            30522
+        ],
+        "size": 124962024,
+        "vocab_size": 30522
+    },
+    "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 142,
+        "num_trainable_params": 77392698,
+        "output_shape": [
+            1,
+            512,
+            30522
+        ],
+        "size": 309570792,
+        "vocab_size": 30522
+    },
+    "nandakishormpai/t5-small-machine-articles-tag-generation": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 20,
+        "num_trainable_params": 128736512,
+        "output_shape": [
+            1,
+            512,
+            32128
+        ],
+        "size": 307824640,
+        "vocab_size": 32128
+    },
+    "papluca/xlm-roberta-base-language-detection": {
+        "embedding_size": 514,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                514
+            ],
+            "input_ids": [
+                1,
+                514
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 278059028,
+        "output_shape": [
+            1,
+            20
+        ],
+        "size": 1112236112,
+        "vocab_size": 250002
+    },
+    "s-nlp/russian_toxicity_classifier": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 177854978,
+        "output_shape": [
+            1,
+            2
+        ],
+        "size": 711419912,
+        "vocab_size": 119547
+    },
+    "stevhliu/my_awesome_billsum_model": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 20,
+        "num_trainable_params": 128736512,
+        "output_shape": [
+            1,
+            512,
+            32128
+        ],
+        "size": 307824640,
+        "vocab_size": 32128
+    },
+    "tatiana-merz/turkic-cyrillic-classifier": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 177860361,
+        "output_shape": [
+            1,
+            9
+        ],
+        "size": 711441444,
+        "vocab_size": 119547
+    },
+    "test_Helsinki-NLP/opus-mt-en-fr": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 512,
+        "num_trainable_params": 184937472,
+        "output_shape": [
+            1,
+            512,
+            59514
+        ],
+        "size": 422420480,
+        "vocab_size": 59514
+    },
+    "test_JackFram/llama-68m": {
+        "embedding_size": 2048,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                2048
+            ],
+            "input_ids": [
+                1,
+                2048
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 68030208,
+        "output_shape": [
+            1,
+            2048,
+            32000
+        ],
+        "size": 272120832,
+        "vocab_size": 32000
+    },
+    "test_VMware/electra-small-mrqa": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 17453498,
+        "output_shape": [
+            1,
+            512,
+            30522
+        ],
+        "size": 69813992,
+        "vocab_size": 30522
+    },
+    "test_aiknowyou/it-emotion-analyzer": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 96,
+        "num_trainable_params": 109932294,
+        "output_shape": [
+            1,
+            6
+        ],
+        "size": 439729176,
+        "vocab_size": 31102
+    },
+    "test_cointegrated/rubert-base-cased-nli-threeway": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 177855747,
+        "output_shape": [
+            1,
+            3
+        ],
+        "size": 711422988,
+        "vocab_size": 119547
+    },
+    "test_mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": {
+        "embedding_size": 512,
+        "input_shape": [
+            1,
+            512
+        ],
+        "max_context_length": 142,
+        "num_trainable_params": 31240506,
+        "output_shape": [
+            1,
+            512,
+            30522
+        ],
+        "size": 124962024,
+        "vocab_size": 30522
+    },
+    "timpal0l/mdeberta-v3-base-squad2": {
+        "embedding_size": 512,
+        "input_shape": {
+            "attention_mask": [
+                1,
+                512
+            ],
+            "input_ids": [
+                1,
+                512
+            ]
+        },
+        "max_context_length": 20,
+        "num_trainable_params": 278220290,
+        "output_shape": [
+            1,
+            512,
+            2
+        ],
+        "size": 1111308296,
+        "vocab_size": 251000
+    }
+}

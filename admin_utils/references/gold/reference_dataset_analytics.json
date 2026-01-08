@@ -1,0 +1,330 @@
+{
+    "Arsive/toxicity_classification_jigsaw": {
+        "dataset_columns": 8,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 6490,
+        "dataset_sample_max_len": 5000,
+        "dataset_sample_min_len": 17
+    },
+    "Babelscape/wikineural": {
+        "dataset_columns": 3,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 11590,
+        "dataset_sample_max_len": 143,
+        "dataset_sample_min_len": 2
+    },
+    "CarlBrendt/Summ_Dialog_News": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 7609,
+        "dataset_sample_max_len": 9661,
+        "dataset_sample_min_len": 51
+    },
+    "HuggingFaceH4/no_robots": {
+        "dataset_columns": 4,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 1,
+        "dataset_number_of_samples": 9500,
+        "dataset_sample_max_len": 14005,
+        "dataset_sample_min_len": 13
+    },
+    "IlyaGusev/gazeta": {
+        "dataset_columns": 5,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 6793,
+        "dataset_sample_max_len": 9841,
+        "dataset_sample_min_len": 1485
+    },
+    "OxAISH-AL-LLM/wiki_toxic": {
+        "dataset_columns": 3,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 31915,
+        "dataset_sample_max_len": 5000,
+        "dataset_sample_min_len": 12
+    },
+    "RocioUrquijo/en_de": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 1,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 700,
+        "dataset_sample_max_len": 692,
+        "dataset_sample_min_len": 4
+    },
+    "RussianNLP/wikiomnia": {
+        "dataset_columns": 6,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 173314,
+        "dataset_sample_max_len": 2048,
+        "dataset_sample_min_len": 4
+    },
+    "ag_news": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 7600,
+        "dataset_sample_max_len": 892,
+        "dataset_sample_min_len": 100
+    },
+    "blinoff/healthcare_facilities_reviews": {
+        "dataset_columns": 7,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 70597,
+        "dataset_sample_max_len": 5000,
+        "dataset_sample_min_len": 8
+    },
+    "blinoff/kinopoisk": {
+        "dataset_columns": 9,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 9746,
+        "dataset_number_of_samples": 36591,
+        "dataset_sample_max_len": 18452,
+        "dataset_sample_min_len": 47
+    },
+    "ccdv/govreport-summarization": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 973,
+        "dataset_sample_max_len": 193646,
+        "dataset_sample_min_len": 2650
+    },
+    "ccdv/pubmed-summarization": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 6658,
+        "dataset_sample_max_len": 335993,
+        "dataset_sample_min_len": 126
+    },
+    "cnn_dailymail": {
+        "dataset_columns": 3,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 11490,
+        "dataset_sample_max_len": 11991,
+        "dataset_sample_min_len": 293
+    },
+    "cointegrated/nli-rus-translated-v2021": {
+        "dataset_columns": 10,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 19647,
+        "dataset_sample_max_len": 1109,
+        "dataset_sample_min_len": 2
+    },
+    "d0rj/curation-corpus-ru": {
+        "dataset_columns": 5,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 1420,
+        "dataset_number_of_samples": 30454,
+        "dataset_sample_max_len": 100000,
+        "dataset_sample_min_len": 6
+    },
+    "d0rj/rudetoxifier_data": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 163187,
+        "dataset_sample_max_len": 7404,
+        "dataset_sample_min_len": 2
+    },
+    "dair-ai/emotion": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 2000,
+        "dataset_sample_max_len": 295,
+        "dataset_sample_min_len": 11
+    },
+    "enimai/MuST-C-fr": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 78,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 2632,
+        "dataset_sample_max_len": 713,
+        "dataset_sample_min_len": 7
+    },
+    "eriktks/conll2003": {
+        "dataset_columns": 5,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 3250,
+        "dataset_sample_max_len": 109,
+        "dataset_sample_min_len": 1
+    },
+    "imdb": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 199,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 25000,
+        "dataset_sample_max_len": 12988,
+        "dataset_sample_min_len": 32
+    },
+    "jtatman/databricks-dolly-8k-qa-open-close": {
+        "dataset_columns": 5,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 5933,
+        "dataset_number_of_samples": 7706,
+        "dataset_sample_max_len": 3502,
+        "dataset_sample_min_len": 12
+    },
+    "lionelchg/dolly_closed_qa": {
+        "dataset_columns": 5,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 89,
+        "dataset_sample_max_len": 8851,
+        "dataset_sample_min_len": 15
+    },
+    "lionelchg/dolly_open_qa": {
+        "dataset_columns": 5,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 188,
+        "dataset_sample_max_len": 194,
+        "dataset_sample_min_len": 11
+    },
+    "mnli": {
+        "dataset_columns": 4,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 9815,
+        "dataset_sample_max_len": 967,
+        "dataset_sample_min_len": 4
+    },
+    "nuvocare/Ted2020_en_es_fr_de_it_ca_pl_ru_nl": {
+        "dataset_columns": 8,
+        "dataset_duplicates": 25,
+        "dataset_empty_rows": 3338,
+        "dataset_number_of_samples": 7213,
+        "dataset_sample_max_len": 649,
+        "dataset_sample_min_len": 4
+    },
+    "papluca/language-identification": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 1010,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 10000,
+        "dataset_sample_max_len": 3657,
+        "dataset_sample_min_len": 7
+    },
+    "qnli": {
+        "dataset_columns": 4,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 5463,
+        "dataset_sample_max_len": 1136,
+        "dataset_sample_min_len": 4
+    },
+    "s-nlp/en_paradetox_toxicity": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 2227,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 26507,
+        "dataset_sample_max_len": 149,
+        "dataset_sample_min_len": 1
+    },
+    "s-nlp/ru_non_detoxified": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 9454,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 20900,
+        "dataset_sample_max_len": 235,
+        "dataset_sample_min_len": 1
+    },
+    "s-nlp/ru_paradetox_toxicity": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 67,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 6354,
+        "dataset_sample_max_len": 179,
+        "dataset_sample_min_len": 2
+    },
+    "sberquad": {
+        "dataset_columns": 5,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 5036,
+        "dataset_sample_max_len": 3489,
+        "dataset_sample_min_len": 10
+    },
+    "seara/ru_go_emotions": {
+        "dataset_columns": 4,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 5426,
+        "dataset_sample_max_len": 224,
+        "dataset_sample_min_len": 4
+    },
+    "shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2": {
+        "dataset_columns": 4,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 600,
+        "dataset_sample_max_len": 265,
+        "dataset_sample_min_len": 14
+    },
+    "starmpcc/Asclepius-Synthetic-Clinical-Notes": {
+        "dataset_columns": 5,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 158114,
+        "dataset_sample_max_len": 5830,
+        "dataset_sample_min_len": 25
+    },
+    "tatiana-merz/cyrillic_turkic_langs": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 9000,
+        "dataset_sample_max_len": 255,
+        "dataset_sample_min_len": 15
+    },
+    "tatsu-lab/alpaca": {
+        "dataset_columns": 4,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 31339,
+        "dataset_number_of_samples": 52002,
+        "dataset_sample_max_len": 431,
+        "dataset_sample_min_len": 14
+    },
+    "terra": {
+        "dataset_columns": 4,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 307,
+        "dataset_sample_max_len": 717,
+        "dataset_sample_min_len": 12
+    },
+    "trixdade/reviews_russian": {
+        "dataset_columns": 2,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 95,
+        "dataset_sample_max_len": 4276,
+        "dataset_sample_min_len": 155
+    },
+    "truthful_qa": {
+        "dataset_columns": 7,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 817,
+        "dataset_sample_max_len": 308,
+        "dataset_sample_min_len": 12
+    },
+    "xnli": {
+        "dataset_columns": 3,
+        "dataset_duplicates": 0,
+        "dataset_empty_rows": 0,
+        "dataset_number_of_samples": 2490,
+        "dataset_sample_max_len": 310,
+        "dataset_sample_min_len": 8
+    }
+}
