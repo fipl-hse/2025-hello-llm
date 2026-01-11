@@ -96,9 +96,13 @@ Technical solution
 | <https://fastapi.tiangolo.com/>`__ |                                        |      |
 +------------------------------------+----------------------------------------+------+
 
-.. important:: ``torch`` module version 2.1.2 needs to be installed using
-               ``--extra-index-url https://download.pytorch.org/whl/cpu``
-               in ``requirements.txt`` file.
+.. important::
+
+    - ``torch`` module version 2.9.1 needs to be installed using
+      ``--extra-index-url https://download.pytorch.org/whl/cpu``
+      in ``requirements.txt`` file.
+
+    - ``transformers`` module version 4.50.3 needs to be installed.
 
 Configuring model
 -----------------
@@ -119,6 +123,14 @@ and it is placed on the same level as ``main.py``.
 +----------------------------+------------------------------------------------+--------------+
 |``target_score``            |Desired mark for laboratory work                | ``int``      |
 +----------------------------+------------------------------------------------+--------------+
+
+To initialize settings, import Path from ``pathlib`` and LabSettings
+``from config.lab_settings``. See the intended settings instantiation:
+
+.. code:: py
+
+   current_path = Path(__file__).parent
+   settings = LabSettings(current_path / "settings.json")
 
 Assessment criteria
 -------------------

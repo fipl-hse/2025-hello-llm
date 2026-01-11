@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from admin_utils.constants import DEVICE
 from admin_utils.references.get_model_analytics import get_references, save_reference
-from admin_utils.references.get_references import (
+from admin_utils.references.helpers import (
     collect_combinations,
     get_classification_models,
     get_nli_models,
@@ -55,19 +55,21 @@ def get_target_modules(model_name: str) -> list[str] | None:
         "XSY/albert-base-v2-imdb-calssification",
         "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization",
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization",
+        "cointegrated/rubert-tiny2-cedr-emotion-detection",
     ):
         return ["query", "key", "value", "dense"]
+    if model_name in ("cointegrated/rubert-base-cased-nli-threeway"):
+        return ["key"]
     if model_name in (
-        "Helsinki-NLP/opus-mt-en-fr",
         "Helsinki-NLP/opus-mt-ru-en",
         "Helsinki-NLP/opus-mt-ru-es",
+        "Helsinki-NLP/opus-mt-en-fr",
     ):
-        return ["k_proj", "v_proj", "q_proj", "out_proj", "fc1", "fc2"]
-    if model_name in ("IlyaGusev/rubertconv_toxic_clf",):
-        return ["query", "key", "value", "dense"]
+        return ["q_proj", "k_proj"]
+    if model_name in ("stevhliu/my_awesome_billsum_model", "google-t5/t5-small"):
+        return ["q", "k", "v"]
     if model_name in ("UrukHan/t5-russian-summarization",):
-        return ["q", "k", "v", "o", "wi", "wo", "lm_head"]
-    # Peft will find default values for other
+        return ["q", "k", "wi", "wo"]
     return None
 
 
@@ -98,15 +100,16 @@ def get_task(
     nmt_models = get_nmt_models()
 
     if model in classification_models:
-        return get_result_for_classification(inference_params, sft_params, main_params)
-    if model in summarization_models:
-        return get_result_for_summarization(inference_params, sft_params, main_params)
-    if model in nli_models:
-        return get_result_for_nli(inference_params, sft_params, main_params)
-    if model in nmt_models:
-        return get_result_for_nmt(inference_params, sft_params, main_params)
-
-    raise ValueError(f"Unknown model {model} ...")
+        fine_tuning_pipeline = get_result_for_classification
+    elif model in summarization_models:
+        fine_tuning_pipeline = get_result_for_summarization
+    elif model in nli_models:
+        fine_tuning_pipeline = get_result_for_nli
+    elif model in nmt_models:
+        fine_tuning_pipeline = get_result_for_nmt
+    else:
+        raise ValueError(f"Unknown model {model} ...")
+    return fine_tuning_pipeline(inference_params, sft_params, main_params)
 
 
 def main() -> None:
@@ -128,30 +131,48 @@ def main() -> None:
     combinations = collect_combinations(references)
 
     inference_params = InferenceParams(
-        num_samples=10,
+        num_samples=100,
         max_length=120,
         batch_size=64,
         predictions_path=dist_dir / "predictions.csv",
         device=DEVICE,
     )
+
     sft_params = SFTParams(
-        max_fine_tuning_steps=50,
         batch_size=3,
-        max_length=120,
-        learning_rate=1e-3,
         finetuned_model_path=dist_dir,
         device=DEVICE,
+        max_length=120,
+        learning_rate=1e-3,
+        max_fine_tuning_steps=50,
+        rank=8,
+        alpha=8,
+        target_modules=None,
     )
+
+    specific_fine_tuning_steps = {
+        "Helsinki-NLP/opus-mt-en-fr": 60,
+        "Helsinki-NLP/opus-mt-ru-es": 100,
+        "stevhliu/my_awesome_billsum_model": 60,
+        "cointegrated/rubert-base-cased-nli-threeway": 50,
+        "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 150,
+    }
     specific_lr = {
-        "Helsinki-NLP/opus-mt-ru-es": 1e-4,
-        "Helsinki-NLP/opus-mt-en-fr": 1.25e-2,
-        "cointegrated/rubert-tiny-bilingual-nli": 1e-2,
-        "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": 1.5e-3,
-        "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 1e-6,
-        "dmitry-vorobiev/rubert_ria_headlines": 1e-1,
+        "stevhliu/my_awesome_billsum_model": 1e-4,
     }
     specific_rank = {
-        "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": 16,
+        "Helsinki-NLP/opus-mt-en-fr": 16,
+        "cointegrated/rubert-tiny2-cedr-emotion-detection": 16,
+        "stevhliu/my_awesome_billsum_model": 24,
+        "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 24,
+        "google-t5/t5-small": 24,
+    }
+    specific_alpha = {
+        "Helsinki-NLP/opus-mt-en-fr": 24,
+        "cointegrated/rubert-tiny2-cedr-emotion-detection": 24,
+        "stevhliu/my_awesome_billsum_model": 36,
+        "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 36,
+        "google-t5/t5-small": 36,
     }
 
     result = {}
@@ -163,13 +184,17 @@ def main() -> None:
         ):
             continue
         print(model_name, dataset_name, metrics)
-        sft_params.learning_rate = specific_lr.get(model_name, 1e-3)
         prepare_result_section(result, model_name, dataset_name, metrics)
-        sft_params.rank = specific_rank.get(model_name, 8)
-        sft_params.alpha = sft_params.rank * 2
+
         sft_params.finetuned_model_path = dist_dir / model_name
+        sft_params.learning_rate = specific_lr.get(model_name, 1e-3)
+        sft_params.max_fine_tuning_steps = specific_fine_tuning_steps.get(model_name, 50)
+        sft_params.rank = specific_rank.get(model_name, 16)
+        sft_params.alpha = specific_alpha.get(model_name, 16)
         sft_params.target_modules = get_target_modules(model_name)
+
         main_params = MainParams(model_name, dataset_name, [Metrics(metric) for metric in metrics])
+
         sft_result = get_task(model_name, main_params, inference_params, sft_params)
         for metric in metrics:
             score = Decimal(sft_result[metric]).quantize(Decimal("1.00000"), ROUND_FLOOR)

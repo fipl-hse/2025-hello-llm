@@ -41,6 +41,13 @@ Datasets
       3. Rename column ``tokens`` to ``source``.
       4. Reset indexes.
 
+.. note::
+
+   When obtaining this dataset, pass the following parameters to the call of
+   ``load_dataset``:
+
+   - ``revision="refs/convert/parquet"``
+
 Inferring batch
 ---------------
 

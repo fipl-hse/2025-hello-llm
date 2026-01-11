@@ -96,7 +96,7 @@ class ProjectConfig(ProjectConfigDTO):
         Returns:
             list: Labs names
         """
-        return [lab.name for lab in self._dto.labs]
+        return sorted([lab.name for lab in self._dto.labs])
 
     def get_labs_paths(self, include_addons: bool = True) -> list:
         """

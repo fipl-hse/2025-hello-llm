@@ -1,120 +1,125 @@
 {
     "Helsinki-NLP/opus-mt-en-fr": {
         "enimai/MuST-C-fr": {
-            "bleu": 0.44129
+            "bleu": 0.45687
         }
     },
     "Helsinki-NLP/opus-mt-ru-en": {
         "shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2": {
-            "bleu": 0.34844
+            "bleu": 0.33097
         }
     },
     "Helsinki-NLP/opus-mt-ru-es": {
         "nuvocare/Ted2020_en_es_fr_de_it_ca_pl_ru_nl": {
-            "bleu": 0.10271
+            "bleu": 0.24421
         }
     },
     "IlyaGusev/rubertconv_toxic_clf": {
         "Arsive/toxicity_classification_jigsaw": {
-            "f1": 0.54545
+            "f1": 0.82178
         },
         "s-nlp/en_paradetox_toxicity": {
-            "f1": 0.36363
+            "f1": 0.71287
         }
     },
     "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli": {
         "mnli": {
-            "accuracy": 0.90909
+            "accuracy": 0.90099
         }
     },
     "UrukHan/t5-russian-summarization": {
         "CarlBrendt/Summ_Dialog_News": {
-            "bleu": 0.00345,
-            "rouge": 0.00000
+            "bleu": 0.02433,
+            "rouge": 0.08314
         },
         "IlyaGusev/gazeta": {
-            "bleu": 0.00242,
-            "rouge": 0.06060
+            "bleu": 0.03421,
+            "rouge": 0.11373
         },
         "d0rj/curation-corpus-ru": {
-            "bleu": 0.00002,
-            "rouge": 0.04963
+            "bleu": 0.03706,
+            "rouge": 0.20559
         }
     },
     "XSY/albert-base-v2-imdb-calssification": {
         "imdb": {
-            "f1": 0.72727
+            "f1": 1.00000
         }
     },
     "aiknowyou/it-emotion-analyzer": {
         "dair-ai/emotion": {
-            "f1": 0.36363
+            "f1": 0.38613
         }
     },
     "blanchefort/rubert-base-cased-sentiment-rusentiment": {
         "blinoff/kinopoisk": {
-            "f1": 0.63636
+            "f1": 0.82178
         }
     },
     "cointegrated/rubert-base-cased-nli-threeway": {
         "cointegrated/nli-rus-translated-v2021": {
-            "accuracy": 0.72727
+            "accuracy": 0.78217
         },
         "xnli": {
-            "accuracy": 0.36363
+            "accuracy": 0.31683
         }
     },
     "cointegrated/rubert-tiny-bilingual-nli": {
         "terra": {
-            "accuracy": 0.45454
+            "accuracy": 0.44554
+        }
+    },
+    "cointegrated/rubert-tiny2-cedr-emotion-detection": {
+        "seara/ru_go_emotions": {
+            "f1": 0.50000
         }
     },
     "fabriceyhc/bert-base-uncased-ag_news": {
         "ag_news": {
-            "f1": 1.00000
+            "f1": 0.96039
         }
     },
     "google-t5/t5-small": {
         "RocioUrquijo/en_de": {
-            "bleu": 0.22482
+            "bleu": 0.24774
         }
     },
     "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": {
         "ccdv/govreport-summarization": {
-            "bleu": 0.00000,
-            "rouge": 0.07827
+            "bleu": 0.00030,
+            "rouge": 0.10746
         },
         "ccdv/pubmed-summarization": {
-            "bleu": 0.00387,
-            "rouge": 0.11150
+            "bleu": 0.01768,
+            "rouge": 0.14516
         }
     },
     "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": {
         "ccdv/govreport-summarization": {
-            "bleu": 0.00000,
-            "rouge": 0.07455
+            "bleu": 0.00087,
+            "rouge": 0.10711
         },
         "ccdv/pubmed-summarization": {
-            "bleu": 0.00435,
-            "rouge": 0.12552
+            "bleu": 0.03350,
+            "rouge": 0.17449
         },
         "cnn_dailymail": {
-            "bleu": 0.07625,
-            "rouge": 0.24910
+            "bleu": 0.05121,
+            "rouge": 0.22721
         }
     },
     "nandakishormpai/t5-small-machine-articles-tag-generation": {
         "ccdv/govreport-summarization": {
-            "bleu": 0.00000,
-            "rouge": 0.03300
+            "bleu": 0.00006,
+            "rouge": 0.07615
         },
         "ccdv/pubmed-summarization": {
-            "bleu": 0.00009,
-            "rouge": 0.04902
+            "bleu": 0.00890,
+            "rouge": 0.12956
         },
         "cnn_dailymail": {
-            "bleu": 0.05959,
-            "rouge": 0.18698
+            "bleu": 0.06671,
+            "rouge": 0.19974
         }
     },
     "s-nlp/russian_toxicity_classifier": {
@@ -122,20 +127,20 @@
             "f1": 1.00000
         },
         "s-nlp/ru_non_detoxified": {
-            "f1": 0.75000
+            "f1": 0.69090
         },
         "s-nlp/ru_paradetox_toxicity": {
-            "f1": 0.72727
+            "f1": 0.81000
         }
     },
     "stevhliu/my_awesome_billsum_model": {
         "CarlBrendt/Summ_Dialog_News": {
-            "bleu": 0.00000,
-            "rouge": 0.03636
+            "bleu": 0.00349,
+            "rouge": 0.07766
         },
         "d0rj/curation-corpus-ru": {
-            "bleu": 0.00000,
-            "rouge": 0.13769
+            "bleu": 0.00075,
+            "rouge": 0.12996
         }
     },
     "tatiana-merz/turkic-cyrillic-classifier": {

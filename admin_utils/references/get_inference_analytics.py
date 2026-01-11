@@ -11,7 +11,15 @@ from tqdm import tqdm
 
 from admin_utils.constants import DEVICE
 from admin_utils.references.get_model_analytics import get_references, save_reference
-from admin_utils.references.get_references import get_classification_models
+from admin_utils.references.helpers import (
+    get_classification_models,
+    get_generation_models,
+    get_ner_models,
+    get_nli_models,
+    get_nmt_models,
+    get_open_qa_models,
+    get_summurization_models,
+)
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 
 from lab_7_llm.main import LLMPipeline, TaskDataset  # isort:skip
@@ -138,40 +146,19 @@ def get_task(model: str, inference_params: InferenceParams, samples: list) -> di
     if "test_" in model:
         model = model.replace("test_", "")
 
-    nmt_model = [
-        "Helsinki-NLP/opus-mt-en-fr",
-        "Helsinki-NLP/opus-mt-ru-en",
-        "Helsinki-NLP/opus-mt-ru-es",
-        "t5-small",
-    ]
+    nmt_model = get_nmt_models()
 
-    generation_model = ["VMware/electra-small-mrqa", "timpal0l/mdeberta-v3-base-squad2"]
+    generation_model = get_generation_models()
 
     classification_model = get_classification_models()
 
-    nli_model = [
-        "cointegrated/rubert-base-cased-nli-threeway",
-        "cointegrated/rubert-tiny-bilingual-nli",
-        "cross-encoder/qnli-distilroberta-base",
-        "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
-    ]
+    nli_model = get_nli_models()
 
-    summarization_model = [
-        "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization",
-        "nandakishormpai/t5-small-machine-articles-tag-generation",
-        "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization",
-        "stevhliu/my_awesome_billsum_model",
-        "UrukHan/t5-russian-summarization",
-        "dmitry-vorobiev/rubert_ria_headlines",
-    ]
+    summarization_model = get_summurization_models()
 
-    open_qa_model = [
-        "EleutherAI/pythia-160m-deduped",
-        "JackFram/llama-68m",
-        "EleutherAI/gpt-neo-125m",
-    ]
+    open_qa_model = get_open_qa_models()
 
-    ner_model = ["dslim/distilbert-NER", "Babelscape/wikineural-multilingual-ner"]
+    ner_model = get_ner_models()
 
     if model in nmt_model:
         task = "nmt"
@@ -196,8 +183,9 @@ def main() -> None:
     """
     Run collected reference scores.
     """
-    references_path = Path(__file__).parent / "gold" / "reference_inference_analytics.json"
-    dest = Path(__file__).parent / "gold" / "reference_inference_analytics.json"
+    references_dir = Path(__file__).parent / "gold"
+    references_path = references_dir / "reference_inference_analytics.json"
+    destination_path = references_dir / "reference_inference_analytics_new.json"
 
     max_length = 120
     batch_size = 1
@@ -220,7 +208,7 @@ def main() -> None:
         predictions = get_task(model, inference_params, references[model])
         result[model] = predictions
 
-    save_reference(dest, result)
+    save_reference(destination_path, result)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,6 @@
 Collect and store model analytics.
 """
 
-# pylint: disable=import-error, assignment-from-no-return, duplicate-code, wrong-import-order
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +14,7 @@ except ImportError:
     print('Library "pandas" not installed. Failed to import.')
     DataFrame = dict  # type: ignore
 
-from admin_utils.constants import DEVICE  # isort:skip
+from admin_utils.constants import DEVICE
 from lab_7_llm.main import LLMPipeline, TaskDataset
 
 
@@ -55,8 +54,9 @@ def main() -> None:
     max_length = 120
     device = DEVICE
 
-    references_path = Path(__file__).parent / "gold" / "reference_scores.json"
-    dest = Path(__file__).parent / "gold" / "reference_model_analytics.json"
+    references_dir = Path(__file__).parent / "gold"
+    references_path = references_dir / "reference_scores.json"
+    destination_path = references_dir / "reference_model_analytics.json"
 
     references = get_references(path=references_path)
     result = {}
@@ -68,8 +68,7 @@ def main() -> None:
         )
         model_analysis = pipeline.analyze_model()
         result[model_name] = model_analysis
-
-    save_reference(dest, result)
+    save_reference(destination_path, result)
 
 
 if __name__ == "__main__":

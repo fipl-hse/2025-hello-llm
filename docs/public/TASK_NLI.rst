@@ -58,6 +58,14 @@ Datasets
       4. Delete empty rows in dataset.
       5. Reset indexes.
 
+.. note::
+
+   When obtaining this dataset, pass the following parameters to the call of
+   ``load_dataset``:
+
+   - ``revision="refs/convert/parquet"``
+   - ``data_files={"train": f"{self._hf_name}/validation/*.parquet"}``
+
 3. `XNLI <https://huggingface.co/datasets/xnli>`__
 
    1. **Lang**: RU

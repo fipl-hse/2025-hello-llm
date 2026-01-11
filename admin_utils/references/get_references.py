@@ -12,6 +12,17 @@ from tqdm import tqdm
 
 from admin_utils.constants import DEVICE
 from admin_utils.references.get_model_analytics import get_references, save_reference
+from admin_utils.references.helpers import (
+    collect_combinations,
+    get_classification_models,
+    get_generation_models,
+    get_ner_models,
+    get_nli_models,
+    get_nmt_models,
+    get_open_qa_models,
+    get_summurization_models,
+    prepare_result_section,
+)
 from config.lab_settings import InferenceParams
 from core_utils.llm.metrics import Metrics
 
@@ -35,74 +46,6 @@ class MainParams:
     metrics: list[Metrics]
 
 
-def get_classification_models() -> tuple[str, ...]:
-    """
-    Gets classification models.
-
-    Returns:
-        tuple[str, ...]: list of classification models
-    """
-    return (
-        "cointegrated/rubert-tiny-toxicity",
-        "cointegrated/rubert-tiny2-cedr-emotion-detection",
-        "papluca/xlm-roberta-base-language-detection",
-        "fabriceyhc/bert-base-uncased-ag_news",
-        "XSY/albert-base-v2-imdb-calssification",
-        "aiknowyou/it-emotion-analyzer",
-        "blanchefort/rubert-base-cased-sentiment-rusentiment",
-        "tatiana-merz/turkic-cyrillic-classifier",
-        "s-nlp/russian_toxicity_classifier",
-        "IlyaGusev/rubertconv_toxic_clf",
-    )
-
-
-def get_summurization_models() -> tuple[str, ...]:
-    """
-    Gets summarization models.
-
-    Returns:
-        tuple[str, ...]: list of classification models
-    """
-    return (
-        "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization",
-        "nandakishormpai/t5-small-machine-articles-tag-generation",
-        "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization",
-        "stevhliu/my_awesome_billsum_model",
-        "UrukHan/t5-russian-summarization",
-        "dmitry-vorobiev/rubert_ria_headlines",
-    )
-
-
-def get_nli_models() -> tuple[str, ...]:
-    """
-    Gets NLI models.
-
-    Returns:
-        tuple[str, ...]: list of classification models
-    """
-    return (
-        "cointegrated/rubert-base-cased-nli-threeway",
-        "cointegrated/rubert-tiny-bilingual-nli",
-        "cross-encoder/qnli-distilroberta-base",
-        "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
-    )
-
-
-def get_nmt_models() -> tuple[str, ...]:
-    """
-    Gets NMT models.
-
-    Returns:
-        tuple[str, ...]: list of nmt models
-    """
-    return (
-        "Helsinki-NLP/opus-mt-en-fr",
-        "Helsinki-NLP/opus-mt-ru-en",
-        "Helsinki-NLP/opus-mt-ru-es",
-        "google-t5/t5-small",
-    )
-
-
 def get_task(model: str, main_params: MainParams, inference_params: InferenceParams) -> Any:
     """
     Gets task.
@@ -120,7 +63,7 @@ def get_task(model: str, main_params: MainParams, inference_params: InferencePar
 
     nmt_model = get_nmt_models()
 
-    generation_model = ["VMware/electra-small-mrqa", "timpal0l/mdeberta-v3-base-squad2"]
+    generation_model = get_generation_models()
 
     classification_models = get_classification_models()
 
@@ -128,13 +71,9 @@ def get_task(model: str, main_params: MainParams, inference_params: InferencePar
 
     summarization_model = get_summurization_models()
 
-    open_generative_qa_model = [
-        "EleutherAI/pythia-160m-deduped",
-        "JackFram/llama-68m",
-        "EleutherAI/gpt-neo-125m",
-    ]
+    open_generative_qa_model = get_open_qa_models()
 
-    ner_model = ["dslim/distilbert-NER", "Babelscape/wikineural-multilingual-ner"]
+    ner_model = get_ner_models()
 
     if model in nmt_model:
         return get_result_for_nmt(inference_params, main_params)
@@ -154,52 +93,14 @@ def get_task(model: str, main_params: MainParams, inference_params: InferencePar
         raise ValueError(f"Unknown model {model} ...")
 
 
-def collect_combinations(
-    references: dict[str, dict[str, list[str]]],
-) -> list[tuple[str, str, list[str]]]:
-    """
-    Collects combinations of models, datasets and metrics
-
-    Args:
-        references (dict[str, dict[str, list[str]]]): references of combinations
-
-    Returns:
-        list[tuple[str, str, list[str]]]: list of combinations
-    """
-    combinations = []
-    for model_name, datasets in sorted(references.items()):
-        for dataset_name, metrics in sorted(datasets.items()):
-            combinations.append((model_name, dataset_name, metrics))
-    return combinations
-
-
-def prepare_result_section(
-    results: dict[str, dict[str, dict]], model_name: str, dataset_name: str, metrics: list[str]
-) -> None:
-    """
-    Fill results section with combination.
-
-    Args:
-        results (dict[str, dict[str, dict]]): dictionary with results
-        model_name (str): model name
-        dataset_name (str): dataset name
-        metrics (list[str]): metric names
-    """
-    if model_name not in results:
-        results[model_name] = {}
-    if dataset_name not in results[model_name]:
-        results[model_name][dataset_name] = {}
-    for metric in metrics:
-        if metric not in results[model_name][dataset_name]:
-            results[model_name][dataset_name][metric] = 0.0
-
-
 def main() -> None:
     """
     Run collected reference scores.
     """
     project_root = Path(__file__).parent.parent.parent
-    references_path = project_root / "admin_utils" / "references" / "gold" / "reference_scores.json"
+    references_dir = project_root / "admin_utils" / "references" / "gold"
+    references_path = references_dir / "reference_scores.json"
+    destination_path = references_dir / "reference_scores_new.json"
 
     dist_dir = project_root / "dist"
     dist_dir.mkdir(exist_ok=True)
@@ -217,6 +118,8 @@ def main() -> None:
 
     combos = collect_combinations(references)
     result = {}
+    if destination_path.exists():
+        result = get_references(path=destination_path)
     elements = list(enumerate(sorted(combos)))
     for _, (model_name, dataset_name, metrics) in tqdm(elements, total=len(elements)):
         print(model_name, dataset_name, metrics)

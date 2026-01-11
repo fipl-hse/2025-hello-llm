@@ -109,8 +109,9 @@ def main() -> None:
     """
     Run the collect dataset analytics.
     """
-    references_path = Path(__file__).parent / "gold" / "reference_scores.json"
-    dest = Path(__file__).parent / "gold" / "reference_dataset_analytics.json"
+    references_dir = Path(__file__).parent / "gold"
+    references_path = references_dir / "reference_scores.json"
+    destination_path = references_dir / "reference_dataset_analytics.json"
 
     references = get_references(path=references_path)
 
@@ -303,7 +304,7 @@ def main() -> None:
             raise e
         result[dataset_name] = dataset_analysis
 
-    save_reference(dest, result)
+    save_reference(destination_path, result)
 
 
 if __name__ == "__main__":

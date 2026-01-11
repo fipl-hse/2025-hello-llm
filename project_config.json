@@ -36,7 +36,9 @@
             "EIzharikov",
             "sofianurtdinova",
             "AnPruch",
-            "Evgraff2005"
+            "QuietHellsPage",
+            "Evgraff2005",
+            "dmitry-uraev"
         ],
         "pr_name_regex": "Laboratory work #\\d, \\w+ \\w+ - 2\\dFPL\\d",
         "pr_name_example": "Laboratory work #1, Andrei Kashchikhin - 21FPL2"
@@ -45,9 +47,6 @@
         "accepted_modules": {
             "typing": [
                 "*"
-            ],
-            "pathlib": [
-                "Path"
             ],
             "json": [
                 "load"

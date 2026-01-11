@@ -90,6 +90,14 @@ Datasets CLOSED QA
       5. Choose columns ``question``, ``summary``, ``answer``.
       6. Rename columns ``summary`` to ``context`` and ``answer`` to ``target``.
 
+.. note::
+
+   When obtaining this dataset, pass the following parameters to the call of
+   ``load_dataset``:
+
+   - ``revision="refs/convert/parquet"``
+   - ``data_files={"train": "wikiomnia_ruGPT3_filtered/train/*.parquet"}``
+
 Inferring batch
 ---------------
 

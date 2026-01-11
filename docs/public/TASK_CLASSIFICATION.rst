@@ -54,6 +54,13 @@ Datasets
       3. Rename column ``comment_text`` to ``source``.
       4. Reset indexes.
 
+.. note::
+
+   When obtaining this dataset, pass the following parameters to the call of
+   ``load_dataset``:
+
+   - ``revision="refs/convert/parquet"``
+
 2. `seara/ru_go_emotions <https://huggingface.co/datasets/seara/ru_go_emotions>`__
 
    1. **Lang**: RU
@@ -61,13 +68,13 @@ Datasets
    3. **Preprocess**:
 
       1. Select ``simplified`` subset.
-      2. Drop columns ``id`` and ``text``.
-      3. Convert column ``labels`` to tuple.
+      2. Convert column ``labels`` to tuple.
+      3. Drop columns ``id`` and ``text``.
       4. Remove from ``labels`` values ``0``, ``4``, ``5``, ``6``, ``7``, ``8``,
          ``10``, ``12``, ``15``, ``18``, ``21``, ``22``, ``23``.
       5. Rename column ``labels`` to ``target``.
       6. Rename column ``ru_text`` to ``source``.
-      7. Group emotions and change numbers to words:
+      7. Group emotions (leave only one label per row):
 
          1. Labels ``1``, ``13``, ``17``, ``20`` change to label ``1``.
          2. Labels ``9``, ``16``, ``24``, ``25`` change to label ``2``.
@@ -77,9 +84,12 @@ Datasets
          6. Labels ``26`` change to label ``6``.
          7. Other labels to label ``8``.
 
-      8. Delete duplicates in ``target``.
-      9. Clean column ``source``.
-      10. Reset indexes.
+      8. Drop label ``8`` from ``target``.
+      9. Put ``target`` labels in order: ``1`` to ``0`` (joy), ``2`` to ``1``
+         (sadness), ``3`` to ``2`` (fear), ``4`` to ``3`` (anger), ``6`` to
+         ``4`` (neutral), ``7`` to ``5`` (other) and
+      10. Clean column ``source``.
+      11. Reset indexes.
 
 3. `papluca/language-identification <https://huggingface.co/datasets/papluca/language-identification>`__
 
@@ -151,8 +161,17 @@ Datasets
       4. Rename column ``content`` to ``source``.
       5. Map ``target`` with class labels.
 
-.. note:: In combination with a multiclass model ``blanchefort/rubert-base-cased-sentiment-rusentiment``
-          it is necessary to bring the ``neutral`` class to the ``negative`` class at the prediction stage.
+.. note::
+
+   When obtaining this dataset, pass the following parameters to the call of
+   ``load_dataset``:
+
+   - ``revision="refs/convert/parquet"``
+
+.. note::
+
+   In combination with a multiclass model ``blanchefort/rubert-base-cased-sentiment-rusentiment``
+   it is necessary to bring the ``neutral`` class to the ``negative`` class at the prediction stage.
 
 9. `tatiana-merz/cyrillic_turkic_langs <https://huggingface.co/datasets/tatiana-merz/cyrillic_turkic_langs>`__
 
@@ -228,9 +247,16 @@ Datasets
 Supervised Fine-Tuning (SFT) Parameters
 ---------------------------------------
 
-.. note:: Set the parameter ``target_modules=["query", "key", "value", "dense"]`` for the
-          `XSY/albert-base-v2-imdb-calssification <https://hugging
-          face.co/XSY/albert-base-v2-imdb-calssification>`__ model as SFT parameter.
+.. note::
+
+   - Set the parameter ``target_modules=["query", "key", "value", "dense"]``
+     for the `XSY/albert-base-v2-imdb-calssification <https://hugging
+     face.co/XSY/albert-base-v2-imdb-calssification>`__ model as SFT parameter.
+
+   - Set the parameter ``problem_type="single_label_classification"``
+     for the `cointegrated/rubert-tiny2-cedr-emotion-detection <https://hugging
+     face.co/cointegrated/rubert-tiny2-cedr-emotion-detection>`__ when
+     initializing model instance.
 
 Metrics
 -------
