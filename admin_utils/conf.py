@@ -27,11 +27,14 @@ extensions = [
 root_doc = "admin_utils/index"
 
 intersphinx_mapping = {
-    "torch": ("https://pytorch.org/docs/stable", "config/intersphinx/pytorch.inv"),
+    "torch": ("https://pytorch.org/docs/stable", "admin_utils/intersphinx/pytorch.inv"),
     "python": ("https://docs.python.org/3", None),
-    "pandas": ("http://pandas.pydata.org/pandas-docs/stable/", "config/intersphinx/pandas.inv"),
-    "pydantic": ("https://docs.pydantic.dev/latest/", "config/intersphinx/pydantic.inv"),
-    "fastapi": ("https://fastapi.tiangolo.com/", "config/intersphinx/fastapi.inv"),
+    "pandas": (
+        "http://pandas.pydata.org/pandas-docs/stable/",
+        "admin_utils/intersphinx/pandas.inv",
+    ),
+    "pydantic": ("https://docs.pydantic.dev/latest/", "admin_utils/intersphinx/pydantic.inv"),
+    "fastapi": ("https://fastapi.tiangolo.com/", "admin_utils/intersphinx/fastapi.inv"),
 }
 
 exclude_patterns = ["venv/*", "docs/private/*"]

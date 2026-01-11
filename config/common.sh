@@ -20,13 +20,6 @@ configure_script() {
   fi
 }
 
-check_skip () {
-  python config/skip_check.py --pr_name "$1" --pr_author "$2" --lab_path "$3"
-  if [ $? -eq 0 ]; then
-    echo 'skip check due to special conditions...' && exit 0
-  fi
-}
-
 check_if_failed() {
   if [[ $? -ne 0 ]]; then
     echo "Check failed."
