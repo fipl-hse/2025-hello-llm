@@ -22,9 +22,7 @@ def main() -> None:
     Entrypoint for the listing.
     """
     # 1. Obtain dataset from HuggingFace
-    dataset = load_dataset(
-        "glue", name='mnli'
-    )
+    dataset = load_dataset("glue", name="mnli")
 
     # 2. Check dataset's subset
     print(dataset.data.keys())
@@ -50,7 +48,8 @@ def main() -> None:
     (
         dataset_df.head(100).to_csv(
             Path(__file__).parent / "assets" / "glue_mnli_example.csv",
-            index=False, encoding="utf-8"
+            index=False,
+            encoding="utf-8",
         )
     )
 

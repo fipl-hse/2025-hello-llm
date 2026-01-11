@@ -96,7 +96,7 @@ def main() -> None:
 
     # Problem 1. Automatic length collection via len() does not work
     try:
-        print(f"Number of samples in CannotIterateDataset dataset: {len(plain_dataset)}") # type: ignore
+        print(f"Number of samples in CannotIterateDataset: {len(plain_dataset)}")  # type: ignore
     except TypeError:
         print("len() method is not supported for class CannotIterateDataset")
 

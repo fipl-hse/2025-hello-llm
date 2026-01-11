@@ -2,6 +2,8 @@
 Collect and store model analytics.
 """
 
+# pylint: disable=assignment-from-no-return
+
 from pathlib import Path
 from typing import Any
 
