@@ -12,8 +12,8 @@ Models
 | `cointegrated/rubert-base-cased-nli-threeway <https://            | RU   |
 | huggingface.co/cointegrated/rubert-base-cased-nli-threeway>`__    |      |
 +-------------------------------------------------------------------+------+
-| `cointegrated/rubert-tiny-bilingual-nli                           | RU   |
-| <huggingface.co/cointegrated/rubert-tiny-bilingual-nli>`__        |      |
+| `cointegrated/rubert-tiny-bilingual-nli <https://                 | RU   |
+| huggingface.co/cointegrated/rubert-tiny-bilingual-nli>`__         |      |
 +-------------------------------------------------------------------+------+
 | `cross-encoder/qnli-distilroberta-base                            | EN   |
 | <https://huggingface.co/cross-encoder/qnli-distilroberta-base>`__ |      |
@@ -53,10 +53,11 @@ Datasets
    3. **Preprocess**:
 
       1. Select ``terra`` subset.
-      2. Rename column ``label`` to  ``target``.
-      3. Delete duplicates in dataset.
-      4. Delete empty rows in dataset.
-      5. Reset indexes.
+      2. Select ``validation`` split.
+      3. Rename column ``label`` to  ``target``.
+      4. Delete duplicates in dataset.
+      5. Delete empty rows in dataset.
+      6. Reset indexes.
 
 .. note::
 
@@ -66,44 +67,47 @@ Datasets
    - ``revision="refs/convert/parquet"``
    - ``data_files={"train": f"{self._hf_name}/validation/*.parquet"}``
 
-3. `XNLI <https://huggingface.co/datasets/xnli>`__
+3. `XNLI <https://huggingface.co/datasets/facebook/xnli>`__
 
    1. **Lang**: RU
    2. **Rows**: 2490
    3. **Preprocess**:
 
       1. Select ``ru`` subset.
-      2. Rename column ``label`` to  ``target``.
-      3. Delete duplicates in dataset.
-      4. Delete empty rows in dataset.
-      5. Reset indexes.
+      2. Select ``validation`` split.
+      3. Rename column ``label`` to  ``target``.
+      4. Delete duplicates in dataset.
+      5. Delete empty rows in dataset.
+      6. Reset indexes.
 
-4. `GLUE QNLI <https://huggingface.co/datasets/glue>`__
+4. `GLUE QNLI <https://huggingface.co/datasets/nyu-mll/glue>`__
 
    1. **Lang**: EN
    2. **Rows**: 5463
    3. **Preprocess**:
 
       1. Select ``qnli`` subset.
-      2. Rename column ``question`` to  ``premise``.
-      3. Rename column ``sentence`` to  ``hypothesis``.
-      4. Rename column ``label`` to  ``target``.
-      5. Delete duplicates in dataset.
-      6. Delete empty rows in dataset.
-      7. Map ``target`` with class labels.
-      8. Reset indexes.
+      2. Select ``validation`` split.
+      3. Rename column ``question`` to  ``premise``.
+      4. Rename column ``sentence`` to  ``hypothesis``.
+      5. Rename column ``label`` to  ``target``.
+      6. Delete duplicates in dataset.
+      7. Delete empty rows in dataset.
+      8. Map ``target`` with class labels.
+      9. Reset indexes.
 
-5. `GLUE MNLI <https://huggingface.co/datasets/glue>`__
+5. `GLUE MNLI <https://huggingface.co/datasets/nyu-mll/glue>`__
 
    1. **Lang**: EN
    2. **Rows**: 9815
    3. **Preprocess**:
 
       1. Select ``mnli`` subset.
-      2. Rename column ``label`` to  ``target``.
-      3. Delete duplicates in dataset.
-      4. Delete empty rows in dataset.
-      5. Reset indexes.
+      2. Select ``validation_matched`` split.
+      3. Rename column ``label`` to  ``target``.
+      4. Delete duplicates in dataset.
+      5. Delete empty rows in dataset.
+      6. Reset indexes.
 
 Supervised Fine-Tuning (SFT) Parameters
 ---------------------------------------

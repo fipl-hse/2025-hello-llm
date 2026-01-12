@@ -29,36 +29,38 @@ Models
 Datasets CLOSED QA
 ------------------
 
-1. `starmpcc/Asclepius-Synthetic-Clinical-Notes <https://huggingface.co/datasets/starmpcc/Asclepius-Synthetic-Clinical-Notes?row=61>`__
+1. `starmpcc/Asclepius-Synthetic-Clinical-Notes <https://huggingface.co/datasets/starmpcc/Asclepius-Synthetic-Clinical-Notes>`__
 
    1. **Lang**: EN
    2. **Rows**: 20038
    3. **Preprocess**:
 
-      1. Choose task ``Question Answering``.
-      2. Choose columns ``note``, ``question`` and ``answer``.
-      3. Rename column ``note`` to ``context``.
-      4. Rename column ``answer`` to ``target``.
-      5. Reset indexes.
+      1. Select ``train`` split.
+      2. Choose task ``Question Answering``.
+      3. Choose columns ``note``, ``question`` and ``answer``.
+      4. Rename column ``note`` to ``context``.
+      5. Rename column ``answer`` to ``target``.
+      6. Reset indexes.
 
-2. `lionelchg/dolly_closed_qa <https://huggingface.co/datasets/lionelchg/dolly_closed_qa?row=0>`__
+2. `lionelchg/dolly_closed_qa <https://huggingface.co/datasets/lionelchg/dolly_closed_qa>`__
 
    1. **Lang**: EN
-   2. **Rows**: 1773
+   2. **Rows**: 89
    3. **Preprocess**:
 
-      1. Choose columns ``instruction``, ``context`` and ``response``.
-      2. Rename column ``instruction`` to ``question``.
-      3. Rename column ``response`` to ``target``.
-      4. Reset indexes.
+      1. Select ``test`` split.
+      2. Choose columns ``instruction``, ``context`` and ``response``.
+      3. Rename column ``instruction`` to ``question``.
+      4. Rename column ``response`` to ``target``.
+      5. Reset indexes.
 
-3. `HuggingFaceH4/no_robots <https://huggingface.co/datasets/HuggingFaceH4/no_robots?row=12>`__
+3. `HuggingFaceH4/no_robots <https://huggingface.co/datasets/HuggingFaceH4/no_robots>`__
 
    1. **Lang**: EN
    2. **Rows**: 260
    3. **Preprocess**:
 
-      1. Select ``train_sft`` split.
+      1. Select ``train`` split.
       2. Choose category ``Closed QA``.
       3. Choose columns ``prompt``, ``messages``.
       4. Convert column ``messages`` to string, using f-string.
@@ -66,7 +68,7 @@ Datasets CLOSED QA
       6. Reset indexes.
       7. Process column ``messages`` with raw text into two columns ``context`` and ``answer``.
 
-4. `sberquad <https://huggingface.co/datasets/sberquad>`__
+4. `sberquad <https://huggingface.co/datasets/kuznetsoffandrey/sberquad>`__
 
    1. **Lang**: RU
    2. **Rows**: 5040
@@ -85,7 +87,7 @@ Datasets CLOSED QA
 
       1. Select ``train`` split and ```wikiomnia_ruGPT3_filtered`` subset.
       2. Drop NaN.
-      3. Drop duplicates
+      3. Drop duplicates.
       4. Reset indexes.
       5. Choose columns ``question``, ``summary``, ``answer``.
       6. Rename columns ``summary`` to ``context`` and ``answer`` to ``target``.
@@ -127,15 +129,16 @@ Metrics CLOSED QA
 Datasets OPEN QA
 ----------------
 
-1. `truthful_qa <https://huggingface.co/datasets/truthful_qa>`__
+1. `truthful_qa <https://huggingface.co/datasets/domenicrosati/TruthfulQA>`__
 
    1. **Lang**: EN
    2. **Rows**: 817
    3. **Preprocess**:
 
-      1. Drop columns ``type``, ``category``, ``correct_answers``,
+      1. Select ``train`` split.
+      2. Drop columns ``type``, ``category``, ``correct_answers``,
          ``incorrect_answers``, ``source``.
-      2. Rename column ``best_answer`` to ``target``.
+      3. Rename column ``best_answer`` to ``target``.
 
 2. `jtatman/databricks-dolly-8k-qa-open-close <https://huggingface.co/datasets/jtatman/databricks-dolly-8k-qa-open-close>`__
 
@@ -143,10 +146,11 @@ Datasets OPEN QA
    2. **Rows**: 7706
    3. **Preprocess**:
 
-      1. Filter dataset rows by ``category`` == ``open_qa``.
-      2. Drop columns ``context``, ``category``, ``__index_level_0__``.
-      3. Rename column ``instruction`` to ``question``.
-      4. Rename column ``response`` to ``target``.
+      1. Select ``train`` split.
+      2. Filter dataset rows by ``category`` == ``open_qa``.
+      3. Drop columns ``context``, ``category``, ``__index_level_0__``.
+      4. Rename column ``instruction`` to ``question``.
+      5. Rename column ``response`` to ``target``.
 
 3. `tatsu-lab/alpaca <https://huggingface.co/datasets/tatsu-lab/alpaca>`__
 
@@ -154,9 +158,10 @@ Datasets OPEN QA
    2. **Rows**: 52002
    3. **Preprocess**:
 
-      1. Drop columns ``input``, ``text``.
-      2. Rename column ``instruction`` to ``question``.
-      3. Rename column ``output`` to ``target``.
+      1. Select ``train`` split.
+      2. Drop columns ``input``, ``text``.
+      3. Rename column ``instruction`` to ``question``.
+      4. Rename column ``output`` to ``target``.
 
 4. `lionelchg/dolly_open_qa <https://huggingface.co/datasets/lionelchg/dolly_open_qa>`__
 
@@ -164,9 +169,10 @@ Datasets OPEN QA
    2. **Rows**: 188
    3. **Preprocess**:
 
-      1. Drop columns ``context``, ``category``, ``text``.
-      2. Rename column ``instruction`` to ``question``.
-      3. Rename column ``response`` to ``target``.
+      1. Select ``test`` split.
+      2. Drop columns ``context``, ``category``, ``text``.
+      3. Rename column ``instruction`` to ``question``.
+      4. Rename column ``response`` to ``target``.
 
 Metrics OPEN QA
 ---------------

@@ -49,10 +49,11 @@ Datasets
    2. **Rows**: 31915
    3. **Preprocess**:
 
-      1. Drop column ``id``.
-      2. Rename column ``label`` to ``target``.
-      3. Rename column ``comment_text`` to ``source``.
-      4. Reset indexes.
+      1. Select ``validation`` split.
+      2. Drop column ``id``.
+      3. Rename column ``label`` to ``target``.
+      4. Rename column ``comment_text`` to ``source``.
+      5. Reset indexes.
 
 .. note::
 
@@ -68,13 +69,14 @@ Datasets
    3. **Preprocess**:
 
       1. Select ``simplified`` subset.
-      2. Convert column ``labels`` to tuple.
-      3. Drop columns ``id`` and ``text``.
-      4. Remove from ``labels`` values ``0``, ``4``, ``5``, ``6``, ``7``, ``8``,
+      2. Select ``validation`` split.
+      3. Convert column ``labels`` to tuple.
+      4. Drop columns ``id`` and ``text``.
+      5. Remove from ``labels`` values ``0``, ``4``, ``5``, ``6``, ``7``, ``8``,
          ``10``, ``12``, ``15``, ``18``, ``21``, ``22``, ``23``.
-      5. Rename column ``labels`` to ``target``.
-      6. Rename column ``ru_text`` to ``source``.
-      7. Group emotions (leave only one label per row):
+      6. Rename column ``labels`` to ``target``.
+      7. Rename column ``ru_text`` to ``source``.
+      8. Group emotions (leave only one label per row):
 
          1. Labels ``1``, ``13``, ``17``, ``20`` change to label ``1``.
          2. Labels ``9``, ``16``, ``24``, ``25`` change to label ``2``.
@@ -84,12 +86,12 @@ Datasets
          6. Labels ``26`` change to label ``6``.
          7. Other labels to label ``8``.
 
-      8. Drop label ``8`` from ``target``.
-      9. Put ``target`` labels in order: ``1`` to ``0`` (joy), ``2`` to ``1``
-         (sadness), ``3`` to ``2`` (fear), ``4`` to ``3`` (anger), ``6`` to
-         ``4`` (neutral), ``7`` to ``5`` (other) and
-      10. Clean column ``source``.
-      11. Reset indexes.
+      9. Drop label ``8`` from ``target``.
+      10. Put ``target`` labels in order: ``1`` to ``0`` (joy), ``2`` to ``1``
+          (sadness), ``3`` to ``2`` (fear), ``4`` to ``3`` (anger), ``6`` to
+          ``4`` (neutral), ``7`` to ``5`` (other) and
+      11. Clean column ``source``.
+      12. Reset indexes.
 
 3. `papluca/language-identification <https://huggingface.co/datasets/papluca/language-identification>`__
 
@@ -97,22 +99,24 @@ Datasets
    2. **Rows**: 10000
    3. **Preprocess**:
 
-      1. Rename column ``labels`` to ``target``.
-      2. Rename column ``text`` to ``source``.
-      3. Map language abbreviation to label classes.
-      4. Reset indexes.
+      1. Select ``validation`` split.
+      2. Rename column ``labels`` to ``target``.
+      3. Rename column ``text`` to ``source``.
+      4. Map language abbreviation to label classes.
+      5. Reset indexes.
 
-4. `ag_news <https://huggingface.co/datasets/ag_news>`__
+4. `ag_news <https://huggingface.co/datasets/fancyzhx/ag_news>`__
 
    1. **Lang**: EN
    2. **Rows**: 7600
    3. **Preprocess**:
 
-      1. Rename column ``label`` to ``target``.
-      2. Rename column ``text`` to ``source``.
-      3. Reset indexes.
+      1. Select ``test`` split.
+      2. Rename column ``label`` to ``target``.
+      3. Rename column ``text`` to ``source``.
+      4. Reset indexes.
 
-5. `imdb <https://huggingface.co/datasets/imdb>`__
+5. `imdb <https://huggingface.co/datasets/stanfordnlp/imdb>`__
 
    1. **Lang**: EN
    2. **Rows**: 25000
@@ -190,11 +194,12 @@ Datasets
    2. **Rows**: 6350
    3. **Preprocess**:
 
-      1. Rename column ``toxic`` to ``target``.
-      2. Rename column ``neutral`` to ``source``.
-      3. Delete duplicates in dataset.
-      4. Map ``target`` with class labels.
-      5. Reset indexes.
+      1. Select ``train`` split.
+      2. Rename column ``toxic`` to ``target``.
+      3. Rename column ``neutral`` to ``source``.
+      4. Delete duplicates in dataset.
+      5. Map ``target`` with class labels.
+      6. Reset indexes.
 
 11. `d0rj/rudetoxifier_data <https://huggingface.co/datasets/d0rj/rudetoxifier_data>`__
 
@@ -212,13 +217,14 @@ Datasets
    2. **Rows**: 20900
    3. **Preprocess**:
 
-      1. Rename column ``reasons`` to ``target``.
-      2. Rename column ``toxic_comment`` to ``source``.
-      3. Rename ``{"toxic_content":true}`` label to ``1``
+      1. Select ``train`` split.
+      2. Rename column ``reasons`` to ``target``.
+      3. Rename column ``toxic_comment`` to ``source``.
+      4. Rename ``{"toxic_content":true}`` label to ``1``
          and ``{"not_toxic":true}`` label to ``0``.
-      4. Remove irrelevant rows in dataset.
-      5. Delete duplicates in dataset.
-      6. Reset indexes.
+      5. Remove irrelevant rows in dataset.
+      6. Delete duplicates in dataset.
+      7. Reset indexes.
 
 13. `Arsive/toxicity_classification_jigsaw <https://huggingface.co/datasets/Arsive/toxicity_classification_jigsaw>`__
 
