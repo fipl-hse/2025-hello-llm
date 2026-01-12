@@ -35,7 +35,7 @@ Hello, LLM! для 4-го курса ФПЛ (2025/2026)
 
 1. `Лабораторная работа №7. Оценка нейросетевой языковой модели <https://github.com/fipl-hse/2025-hello-llm/tree/main/lab_7_llm>`__
 
-   1. Дедлайн: TBD
+   1. Дедлайн: 9 февраля
 
 2. TBD
 
@@ -103,9 +103,9 @@ Hello, LLM! для 4-го курса ФПЛ (2025/2026)
 -------
 
 1. `Таблица
-   успеваемости`
-2. `Таблица
-   c моделями и датасетами`
+   успеваемости <https://docs.google.com/spreadsheets/d/1IGAPCXsjj6dmxrdGqRemwfq5BtLDDxrrNcz-omkEHGs/edit?usp=sharing>`__
+2. `Таблица c моделями и
+   датасетами <https://docs.google.com/spreadsheets/d/1UEEylqXeSjtFyUtPzyEMiFhhdCukmmuIG4d1ne0y_mU/edit?usp=sharing>`__
 3. `Сайт дисциплины <https://fipl-hse.github.io/docs/llm_2025/#>`__
 4. Инструкция по подготовке к прохождению курса
    `на сайте <https://fipl-hse.github.io/docs/useful_docs/general_docs/starting_guide_ru.html>`__

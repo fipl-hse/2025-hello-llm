@@ -26,7 +26,8 @@ class WebServiceTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls._app = app
 
-        cls._client = TestClient(app)
+        if app is not None:
+            cls._client = TestClient(app)
 
     @pytest.mark.lab_7_llm
     @pytest.mark.mark10

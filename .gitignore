@@ -225,5 +225,5 @@ out
 config/website/test_sphinx_project/_build
 
 # vscode
-.vscode/
+#.vscode/
 

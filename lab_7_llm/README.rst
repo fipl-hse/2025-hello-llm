@@ -165,7 +165,7 @@ Stage 0. Start working on the laboratory work
 
 Start your implementation by selecting a model and dataset you are going to use.
 You can find all available combinations
-in the `table <https://docs.google.com/spreadsheets/d/1_GTEa3RUkOqdZ82q1SrD7YkOeV3fr8APNcUAC6o0K4M/edit?usp=sharing>`__.
+in the `table <https://docs.google.com/spreadsheets/d/1UEEylqXeSjtFyUtPzyEMiFhhdCukmmuIG4d1ne0y_mU/>`__.
 
 .. note:: All logic for instantiating and using needed abstractions
           should be implemented in a ``main()`` function of a ``start.py`` module.
@@ -222,7 +222,7 @@ Implement :py:meth:`lab_7_llm.main.RawDataImporter.obtain` method
 which allows to download dataset and fill ``self._raw_data`` attribute.
 
 You have to use
-`load_dataset() <https://huggingface.co/docs/datasets/v2.15.0/en
+`load_dataset() <https://huggingface.co/docs/datasets/v4.4.2/en
 /package_reference/loading_methods#datasets.load_dataset>`__ function
 from ``datasets`` module.
 
@@ -607,7 +607,7 @@ references using the specified metric.
                which you can find in :ref:`summarization-label`.
 
 .. note:: To compute the metrics you have to use
-          `compute() <https://huggingface.co/docs/datasets/v2.15.0/
+          `compute() <https://huggingface.co/docs/datasets/v4.4.2/
           en/package_reference/main_classes#datasets.Metric.compute>`__
           method from ``evaluate`` module.
 
