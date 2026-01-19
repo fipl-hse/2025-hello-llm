@@ -1,7 +1,7 @@
 {
   "parameters": {
     "model": "",
-    "dataset": "",
+    "dataset": "https://huggingface.co/datasets/stanfordnlp/imdb",
     "metrics": []
   },
   "target_score": 0
