@@ -3,9 +3,22 @@ Laboratory work.
 
 Working with Large Language Models.
 """
-
+from pathlib import Path
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
+
+import pandas as pd
+import re
+import torch
+from datasets import load_dataset, Dataset
+from pandas import DataFrame
+
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -21,7 +34,12 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        self._raw_data = load_dataset(
+            self._hf_name, "seara/ru_go_emotions", name="simplified", split="validation"
+        ).to_pandas()
 
+        if not isinstance(self._raw_data, pd.DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -36,12 +54,51 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        return {
+           "dataset_number_of_samples": len(self._raw_data),
+            "dataset_columns": len(self._raw_data.columns),
+            "dataset_duplicates": self._raw_data.duplicated().sum(),
+            "dataset_empty_rows": self._raw_data.isna().any(axis=1).sum(),
+            "dataset_sample_min_len": min(len(str(row)) for row in self._raw_data['source']),
+            "dataset_sample_max_len": max(len(str(row)) for row in self._raw_data['source'])
+        }
 
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        self._data = self._raw_data.copy()
+        self._data["labels"] = self._data["labels"].apply(tuple)
+        self._data = self._data.drop(columns=['id', 'text'], inplace=True)
+        self._data = self._data[self._data['labels'].isin({0, 4, 5, 6, 7, 8, 10, 12, 15, 18, 21, 22, 23})]
+        self._data = self._data.rename(columns={"labels": "target", "ru_text": "source"})
+        self._data['target'] = self._data['target'].apply(
+            lambda x: (
+                1 if x in {1, 13, 17, 20} else
+                2 if x in {9, 16, 24, 25} else
+                3 if x in {14, 19} else
+                4 if x in {2, 3} else
+                5 if x == 27 else
+                6 if x == 26 else
+                8
+            )
+        )
+        self._data = self._data[self._data['target'] != 8]
+        self._data = self._data['target'] = self._data['target'].apply(
+        lambda x: {
+            1: 0,
+            2: 1,
+            3: 2,
+            4: 3,
+            6: 4,
+            5: 5
+        }[x]
+        )
+        self._data['source'] = self._data['source'].apply(lambda x: re.sub(
+            r'[^\w\s]', '', x.strip())
+                                                          )
+        self._data.reset_index(drop=True, inplace=True)
 
 
 class TaskDataset(Dataset):
