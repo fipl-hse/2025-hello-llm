@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
+    "model": "blanchefort/rubert-base-cased-sentiment-rusentiment",
+    "dataset": "blinoff/healthcare_facilities_reviews",
     "metrics": []
   },
-  "target_score": 0
+  "target_score": 4
 }
