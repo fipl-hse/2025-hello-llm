@@ -45,7 +45,6 @@ exclude = [
     'venv*',
     'build/'
 ]
-application_import_names = ['config']
 select = ['I']
 count = true
 
@@ -70,7 +69,6 @@ group_by_package = true
 force_alphabetical_sort_within_sections = true
 src_paths = [
     "admin_utils",
-    "config",
     "core_utils",
     "lab_7_llm",
 ]
