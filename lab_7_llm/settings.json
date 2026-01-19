@@ -1,7 +1,7 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
+    "model": "blanchefort/rubert-base-cased-sentiment-rusentiment",
+    "dataset": "blinoff/kinopoisk",
     "metrics": []
   },
   "target_score": 4

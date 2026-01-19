@@ -5,10 +5,19 @@ Working with Large Language Models.
 """
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
+from datasets import load_dataset, Dataset
+from pathlib import Path
 from typing import Iterable, Sequence
+from pandas import DataFrame
 
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
+
+import pandas as pd
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -24,6 +33,7 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        self._raw_data = load_dataset(self._hf_name, revision="refs/convert/parquet", split="train").to_pandas()
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -44,7 +54,17 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        print(self._raw_data["grade3"].unique())
+        self._raw_data = self._raw_data[["content", "grade3"]]
+        self._raw_data = self._raw_data.rename(
+            columns={"content": "source", "grade3": "target"}
+        )
+        self._data = self._raw_data.dropna().drop_duplicates()
+        self._data["target"] = self._data["target"].apply(lambda x: "1" if x == "Good" else x)
+        self._data["target"] = self._data["target"].apply(lambda x: "0" if x == "Neutral" else x)
+        self._data["target"] = self._data["target"].apply(lambda x: "2" if x == "Bad" else x)
 
+        self._data = self._data.reset_index()
 
 class TaskDataset(Dataset):
     """
@@ -136,7 +156,7 @@ class LLMPipeline(AbstractLLMPipeline):
             pd.DataFrame: Data with predictions
         """
 
-    @torch.no_grad()
+   # @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
         """
         Infer model on a single batch.
