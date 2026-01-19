@@ -4,20 +4,23 @@ Starter for demonstration of laboratory work.
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import
 import json
+from pathlib import Path
 
+from config.lab_settings import LabSettings
 from core_utils.llm.time_decorator import report_time
-from main import RawDataImporter
+from lab_7_llm.main import RawDataImporter
+
 
 @report_time
 def main() -> None:
     """
     Run the translation pipeline.
     """
-    with open("settings.json", "r") as file:
-        settings = json.load(file)
-
+    settings = LabSettings(Path(__file__).parent / "settings.json")
     importer = RawDataImporter(settings.parameters.dataset)
-    result = None
+    importer.obtain()
+
+    result = importer
     assert result is not None, "Demo does not work correctly"
 
 
