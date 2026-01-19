@@ -119,6 +119,21 @@ disable_error_code = [
 
 [[tool.mypy.overrides]]
 module = [
+    'admin_utils.external_pr_files.create_external_pr',
+    'admin_utils.github.update_forks',
+    'admin_utils.github.update_fork',
+    'admin_utils.uml.uml_diagrams_builder',
+    'admin_utils.uml.check_diagrams',
+    'admin_utils.website.api_generator.generate_api_docs',
+]
+disable_error_code = [
+    'import-untyped',
+    'no-any-unimported',
+    'no-any-return',
+]
+
+[[tool.mypy.overrides]]
+module = [
     'core_utils.llm.llm_pipeline',
     'core_utils.llm.sft_pipeline',
     'lab_7_llm.service',
