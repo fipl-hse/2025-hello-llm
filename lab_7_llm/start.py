@@ -7,7 +7,7 @@ from pathlib import Path
 
 from config.lab_settings import LabSettings
 from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor
+from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset
 
 
 @report_time
@@ -23,6 +23,8 @@ def main() -> None:
     print('Dataset overview')
     for feature in preprocessor.analyze().items():
         print(f'{feature[0]}: {feature[1]}')
+
+    dataset = TaskDataset(preprocessor.data.head(100))
 
     result = preprocessor
     assert result is not None, "Demo does not work correctly"
