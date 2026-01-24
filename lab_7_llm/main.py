@@ -10,8 +10,9 @@ from typing import Iterable, Sequence
 import pandas as pd
 import re
 import torch
-from datasets import load_dataset, Dataset
+from datasets import load_dataset
 from pandas import DataFrame
+from torch.utils.data import Dataset
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
