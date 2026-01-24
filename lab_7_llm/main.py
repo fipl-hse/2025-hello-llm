@@ -10,13 +10,14 @@ from typing import Iterable, Sequence
 import pandas as pd
 import re
 import torch
+from torchinfo import summary
 from datasets import load_dataset, Dataset
 from pandas import DataFrame
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
-from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
@@ -75,8 +76,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         self._data = self._raw_data.copy()
         self._data["labels"] = self._data["labels"].apply(tuple)
-        self._data = self._data.drop(columns=['id', 'text'], inplace=True)
-        self._data = self._data[self._data['labels'].isin({0, 4, 5, 6, 7, 8, 10, 12, 15, 18, 21, 22, 23})]
+        valid_indices = self._data['labels'].isin({0, 4, 5, 6, 7, 8, 10, 12, 15, 18, 21, 22, 23})
+        self._data = self._data.loc[valid_indices].copy()
         self._data = self._data.rename(columns={"labels": "target", "ru_text": "source"})
         self._data['target'] = self._data['target'].apply(
             lambda x: (
@@ -90,16 +91,18 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             )
         )
         self._data = self._data[self._data['target'] != 8]
-        self._data = self._data['target'] = self._data['target'].apply(
-        lambda x: {
-            1: 0,
-            2: 1,
-            3: 2,
-            4: 3,
-            6: 4,
-            7: 5
-        }[x]
+        updated_target_column = self._data['target'].apply(
+            lambda x: {
+                1: 0,
+                2: 1,
+                3: 2,
+                4: 3,
+                6: 4,
+                7: 5
+            }.get(x, x)
         )
+
+        self._data['target'] = updated_target_column
         self._data['source'] = self._data['source'].apply(lambda x: re.sub(
             r'[^\w\s]', '', x.strip())
                                                           )
@@ -118,6 +121,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data
 
     def __len__(self) -> int:
         """
@@ -126,6 +130,7 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -137,6 +142,10 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        text = self._data.iloc[index]['source']
+        target = self._data.iloc[index]['target']
+
+        return (text, target)
 
     @property
     def data(self) -> DataFrame:
@@ -146,6 +155,7 @@ class TaskDataset(Dataset):
         Returns:
             pandas.DataFrame: Preprocessed DataFrame
         """
+        return self._data
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -167,6 +177,8 @@ class LLMPipeline(AbstractLLMPipeline):
             device (str): The device for inference
         """
 
+
+
     def analyze_model(self) -> dict:
         """
         Analyze model computing properties.
@@ -174,6 +186,8 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+
+
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
