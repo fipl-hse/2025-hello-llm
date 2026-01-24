@@ -35,6 +35,9 @@ class RawDataImporter(AbstractRawDataImporter):
         """
         self._raw_data = load_dataset(self._hf_name, revision="refs/convert/parquet", split="train").to_pandas()
 
+        if not isinstance(self._raw_data, pd.DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
+
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
     """
@@ -48,13 +51,29 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        if self._raw_data is None or self._raw_data.empty:
+            return {}
+
+        dataset_number_of_samples = len(self._raw_data)
+        dataset_columns = len(self._raw_data.columns)
+        dataset_duplicates = len(self._raw_data[self._raw_data.duplicated()])
+        dataset_empty_rows = len(self._raw_data[self._raw_data.isna().any(axis=1)])
+        len_text = [len(row) for row in self._raw_data['content'].dropna()]
+
+        return {
+            'dataset_number_of_samples': dataset_number_of_samples,
+            'dataset_columns': dataset_columns,
+            'dataset_duplicates': dataset_duplicates,
+            'dataset_empty_rows': dataset_empty_rows,
+            'dataset_sample_min_len': min(len_text),
+            'dataset_sample_max_len': max(len_text),
+        }
 
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
-        print(self._raw_data["grade3"].unique())
         self._raw_data = self._raw_data[["content", "grade3"]]
         self._raw_data = self._raw_data.rename(
             columns={"content": "source", "grade3": "target"}
@@ -65,6 +84,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         self._data["target"] = self._data["target"].apply(lambda x: "2" if x == "Bad" else x)
 
         self._data = self._data.reset_index()
+
 
 class TaskDataset(Dataset):
     """
@@ -156,7 +176,7 @@ class LLMPipeline(AbstractLLMPipeline):
             pd.DataFrame: Data with predictions
         """
 
-   # @torch.no_grad()
+    #@torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
         """
         Infer model on a single batch.
