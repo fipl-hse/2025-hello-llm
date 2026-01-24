@@ -10,7 +10,6 @@ from typing import Iterable, Sequence
 import pandas as pd
 import re
 import torch
-from torchinfo import summary
 from datasets import load_dataset, Dataset
 from pandas import DataFrame
 
