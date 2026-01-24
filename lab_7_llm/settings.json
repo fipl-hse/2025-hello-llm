@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
+    "model": "dmitry-vorobiev/rubert_ria_headlines",
+    "dataset": "d0rj/curation-corpus-ru",
     "metrics": []
   },
-  "target_score": 0
+  "target_score": 4
 }

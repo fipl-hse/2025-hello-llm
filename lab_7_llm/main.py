@@ -3,9 +3,14 @@ Laboratory work.
 
 Working with Large Language Models.
 """
+import pandas as pd
+from datasets import load_dataset
+
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.time_decorator import report_time
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
-from typing import Iterable, Sequence
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -21,6 +26,15 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        dataset = load_dataset(
+                self._hf_name,
+                split="train"
+        )
+
+        self._raw_data = dataset.to_pandas()
+
+        if not isinstance(self._raw_data, pd.DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -35,12 +49,77 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        if self._raw_data is None or self._raw_data.empty:
+            return {}
+
+        dataset_number_of_samples = len(self._raw_data)
+        dataset_columns = len(self._raw_data.columns)
+
+        dataset_duplicates = int(self._raw_data.duplicated().sum())
+
+        dataset_empty_rows = int(self._raw_data.isnull().all(axis=1).sum())
+
+        text_column = 'article_content'
+
+        if text_column in self._raw_data.columns:
+            non_empty_df = self._raw_data.dropna(subset=[text_column])
+
+            text_lengths = non_empty_df[text_column].astype(str).str.len()
+
+            if len(text_lengths) > 0:
+                dataset_sample_min_len = int(text_lengths.min())
+                dataset_sample_max_len = int(text_lengths.max())
+            else:
+                dataset_sample_min_len = 0
+                dataset_sample_max_len = 0
+        else:
+            dataset_sample_min_len = 0
+            dataset_sample_max_len = 0
+
+        return {
+            "dataset_number_of_samples": dataset_number_of_samples,
+            "dataset_columns": dataset_columns,
+            "dataset_duplicates": dataset_duplicates,
+            "dataset_empty_rows": dataset_empty_rows,
+            "dataset_sample_min_len": dataset_sample_min_len,
+            "dataset_sample_max_len": dataset_sample_max_len
+        }
 
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        if self._raw_data is None:
+            return
+
+        processed_data = self._raw_data.copy()
+
+        columns_to_drop = ['title', 'date', 'url']
+
+        existing_columns = [col for col in columns_to_drop if col in processed_data.columns]
+        if existing_columns:
+            processed_data = processed_data.drop(columns=existing_columns)
+
+        if 'article_content' in processed_data.columns:
+            processed_data = processed_data.rename(
+                columns={'article_content': ColumnNames.SOURCE}
+            )
+
+        if 'summary' in processed_data.columns:
+            processed_data = processed_data.rename(
+                columns={'summary': ColumnNames.TARGET}
+            )
+
+        processed_data = processed_data.reset_index(drop=True)
+
+        if ColumnNames.SOURCE in processed_data.columns:
+            processed_data = processed_data.dropna(subset=[ColumnNames.SOURCE])
+
+        if ColumnNames.TARGET in processed_data.columns:
+            processed_data = processed_data.dropna(subset=[ColumnNames.TARGET])
+
+        self._data = processed_data
 
 
 class TaskDataset(Dataset):
