@@ -6,11 +6,18 @@ Working with Large Language Models.
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
-from core_utils.llm.raw_data_importer import AbstractRawDataImporter
-from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
-from core_utils.llm.llm_pipeline import AbstractLLMPipeline
-from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+import pandas as pd
+import torch
+from pathlib import Path
+from datasets import load_dataset
+from torch.utils.data import Dataset
 
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 
 class RawDataImporter(AbstractRawDataImporter):
     """
@@ -25,6 +32,10 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        ds = load_dataset(self._hf_name, split='validation')
+        self._raw_data = ds.to_pandas()
+        if not isinstance(self._raw_data, pd.DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -80,7 +91,7 @@ class TaskDataset(Dataset):
         """
 
     @property
-    def data(self) -> DataFrame:
+    def data(self) -> pd.DataFrame:
         """
         Property with access to preprocessed DataFrame.
 
