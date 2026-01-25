@@ -50,6 +50,15 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        df = self._raw_data
+        result = {'dataset_number_of_samples': len(df),
+                  'dataset_columns': len(df.columns),
+                  'dataset_duplicates': df.duplicated().sum(),
+                  'dataset_empty_rows': df.isna().any(axis=1).sum()}
+        source = df['text'].dropna()
+        result['dataset_sample_min_len'] = min(source.apply(len))
+        result['dataset_sample_max_len'] = max(source.apply(len))
+        return result
 
     @report_time
     def transform(self) -> None:
