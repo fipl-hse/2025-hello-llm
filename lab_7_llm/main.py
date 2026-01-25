@@ -70,8 +70,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         return {
             "dataset_number_of_samples": len(self._raw_data),
             "dataset_columns": len(self._raw_data.columns),
-            "dataset_duplicates": self._raw_data.duplicated().sum(),
-            "dataset_empty_rows": self._raw_data.isna().sum(),
+            "dataset_duplicates": int(self._raw_data.duplicated().sum()),
+            "dataset_empty_rows": self._raw_data.isna().any(axis=1).sum(),
             "dataset_sample_min_len": int(min(all_lengths)),
             "dataset_sample_max_len": int(max(all_lengths)),
         }
