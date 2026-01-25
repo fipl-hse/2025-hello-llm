@@ -41,58 +41,50 @@ Datasets
    2. **Rows**: 973
    3. **Preprocess**:
 
-      1. Rename column ``report`` to ``source``.
-      2. Rename column ``summary`` to ``target``.
-      3. Reset indexes.
+      1. Select ``test`` split.
+      2. Rename column ``report`` to ``source``.
+      3. Rename column ``summary`` to ``target``.
+      4. Reset indexes.
 
-2. `cnn_dailymail <https://huggingface.co/datasets/cnn_dailymail>`__
+2. `cnn_dailymail <https://huggingface.co/datasets/abisee/cnn_dailymail>`__
 
    1. **Lang**: EN
    2. **Rows**: 11490
    3. **Preprocess**:
 
       1. Select ``1.0.0`` subset.
-      2. Drop columns ``id``.
-      3. Rename column ``article`` to ``source``.
-      4. Rename column ``highlights`` to ``target``.
-      5. Delete duplicates in dataset.
-      6. Remove substring ``(CNN)`` for each ``source`` row.
-      7. Reset indexes.
+      2. Select ``test`` split.
+      3. Drop columns ``id``.
+      4. Rename column ``article`` to ``source``.
+      5. Rename column ``highlights`` to ``target``.
+      6. Delete duplicates in dataset.
+      7. Remove substring ``(CNN)`` for each ``source`` row.
+      8. Reset indexes.
 
-3. `tomasg25/scientific_lay_summarisation <https://huggingface.co/datasets/tomasg25/scientific_lay_summarisation>`__
-
-   1. **Lang**: EN
-   2. **Rows**: 1376
-   3. **Preprocess**:
-
-      1. Select ``plos`` subset.
-      2. Drop columns ``section_headings``, ``keywords``, ``title``, ``year``.
-      3. Rename column ``article`` to ``source``.
-      4. Rename column ``summary`` to ``target``.
-      5. Reset indexes.
-
-4. `ccdv/pubmed-summarization <https://huggingface.co/datasets/ccdv/pubmed-summarization?row=0>`__
+3. `ccdv/pubmed-summarization <https://huggingface.co/datasets/ccdv/pubmed-summarization>`__
 
    1. **Lang**: EN
    2. **Rows**: 6658
    3. **Preprocess**:
 
-      1. Rename column ``article`` to ``source``.
-      2. Rename column ``abstract`` to ``target``.
-      3. Reset indexes.
+      1. Select ``test`` split.
+      2. Rename column ``article`` to ``source``.
+      3. Rename column ``abstract`` to ``target``.
+      4. Reset indexes.
 
-5. `IlyaGusev/gazeta <https://huggingface.co/datasets/IlyaGusev/gazeta>`__
+4. `IlyaGusev/gazeta <https://huggingface.co/datasets/IlyaGusev/gazeta>`__
 
    1. **Lang**: RU
    2. **Rows**: 6793
    3. **Preprocess**:
 
-      1. Drop columns ``title``, ``date``, ``url``.
-      2. Rename column ``text`` to ``source``.
-      3. Rename column ``summary`` to ``target``.
-      4. Reset indexes.
+      1. Select ``test`` split.
+      2. Drop columns ``title``, ``date``, ``url``.
+      3. Rename column ``text`` to ``source``.
+      4. Rename column ``summary`` to ``target``.
+      5. Reset indexes.
 
-6. `d0rj/curation-corpus-ru <https://huggingface.co/datasets/d0rj/curation-corpus-ru>`__
+5. `d0rj/curation-corpus-ru <https://huggingface.co/datasets/d0rj/curation-corpus-ru>`__
 
    1. **Lang**: RU
    2. **Rows**: 30454
@@ -104,17 +96,18 @@ Datasets
       4. Rename column ``summary`` to ``target``.
       5. Reset indexes.
 
-7. `CarlBrendt/Summ_Dialog_News <https://huggingface.co/datasets/CarlBrendt/Summ_Dialog_News?row=1>`__
+6. `CarlBrendt/Summ_Dialog_News <https://huggingface.co/datasets/CarlBrendt/Summ_Dialog_News>`__
 
    1. **Lang**: RU
    2. **Rows**: 7609
    3. **Preprocess**:
 
-      1. Rename column ``info`` to ``source``.
-      2. Rename column ``summary`` to ``target``.
-      3. Reset indexes.
+      1. Select ``test`` split.
+      2. Rename column ``info`` to ``source``.
+      3. Rename column ``summary`` to ``target``.
+      4. Reset indexes.
 
-8. `trixdade/reviews_russian <https://huggingface.co/datasets/trixdade/reviews_russian>`__
+7. `trixdade/reviews_russian <https://huggingface.co/datasets/trixdade/reviews_russian>`__
 
    1. **Lang**: RU
    2. **Rows**: 95
@@ -128,8 +121,8 @@ Datasets
 Supervised Fine-Tuning (SFT) Parameters
 ---------------------------------------
 
-.. note:: Set the parameter
-          ``target_modules=["query", "key", "value", "dense"]`` for the
+.. note:: Set the parameter ``target_modules`` as
+          ``["query", "key", "value", "dense"]`` for the
           `mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization
           <https://huggingface.co/mrm8488/bert-small2bert-small-finetuned-
           cnn_daily_mail-summarization>`__,
@@ -137,16 +130,26 @@ Supervised Fine-Tuning (SFT) Parameters
           <https://huggingface.co/mrm8488/bert-mini2bert-mini-finetuned-
           cnn_daily_mail-summarization>`__ and
           `dmitry-vorobiev/rubert_ria_headlines <https://huggingface.co/dmitry-
-          vorobiev/rubert_ria_headlines>`__ models.
+          vorobiev/rubert_ria_headlines>`__ models, and as
+          ``["q", "k", "wi", "wo"]`` for the
+          `UrukHan/t5-russian-summarization
+          <https://huggingface.co/UrukHan/t5-russian-summarization>`__ model.
 
-.. note:: Set the parameter ``learning_rate=1e-4`` for the
-          `mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization
-          <https://huggingface.co/mrm8488/bert-mini2bert-mini-finetuned-
-          cnn_daily_mail-summarization>`__ model and
-          ``learning_rate=1e-1`` for the
-          `dmitry-vorobiev/rubert_ria_headlines
-          <https://huggingface.co/dmitry-vorobiev/rubert_ria_headlines>`__
-          as SFT parameter.
+
+.. note:: Set the parameters ``fine_tuning_steps=150, rank=24, alpha=36`` for the
+          `mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization
+          <https://huggingface.co/mrm8488/bert-small2bert-
+          small-finetuned-cnn_daily_mail-summarization>`__
+          as SFT parameters.
+
+
+.. note:: Set the parameters
+          ``target_modules= ["q", "k", "v"], learning_rate=1e-4,
+          fine_tuning_steps=60, rank=24, alpha=36``
+          for the `stevhliu/my_awesome_billsum_model
+          <https://huggingface.co/stevhliu/my_awesome_billsum_model>`__
+          as SFT parameters.
+
 
 Metrics
 -------
