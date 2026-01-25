@@ -99,8 +99,6 @@ from reference_lab_summarization.main import (  # isort:skip
     RuGazetaRawDataPreprocessor,
     RuReviewsRawDataImporter,
     RuReviewsRawDataPreprocessor,
-    ScientificLiteratureRawDataImporter,
-    ScientificLiteratureRawDataPreprocessor,
     SummarizationRawDataImporter,
 )
 
@@ -123,7 +121,7 @@ def main() -> None:
     result = {}
     for dataset_name in tqdm(sorted(set(datasets_raw))):
         importer: AbstractRawDataImporter
-        print(f"Processing {dataset_name} ...")
+        print(f"Processing {dataset_name} ...", flush=True)
 
         if dataset_name == "seara/ru_go_emotions":
             importer = RuGoRawDataImporter(dataset_name)
@@ -159,8 +157,6 @@ def main() -> None:
             importer = GlueDataImporter(dataset_name)
         elif dataset_name == DatasetTypes.TERRA.value:
             importer = RussianSuperGlueDataImporte(dataset_name)
-        elif dataset_name == "tomasg25/scientific_lay_summarisation":
-            importer = ScientificLiteratureRawDataImporter(dataset_name)
         elif dataset_name == "cnn_dailymail":
             importer = DailymailRawDataImporter(dataset_name)
         elif dataset_name == "d0rj/curation-corpus-ru":
@@ -248,8 +244,6 @@ def main() -> None:
             preprocessor = QnliDataPreprocessor(importer.raw_data)
         elif dataset_name == "ccdv/pubmed-summarization":
             preprocessor = PubMedRawDataPreprocessor(importer.raw_data)
-        elif dataset_name == "tomasg25/scientific_lay_summarisation":
-            preprocessor = ScientificLiteratureRawDataPreprocessor(importer.raw_data)
         elif dataset_name == "ccdv/govreport-summarization":
             preprocessor = GovReportRawDataPreprocessor(importer.raw_data)
         elif dataset_name == "cnn_dailymail":
