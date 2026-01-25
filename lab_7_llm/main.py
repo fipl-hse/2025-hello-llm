@@ -75,6 +75,21 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
 
+        processed_dataset = self._raw_data.copy()
+
+        columns_to_drop = ['title', 'date', 'url']
+        processed_dataset = processed_dataset.drop(columns=columns_to_drop)
+
+        processed_dataset = processed_dataset.rename(columns={
+            "text": "source",
+            "summary": "target",
+        })
+
+        processed_dataset = processed_dataset.reset_index(drop=True)
+
+        self._data = processed_dataset
+
+
 
 class TaskDataset(Dataset):
     """
