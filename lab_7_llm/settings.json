@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
+    "model": "UrukHan/t5-russian-summarization",
+    "dataset": "IlyaGusev/gazeta",
     "metrics": []
   },
-  "target_score": 0
+  "target_score": 4
 }
