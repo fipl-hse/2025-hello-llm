@@ -4,10 +4,16 @@ Laboratory work.
 Working with Large Language Models.
 """
 import pandas as pd
+import torch
 from datasets import load_dataset
+from pandas import DataFrame
+from torch.utils.data import Dataset
 
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
@@ -134,6 +140,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data.copy()
 
     def __len__(self) -> int:
         """
@@ -142,6 +149,7 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -153,6 +161,12 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        row = self._data.iloc[index]
+
+        if ColumnNames.SOURCE in self._data.columns:
+            return (str(row[ColumnNames.SOURCE]),)
+
+        return tuple(str(row[col]) for col in self._data.columns)
 
     @property
     def data(self) -> DataFrame:
@@ -162,6 +176,7 @@ class TaskDataset(Dataset):
         Returns:
             pandas.DataFrame: Preprocessed DataFrame
         """
+        return self._data
 
 
 class LLMPipeline(AbstractLLMPipeline):
