@@ -3,18 +3,17 @@ Laboratory work.
 
 Working with Large Language Models.
 """
+import re
 from pathlib import Path
 from typing import Iterable, Sequence
 
 import pandas as pd
-import re
 import torch
-
 from datasets import load_dataset
 from pandas import DataFrame
-from torchinfo import summary
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from torchinfo import summary
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
