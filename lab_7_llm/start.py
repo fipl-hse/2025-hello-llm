@@ -39,7 +39,7 @@ def main() -> None:
     for key, value in pipeline.analyze_model().items():
         print(f'{key} : {value}')
 
-    print(pipeline.infer_sample(dataset[0]))
+    print(pipeline.infer_sample(dataset[1]))
     assert result is not None, "Demo does not work correctly"
 
 

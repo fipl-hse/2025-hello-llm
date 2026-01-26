@@ -3,6 +3,7 @@ Laboratory work.
 
 Working with Large Language Models.
 """
+# pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 import re
 from pathlib import Path
 from typing import Iterable, Sequence
@@ -75,40 +76,46 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         Apply preprocessing transformations to the raw dataset.
         """
-        self._data = self._raw_data.copy()
-        self._data["labels"] = self._data["labels"].apply(tuple)
-        valid_indices = self._data['labels'].isin({0, 4, 5, 6, 7, 8, 10, 12, 15, 18, 21, 22, 23})
-        self._data = self._data.loc[valid_indices].copy()
-        self._data = self._data.rename(columns={"labels": "target", "ru_text": "source"})
-        self._data['target'] = self._data['target'].apply(
-            lambda x: (
-                1 if x in {1, 13, 17, 20} else
-                2 if x in {9, 16, 24, 25} else
-                3 if x in {14, 19} else
-                4 if x in {2, 3} else
-                5 if x == 27 else
-                6 if x == 26 else
-                8
-            )
-        )
-        self._data = self._data[self._data['target'] != 8]
-        updated_target_column = self._data['target'].apply(
-            lambda x: {
-                1: 0,
-                2: 1,
-                3: 2,
-                4: 3,
-                6: 4,
-                7: 5
-            }.get(x, x)
+        self._raw_data['labels'] = self._raw_data['labels'].apply(tuple)
+        self._raw_data.drop(['id', 'text'], axis=1, inplace=True)
+
+        exclude_values = {0, 4, 5, 6, 7, 8, 10, 12, 15, 18, 21, 22, 23}
+
+        mapping_dict = {
+            (1, 13, 17, 20): 1,
+            (9, 16, 24, 25): 2,
+            (14, 19): 3,
+            (2, 3): 4,
+            27: 7,
+            26: 6
+        }
+
+        self._raw_data.loc[:, 'labels'] = (
+            self._raw_data['labels']
+            .apply(lambda x: next((v for v in x if v not in exclude_values), None))
+            .map(lambda x: mapping_dict.get(x, 8))
+            .astype(int)
         )
 
-        self._data['target'] = updated_target_column
-        self._data['source'] = self._data['source'].apply(lambda x: re.sub(
+        self._raw_data.rename(columns={'labels': 'target', 'ru_text': 'source'}, inplace=True)
+        self._raw_data = self._raw_data.query("target != 8")
+
+        mapping_ordered = {
+            1: 0,
+            2: 1,
+            3: 2,
+            4: 3,
+            6: 4,
+            7: 5}
+        self._raw_data['target'] = self._raw_data['target'].map(mapping_ordered)
+
+        self._raw_data['source'] = self._raw_data['source'].apply(lambda x: re.sub(
             r'[^\w\s]', '', x.strip())
-                                                          )
-        self._data.reset_index(drop=True, inplace=True)
+                                                                  )
 
+        self._raw_data.reset_index(drop=True, inplace=True)
+
+        self._data = self._raw_data
 
 class TaskDataset(Dataset):
     """
@@ -143,8 +150,7 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
-        row = self._data.iloc[index]
-        return (row['source'],)
+        return tuple(self._data.iloc[index])
 
     @property
     def data(self) -> DataFrame:
