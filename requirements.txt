@@ -1,0 +1,13 @@
+torch==2.9.1
+pandas==3.0.0
+datasets==4.5.0
+transformers==4.50.3
+torchinfo==1.8.0
+evaluate==0.4.6
+fastapi==0.128.0
+uvicorn==0.40.0
+
+
+
+
+# hf_xet?
