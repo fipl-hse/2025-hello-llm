@@ -72,6 +72,39 @@
             }
         },
         {
+            "name": "[SEMINAR 3] Try Dataloader",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_01_26_2026/try_dataloader.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_01_26_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 3] Try NLI",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_01_26_2026/try_nli.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_01_26_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 3] Try Generation",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_01_26_2026/try_generation.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_01_26_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "[CHECK] UML Diagrams",
             "type": "debugpy",
             "request": "launch",
