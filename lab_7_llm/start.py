@@ -10,6 +10,7 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
+    print('Hello')
     result = None
     assert result is not None, "Demo does not work correctly"
 
