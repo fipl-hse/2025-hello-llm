@@ -27,6 +27,7 @@ def main() -> None:
     dataset_preprocessor = RawDataPreprocessor(dataset_importer._raw_data)
     for feature in dataset_preprocessor.analyze().items():
         print(f'{feature[0]}: {feature[1]}')
+    dataset_preprocessor.transform()
 
     result = dataset_preprocessor
     assert result is not None, "Demo does not work correctly"

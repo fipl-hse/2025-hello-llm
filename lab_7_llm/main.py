@@ -65,6 +65,16 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        transformed_df = self._raw_data
+        classes ={}
+        n = 0
+        for tag in transformed_df['label']:
+            if tag not in classes:
+                classes[tag] = n
+                n += 1
+        transformed_df = transformed_df.rename(columns={'label': ColumnNames.TARGET, 'text': ColumnNames.SOURCE})
+        transformed_df[ColumnNames.TARGET] = transformed_df[ColumnNames.TARGET].apply(lambda x: classes[x])
+        self._data = transformed_df
 
 
 class TaskDataset(Dataset):
