@@ -9,6 +9,8 @@ from pathlib import Path
 from core_utils.llm.time_decorator import report_time
 from lab_7_llm.main import RawDataImporter
 from lab_7_llm.main import RawDataPreprocessor
+from lab_7_llm.main import LLMPipeline
+from lab_7_llm.main import TaskDataset
 
 
 @report_time
@@ -28,6 +30,11 @@ def main() -> None:
     for feature in dataset_preprocessor.analyze().items():
         print(f'{feature[0]}: {feature[1]}')
     dataset_preprocessor.transform()
+
+    dataset = TaskDataset(dataset_preprocessor.data.head(100))
+
+    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 1, 120, 'cpu')
+    print(pipeline.infer_sample(dataset[1]))
 
     result = dataset_preprocessor
     assert result is not None, "Demo does not work correctly"

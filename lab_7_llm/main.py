@@ -11,6 +11,12 @@ import torch
 from pathlib import Path
 from datasets import load_dataset
 from torch.utils.data import Dataset
+from transformers import (
+        AutoModelForCausalLM,
+        AutoModelForSequenceClassification,
+        AutoTokenizer,
+        GenerationConfig,
+    )
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -89,6 +95,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data
 
     def __len__(self) -> int:
         """
@@ -97,6 +104,7 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -108,6 +116,7 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        return tuple(self._data.iloc[index])
 
     @property
     def data(self) -> pd.DataFrame:
@@ -117,6 +126,7 @@ class TaskDataset(Dataset):
         Returns:
             pandas.DataFrame: Preprocessed DataFrame
         """
+        return self._data
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -137,6 +147,13 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self._model_name = model_name
+        self._dataset = dataset
+        self._max_length = max_length
+        self._batch_size = batch_size
+        self._device = device
+        self._tokenizer = AutoTokenizer.from_pretrained("tatiana-merz/turkic-cyrillic-classifier")
+        self._model = AutoModelForSequenceClassification.from_pretrained("tatiana-merz/turkic-cyrillic-classifier")
 
     def analyze_model(self) -> dict:
         """
@@ -157,6 +174,12 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        tokens = self._tokenizer(sample[0], return_tensors="pt")
+        with torch.no_grad():
+            output = self._model(**tokens)
+        predictions = torch.argmax(output.logits).item()
+        labels = self._model.config.id2label
+        return labels[predictions]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
