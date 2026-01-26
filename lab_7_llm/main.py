@@ -106,12 +106,14 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             3: 2,
             4: 3,
             6: 4,
-            7: 5}
-        self._raw_data['target'] = self._raw_data['target'].map(mapping_ordered)
+            7: 5
+        }
+        self._raw_data.loc[:, 'target'] = self._raw_data['target'].map(mapping_ordered)
 
-        self._raw_data['source'] = self._raw_data['source'].apply(lambda x: re.sub(
+        self._raw_data.loc[:, 'source'] = self._raw_data['source'].apply(lambda x: re.sub(
             r'[^\w\s]', '', x.strip())
-                                                                  )
+                                                                         )
+
 
         self._raw_data.reset_index(drop=True, inplace=True)
 
@@ -240,9 +242,7 @@ class LLMPipeline(AbstractLLMPipeline):
 
         predictions = torch.argmax(output.logits).item()
 
-        labels = self._model.config.id2label
-
-        return labels[predictions]
+        return predictions
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
