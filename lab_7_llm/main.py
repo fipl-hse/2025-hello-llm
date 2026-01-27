@@ -6,7 +6,24 @@ Working with Large Language Models.
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
+import pandas as pd
+import torch
+from pathlib import Path
+from datasets import load_dataset
+from torch.utils.data import Dataset
+from transformers import (
+        AutoModelForCausalLM,
+        AutoModelForSequenceClassification,
+        AutoTokenizer,
+        GenerationConfig,
+    )
 
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 
 class RawDataImporter(AbstractRawDataImporter):
     """
@@ -21,6 +38,10 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        ds = load_dataset(self._hf_name, split='validation')
+        self._raw_data = ds.to_pandas()
+        if not isinstance(self._raw_data, pd.DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -35,12 +56,31 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        df = self._raw_data
+        result = {'dataset_number_of_samples': len(df),
+                  'dataset_columns': len(df.columns),
+                  'dataset_duplicates': df.duplicated().sum(),
+                  'dataset_empty_rows': df.isna().any(axis=1).sum()}
+        source = df['text'].dropna()
+        result['dataset_sample_min_len'] = min(source.apply(len))
+        result['dataset_sample_max_len'] = max(source.apply(len))
+        return result
 
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        transformed_df = self._raw_data
+        classes ={}
+        n = 0
+        for tag in transformed_df['label']:
+            if tag not in classes:
+                classes[tag] = n
+                n += 1
+        transformed_df = transformed_df.rename(columns={'label': ColumnNames.TARGET, 'text': ColumnNames.SOURCE})
+        transformed_df[ColumnNames.TARGET] = transformed_df[ColumnNames.TARGET].apply(lambda x: classes[x])
+        self._data = transformed_df
 
 
 class TaskDataset(Dataset):
@@ -55,6 +95,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data
 
     def __len__(self) -> int:
         """
@@ -63,6 +104,7 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -74,15 +116,17 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        return tuple(self._data.iloc[index])
 
     @property
-    def data(self) -> DataFrame:
+    def data(self) -> pd.DataFrame:
         """
         Property with access to preprocessed DataFrame.
 
         Returns:
             pandas.DataFrame: Preprocessed DataFrame
         """
+        return self._data
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -103,6 +147,13 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self._model_name = model_name
+        self._dataset = dataset
+        self._max_length = max_length
+        self._batch_size = batch_size
+        self._device = device
+        self._tokenizer = AutoTokenizer.from_pretrained("tatiana-merz/turkic-cyrillic-classifier")
+        self._model = AutoModelForSequenceClassification.from_pretrained("tatiana-merz/turkic-cyrillic-classifier")
 
     def analyze_model(self) -> dict:
         """
@@ -123,6 +174,12 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        tokens = self._tokenizer(sample[0], return_tensors="pt")
+        with torch.no_grad():
+            output = self._model(**tokens)
+        predictions = torch.argmax(output.logits).item()
+        labels = self._model.config.id2label
+        return labels[predictions]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
