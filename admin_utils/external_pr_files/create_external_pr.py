@@ -2,7 +2,6 @@
 Python tool for synchronization between source and target repositories.
 """
 
-import argparse
 import json
 import os
 import sys
@@ -10,12 +9,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast, Optional
 
+from logging518.config import fileConfig
 from quality_control.cli_unifier import _run_console_tool, handles_console_error
 from quality_control.console_logging import get_child_logger
+from quality_control.quality_control_parser import QualityControlArgumentsParser
 
 from admin_utils.constants import TRACKED_JSON_PATH
 
 logger = get_child_logger(__file__)
+
+
+class SyncArgumentParser(QualityControlArgumentsParser):
+    """
+    Parser that gets args for sync tool
+    """
+
+    repo_name: str
+    pr_number: str
 
 
 @dataclass(slots=True)
@@ -502,15 +512,16 @@ def validate_and_process_inputs() -> tuple[str, ...]:
     Returns:
         tuple[str, ...]: Needed data from source repo
     """
-    parser = argparse.ArgumentParser(description="Process repo name and PR number")
-    parser.add_argument("repo_name", help="Name of source repo")
-    parser.add_argument("pr_number", help="№ of PR in source repo")
+    parser = SyncArgumentParser(underscores_to_dashes=True)
     args = parser.parse_args()
 
     repo_name = args.repo_name
     pr_number = args.pr_number
     target_repo = "fipl-hse.github.io"
     branch_name = f"auto-update-from-{repo_name}-pr-{pr_number}"
+    root_dir = args.root_dir.resolve()
+    toml_config = (args.toml_config_path or (root_dir / "pyproject.toml")).resolve()
+    fileConfig(toml_config)
 
     gh_token = os.environ.get("GH_TOKEN")
     if not gh_token:
