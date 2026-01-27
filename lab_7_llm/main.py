@@ -3,6 +3,8 @@ Laboratory work.
 
 Working with Large Language Models.
 """
+from pathlib import Path
+from typing import Iterable, Sequence
 import pandas as pd
 import torch
 from datasets import load_dataset
