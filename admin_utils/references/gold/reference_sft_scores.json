@@ -6,12 +6,12 @@
     },
     "Helsinki-NLP/opus-mt-ru-en": {
         "shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2": {
-            "bleu": 0.32679
+            "bleu": 0.33584
         }
     },
     "Helsinki-NLP/opus-mt-ru-es": {
         "nuvocare/Ted2020_en_es_fr_de_it_ca_pl_ru_nl": {
-            "bleu": 0.19909
+            "bleu": 0.24564
         }
     },
     "IlyaGusev/rubertconv_toxic_clf": {
@@ -19,26 +19,26 @@
             "f1": 0.80000
         },
         "s-nlp/en_paradetox_toxicity": {
-            "f1": 0.71999
+            "f1": 0.70999
         }
     },
     "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli": {
         "mnli": {
-            "accuracy": 0.89108
+            "accuracy": 0.88118
         }
     },
     "UrukHan/t5-russian-summarization": {
         "CarlBrendt/Summ_Dialog_News": {
-            "bleu": 0.02683,
-            "rouge": 0.07667
+            "bleu": 0.02129,
+            "rouge": 0.07178
         },
         "IlyaGusev/gazeta": {
-            "bleu": 0.03902,
-            "rouge": 0.14040
+            "bleu": 0.03419,
+            "rouge": 0.12628
         },
         "d0rj/curation-corpus-ru": {
-            "bleu": 0.03095,
-            "rouge": 0.19336
+            "bleu": 0.03932,
+            "rouge": 0.19823
         }
     },
     "XSY/albert-base-v2-imdb-calssification": {
@@ -48,12 +48,12 @@
     },
     "aiknowyou/it-emotion-analyzer": {
         "dair-ai/emotion": {
-            "f1": 0.40999
+            "f1": 0.46000
         }
     },
     "blanchefort/rubert-base-cased-sentiment-rusentiment": {
         "blinoff/healthcare_facilities_reviews": {
-            "f1": 0.94999
+            "f1": 0.93999
         },
         "blinoff/kinopoisk": {
             "f1": 0.82999
@@ -61,7 +61,7 @@
     },
     "cointegrated/rubert-base-cased-nli-threeway": {
         "cointegrated/nli-rus-translated-v2021": {
-            "accuracy": 0.78217
+            "accuracy": 0.76237
         },
         "xnli": {
             "accuracy": 0.31683
@@ -69,7 +69,12 @@
     },
     "cointegrated/rubert-tiny-bilingual-nli": {
         "terra": {
-            "accuracy": 0.39603
+            "accuracy": 0.40594
+        }
+    },
+    "cointegrated/rubert-tiny-toxicity": {
+        "OxAISH-AL-LLM/wiki_toxic": {
+            "f1": 0.81000
         }
     },
     "cointegrated/rubert-tiny2-cedr-emotion-detection": {
@@ -79,7 +84,7 @@
     },
     "fabriceyhc/bert-base-uncased-ag_news": {
         "ag_news": {
-            "f1": 0.95999
+            "f1": 0.96999
         }
     },
     "google-t5/t5-small": {
@@ -89,12 +94,12 @@
     },
     "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": {
         "ccdv/govreport-summarization": {
-            "bleu": 0.00022,
-            "rouge": 0.10387
+            "bleu": 0.00027,
+            "rouge": 0.10630
         },
         "ccdv/pubmed-summarization": {
-            "bleu": 0.01711,
-            "rouge": 0.14918
+            "bleu": 0.01858,
+            "rouge": 0.14790
         }
     },
     "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": {
@@ -113,16 +118,16 @@
     },
     "nandakishormpai/t5-small-machine-articles-tag-generation": {
         "ccdv/govreport-summarization": {
-            "bleu": 0.00001,
-            "rouge": 0.05722
+            "bleu": 0.00007,
+            "rouge": 0.07628
         },
         "ccdv/pubmed-summarization": {
-            "bleu": 0.00478,
-            "rouge": 0.10845
+            "bleu": 0.01002,
+            "rouge": 0.13209
         },
         "cnn_dailymail": {
-            "bleu": 0.07845,
-            "rouge": 0.20668
+            "bleu": 0.07352,
+            "rouge": 0.20438
         }
     },
     "s-nlp/russian_toxicity_classifier": {
@@ -133,7 +138,7 @@
             "f1": 0.78000
         },
         "s-nlp/ru_paradetox_toxicity": {
-            "f1": 0.80000
+            "f1": 0.81999
         }
     },
     "stevhliu/my_awesome_billsum_model": {
@@ -149,6 +154,16 @@
     "tatiana-merz/turkic-cyrillic-classifier": {
         "tatiana-merz/cyrillic_turkic_langs": {
             "f1": 1.00000
+        }
+    },
+        "Babelscape/wikineural-multilingual-ner": {
+        "Babelscape/wikineural": {
+            "accuracy": 0.99153
+        }
+    },
+    "dslim/distilbert-NER": {
+        "eriktks/conll2003": {
+            "accuracy": 0.99111
         }
     }
 }
