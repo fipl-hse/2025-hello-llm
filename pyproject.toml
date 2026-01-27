@@ -122,6 +122,7 @@ disable_error_code = [
 
 [[tool.mypy.overrides]]
 module = [
+    'evaluate',
     'peft',
     'torch.*',
 ]
