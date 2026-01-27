@@ -12,20 +12,13 @@
     ],
     "addons": [
         {
-            "name": "admin_utils",
-            "coverage": 0
+            "name": "core_utils"
         },
         {
-            "name": "config",
-            "coverage": 0
+            "name": "seminars"
         },
         {
-            "name": "seminars",
-            "coverage": 0
-        },
-        {
-            "name": "core_utils",
-            "coverage": 0
+            "name": "admin_utils"
         }
     ],
     "repository": {
