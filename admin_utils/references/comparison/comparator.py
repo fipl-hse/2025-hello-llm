@@ -2,6 +2,8 @@
 PythonTool for checking quality of models' and datasets' work
 """
 
+# pylint: disable=import-error
+
 from pathlib import Path
 
 import pandas as pd
