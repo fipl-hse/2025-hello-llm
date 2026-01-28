@@ -14,7 +14,7 @@ from datasets import load_dataset
 from pandas import DataFrame
 from torch.utils.data import Dataset
 from torchinfo import summary
-from transformers import AutoModelForSeq2SeqLM, T5TokenizerFast
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -221,22 +221,19 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        #
-        # if self._model is None or self._tokenizer is None:
-        #     return None
-        #
-        # if not sample:
-        #     return None
-        #
-        # input_text = sample[0]
-        #
-        # inputs = self._tokenizer(input_text, return_tensors="pt")
-        # inputs = {key: value.to(self._device) for key, value in inputs.items()}
-        #
-        # with torch.no_grad():
-        #     generated_ids = self._model.generate(**inputs, max_length=self._max_length)
-        #
-        # return self._tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+        if self._model is None:
+            return None
+
+        tokens = self._tokenizer(sample[0], return_tensors="pt")
+
+        self._model.eval()
+
+        with torch.no_grad():
+            output = self._model(**tokens)
+
+        predictions = torch.argmax(output.logits).item()
+
+        return str(predictions)
 
 
     @report_time
