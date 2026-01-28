@@ -31,10 +31,11 @@ def main() -> None:
     dataset = TaskDataset(preprocessor.data.head(100))
 
     pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 1, 'cpu')
-    print('Model overview')
+    print('\nModel overview')
     for k, v in pipeline.analyze_model().items():
         print(f'{k}: {v}')
-    print(pipeline.infer_sample(dataset[1]))
+
+    print('\nLabel prediction for 1 sample:', pipeline.infer_sample(dataset[1]))
 
     result = preprocessor
     assert result is not None, "Demo does not work correctly"

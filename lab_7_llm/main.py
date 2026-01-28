@@ -9,9 +9,9 @@ import pandas as pd
 import torch
 
 from pathlib import Path
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
-from transformers import BertForSequenceClassification, AutoTokenizer
+from transformers import AutoTokenizer, BertForSequenceClassification
 from typing import Iterable, Sequence
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
@@ -72,7 +72,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         preprocessed = self._raw_data[['content', 'sentiment']]
         preprocessed = preprocessed.rename(columns={"sentiment": ColumnNames.TARGET, "content": ColumnNames.SOURCE})
-        preprocessed[ColumnNames.TARGET] = preprocessed[ColumnNames.TARGET].apply(lambda x: 2 if x == 'negative' else 1)
+        preprocessed[ColumnNames.TARGET] = preprocessed[ColumnNames.TARGET].apply(lambda x: 1 if x == 'positive' else 2)
         self._data = preprocessed
 
 
@@ -155,8 +155,7 @@ class LLMPipeline(AbstractLLMPipeline):
         ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
         tokens = {"input_ids": ids, "attention_mask": ids}
         stats = summary(self._model, input_data=tokens, device=self._device, verbose=0)
-        print(stats.summary_list)
-        analysis = {'input_shape': stats.input_size,
+        analysis = {'input_shape': {k: list(v) for k, v in stats.input_size.items()},
                     'embedding_size': config.max_position_embeddings,
                     'output_shape': stats.summary_list[-1].output_size,
                     'num_trainable_params': stats.trainable_params,
@@ -176,16 +175,13 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        tokens = self._tokenizer(sample[0], return_tensors="pt")
+        tokens = self._tokenizer(sample[0], return_tensors="pt", padding=True, truncation=True)
 
         self._model.eval()
         with torch.no_grad():
             output = self._model(**tokens)
 
-        predictions = torch.argmax(output.logits).item()
-
-        labels = self._model.config.id2label
-        return labels[predictions]
+        return str(torch.argmax(output.logits).item())
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
