@@ -14,7 +14,7 @@ from datasets import load_dataset
 from pandas import DataFrame
 from torch.utils.data import Dataset
 from torchinfo import summary
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoModelForSeq2SeqLM, T5TokenizerFast
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -165,8 +165,8 @@ class LLMPipeline(AbstractLLMPipeline):
         """
 
         self._model_name = model_name
-        self._model = AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
-        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        self._tokenizer = T5TokenizerFast.from_pretrained(model_name)
         self._dataset = dataset
         self._max_length = max_length
         self._batch_size = batch_size
@@ -179,33 +179,6 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-
-        config = self._model.config
-        input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
-        tokens = {"input_ids": input_ids, "attention_mask": input_ids}
-
-
-        model_summary = summary(
-            self._model,
-            input_data=tokens,
-            device=self._device,
-            verbose=0
-            )
-
-        input_shape_dict = {}
-        for key, value in model_summary.input_size.items():
-            input_shape_dict[key] = list(value)
-
-
-        return {
-                "input_shape": input_shape_dict,
-            "embedding_size": config.max_position_embeddings,
-            "output_shape": model_summary.summary_list[-1].output_size,
-            "num_trainable_params": model_summary.trainable_params,
-            "vocab_size": config.vocab_size,
-            "size": model_summary.total_param_bytes,
-            "max_context_length": config.max_length
-            }
 
 
 
@@ -221,19 +194,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        if self._model is None:
-            return None
 
-        tokens = self._tokenizer(sample[0], return_tensors="pt")
-
-        self._model.eval()
-
-        with torch.no_grad():
-            output = self._model(**tokens)
-
-        predictions = torch.argmax(output.logits).item()
-
-        return str(predictions)
 
 
     @report_time
