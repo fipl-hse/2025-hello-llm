@@ -165,8 +165,8 @@ class LLMPipeline(AbstractLLMPipeline):
         """
 
         self._model_name = model_name
-        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(device)
-        self._tokenizer = T5TokenizerFast.from_pretrained(model_name)
+        self._model = AutoModelForSequenceClassification.from_pretrained(model_name).to(device)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._dataset = dataset
         self._max_length = max_length
         self._batch_size = batch_size
@@ -180,24 +180,31 @@ class LLMPipeline(AbstractLLMPipeline):
             dict: Properties of a model
         """
 
+        config = self._model.config
+        input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
+        tokens = {"input_ids": input_ids, "attention_mask": input_ids}
+
 
         model_summary = summary(
-                self._model,
-                input_size=(self._batch_size, self._max_length),
-                device=self._device,
-                verbose=0
+            self._model,
+            input_data=tokens,
+            device=self._device,
+            verbose=0
             )
 
-        config = self._model.config
+        input_shape_dict = {}
+        for key, value in model_summary.input_size.items():
+            input_shape_dict[key] = list(value)
+
 
         return {
-                "input_shape": [self._batch_size, self._max_length],
-                "embedding_size": config.d_model,
-                "output_shape": [self._batch_size, self._max_length, self._tokenizer.vocab_size],
-                "num_trainable_params": int(model_summary.trainable_params),
-                "vocab_size": self._tokenizer.vocab_size,
-                "size": int(model_summary.total_params),
-                "max_context_length": getattr(config, 'max_length', self._max_length)
+                "input_shape": input_shape_dict,
+            "embedding_size": config.max_position_embeddings,
+            "output_shape": model_summary.summary_list[-1].output_size,
+            "num_trainable_params": model_summary.trainable_params,
+            "vocab_size": config.vocab_size,
+            "size": model_summary.total_param_bytes,
+            "max_context_length": config.max_length
             }
 
 
