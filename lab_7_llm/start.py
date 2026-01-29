@@ -2,6 +2,7 @@
 Starter for demonstration of laboratory work.
 """
 import json
+from pathlib import Path
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import
 
@@ -39,7 +40,9 @@ def main() -> None:
     # print(output.logits.shape)
 
     result = None
-    with open ('settings.json', 'r', encoding='utf-8') as file:
+    settings_path = Path(__file__).parent / 'settings.json'
+
+    with open(settings_path, 'r', encoding='utf-8') as file:
         settings = json.load(file)
 
     name = settings['parameters']['dataset']
