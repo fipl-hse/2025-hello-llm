@@ -5,10 +5,20 @@ Working with Large Language Models.
 """
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
-import pandas as pd
+from pathlib import Path
 from typing import Iterable, Sequence
+
+import pandas as pd
+import torch
+from torch.utils.data import Dataset
 from datasets import load_dataset
+from pandas import DataFrame
+
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
 
@@ -25,9 +35,7 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
-        dataset = load_dataset(self._hf_name, split='validation')
-
-        self._raw_data = dataset.to_pandas()
+        self._raw_data = load_dataset(self._hf_name, split='validation').to_pandas()
 
         if not isinstance(self._raw_data, pd.DataFrame):
             raise TypeError("Downloaded dataset is not pd.DataFrame")
@@ -45,12 +53,37 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        data = self._raw_data.dropna()
+
+        source_column = 'info'
+
+        analysis = {
+            "dataset_number_of_samples": len(self._raw_data),
+            "dataset_columns": len(self._raw_data.columns),
+            "dataset_duplicates": len(self._raw_data) - len(self._raw_data.drop_duplicates()),
+            "dataset_empty_rows": len(self._raw_data) - len(data),
+            "dataset_sample_min_len": len(min(data[source_column], key=len)),
+            "dataset_sample_max_len": len(max(data[source_column], key=len))
+        }
+
+        return analysis
 
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        self._data = self._raw_data.rename(columns={
+            "info": ColumnNames.SOURCE.value,
+            "summary": ColumnNames.TARGET.value
+        })
+
+        self._data = self._data[[ColumnNames.SOURCE.value, ColumnNames.TARGET.value]]
+
+        self._data = self._data.drop_duplicates()
+        self._data = self._data.dropna()
+
+        self._data = self._data.reset_index(drop=True)
 
 
 class TaskDataset(Dataset):
