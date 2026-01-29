@@ -57,7 +57,7 @@ Datasets CLOSED QA
 3. `HuggingFaceH4/no_robots <https://huggingface.co/datasets/HuggingFaceH4/no_robots>`__
 
    1. **Lang**: EN
-   2. **Rows**: 260
+   2. **Rows**: 245
    3. **Preprocess**:
 
       1. Select ``train`` split.
@@ -123,7 +123,7 @@ Metrics CLOSED QA
 
 .. note:: To calculate the squad metric, you need to convert the data
           into a special structure. This structure you can find in
-          `this repository <https://github.com/huggingface/datasets>`__
+          `this repository <https://github.com/huggingface/evaluate>`__
           in the ``metrics`` directory.
 
 Datasets OPEN QA
@@ -136,9 +136,9 @@ Datasets OPEN QA
    3. **Preprocess**:
 
       1. Select ``train`` split.
-      2. Drop columns ``type``, ``category``, ``correct_answers``,
-         ``incorrect_answers``, ``source``.
-      3. Rename column ``best_answer`` to ``target``.
+      2. Drop columns ``Type``, ``Category``, ``Correct Answers``,
+         ``Incorrect Answers``, ``Source``.
+      3. Rename column ``Best Answer`` to ``target``.
 
 2. `jtatman/databricks-dolly-8k-qa-open-close <https://huggingface.co/datasets/jtatman/databricks-dolly-8k-qa-open-close>`__
 

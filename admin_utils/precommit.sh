@@ -5,14 +5,13 @@ echo $1
 if [[ "$1" == "public" ]]; then
   DIRS_TO_CHECK=(
     "admin_utils"
-    "config"
     "core_utils"
     "seminars"
+    "lab_7_llm"
   )
 else
   DIRS_TO_CHECK=(
     "admin_utils"
-    "config"
     "core_utils"
     "seminars"
     "lab_7_llm"
@@ -55,15 +54,16 @@ isort .
 
 python -m pylint "${DIRS_TO_CHECK[@]}"
 
+rm -rf .mypy_cache
 mypy "${DIRS_TO_CHECK[@]}"
 
 python -m flake8 "${DIRS_TO_CHECK[@]}"
 
 if [[ "$1" != "public" ]]; then
-  pydoctest --config pydoctest.json
-fi
+  python admin_utils/uml/check_diagrams.py
 
-if [[ "$2" != "smoke" ]]; then
+  pydoctest --config pydoctest.json
+
   fiplconfig.check_doc8
 
   fiplconfig.check_requirements

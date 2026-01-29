@@ -2,7 +2,7 @@
 Checks the inference of the model
 """
 
-# pylint: disable=R0801
+# pylint: disable=R0801, import-error
 import unittest
 from pathlib import Path
 
@@ -13,8 +13,8 @@ from admin_utils.references.reference_scores import (
     ReferenceAnalysisScores,
     ReferenceAnalysisScoresType,
 )
-from config.lab_settings import LabSettings
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.project.lab_settings import LabSettings
 from lab_7_llm.main import LLMPipeline
 
 

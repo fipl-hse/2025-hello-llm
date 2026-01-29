@@ -87,9 +87,9 @@ Datasets
          7. Other labels to label ``8``.
 
       9. Drop label ``8`` from ``target``.
-      10. Put ``target`` labels in order: ``1`` to ``0`` (joy), ``2`` to ``1``
+      10. Map ``target`` labels to sequential numbers: ``1`` to ``0`` (joy), ``2`` to ``1``
           (sadness), ``3`` to ``2`` (fear), ``4`` to ``3`` (anger), ``6`` to
-          ``4`` (neutral), ``7`` to ``5`` (other) and
+          ``4`` (neutral), ``7`` to ``5`` (other).
       11. Clean column ``source``.
       12. Reset indexes.
 
@@ -123,9 +123,13 @@ Datasets
    3. **Preprocess**:
 
       1. Select ``test`` split.
-      2. Rename column ``labels`` to ``target``.
+      2. Rename column ``label`` to ``target``.
       3. Rename column ``text`` to ``source``.
       4. Reset indexes.
+
+.. note:: When used with ``XSY/albert-base-v2-imdb-calssification``
+          model, use the parameter setting ``max_length=512``.
+
 
 6. `dair-ai/emotion <https://huggingface.co/datasets/dair-ai/emotion>`__
 
@@ -145,7 +149,7 @@ Datasets
    2. **Rows**: 36591
    3. **Preprocess**:
 
-      1. Select ``validation`` split.
+      1. Select ``train`` split.
       2. Leave only ``content`` and ``grade3`` columns.
       3. Rename column ``grade3`` to ``target``.
       4. Rename column ``content`` to ``source``.
@@ -262,7 +266,16 @@ Supervised Fine-Tuning (SFT) Parameters
    - Set the parameter ``problem_type="single_label_classification"``
      for the `cointegrated/rubert-tiny2-cedr-emotion-detection <https://hugging
      face.co/cointegrated/rubert-tiny2-cedr-emotion-detection>`__ when
-     initializing model instance.
+     initializing model instance. Set the parameters
+     ``target_modules=["query", "key", "value", "dense"], rank=16, alpha=24``
+     as its SFT parameters.
+
+   - Set the parameters ``problem_type="single_label_classification"``,
+     ``num_labels=2``, ``ignore_mismatched_sizes=True``
+     for the `OxAISH-AL-LLM/wiki_toxic dataset <https://hugging
+     face.co/datasets/OxAISH-AL-LLM/wiki_toxic/viewer/default/validation>`__ when
+     initializing `cointegrated/rubert-tiny-toxicity
+     <https://huggingface.co/cointegrated/rubert-tiny-toxicity>`__ model instance.
 
 Metrics
 -------
