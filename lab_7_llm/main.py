@@ -65,7 +65,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
 
         dataset_duplicates = int(self._raw_data.duplicated().sum())
 
-        dataset_empty_rows = int(self._raw_data.isnull().all(axis=1).sum())
+        dataset_empty_rows = int(self._raw_data.isnull().any(axis=1).sum())
 
         text_column = 'article_content'
 
