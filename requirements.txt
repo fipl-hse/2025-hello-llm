@@ -1,0 +1,8 @@
+pandas
+datasets
+torch==2.9.1 --extra-index-url https://download.pytorch.org/whl/cpu
+transformers==4.50.3
+torchinfo
+evaluate
+fastapi
+uvicorn
