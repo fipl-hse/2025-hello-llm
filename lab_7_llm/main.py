@@ -185,28 +185,31 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        input_shape = [1, self._model.config.max_position_embeddings]
-        input_data = {
-            "input_ids": torch.ones(*input_shape, dtype=torch.long)
+        config = self._model.config
+        input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
+        tokens = {"input_ids": input_ids, "attention_mask": input_ids}
+
+        stats = summary(
+            self._model,
+            input_data=tokens,
+            device=self._device,
+            verbose=0
+        )
+
+        input_shape_dict = {}
+        for key, value in stats.input_size.items():
+            input_shape_dict[key] = list(value)
+
+        return {
+            "input_shape": input_shape_dict,
+            "embedding_size": config.max_position_embeddings,
+            "output_shape": stats.summary_list[-1].output_size,
+            "num_trainable_params": stats.trainable_params,
+            "vocab_size": config.vocab_size,
+            "size": stats.total_param_bytes,
+            "max_context_length": config.max_length
         }
-
-        result = summary(self._model, input_data=input_data)
-
-        last_layer = result.summary_list[-1]
-
-        properties = {
-            "input_shape": input_shape,
-            "embedding_size": getattr(self._model.config, "hidden_size", None),
-            "output_shape": list(last_layer.output_size) if hasattr(last_layer.output_size, '__iter__') else [
-                last_layer.output_size],
-            "num_trainable_params": result.trainable_params,
-            "vocab_size": getattr(self._model.config, "vocab_size", None),
-            "size": result.total_params,
-            "max_context_length": self._model.config.max_position_embeddings
-        }
-
-        return properties
-
+    
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
         """
