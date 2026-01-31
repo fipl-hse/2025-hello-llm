@@ -116,7 +116,7 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
-        return tuple([index, self._data.iloc[index]])
+        return tuple(self._data.loc[index])
 
     @property
     def data(self) -> DataFrame:
@@ -194,28 +194,16 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-
-        tokens = self._tokenizer(self._max_length, sample, return_tensors="pt", truncation=True)
-        # raw_tokens = self._tokenizer.convert_ids_to_tokens(tokens["input_ids"].tolist()[0])
-        # print(raw_tokens)
-        tokens = tokens["input_ids"].totensor()[0]
+        if self._model is None:
+            return None
+        
+        tokens = self._tokenizer(sample, return_tensors="pt")
 
         self._model.eval()
-
         with torch.no_grad():
             output = self._model(**tokens)
 
-        print(output.logits)
-        print(output.logits.shape)
-
-        predictions = torch.argmax(output.logits).item()
-
-        print(predictions)
-
-        labels = self._model.config.id2label
-        print(labels[predictions])
-
-        # return
+        return str(torch.argmax(output.logits).item())
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
