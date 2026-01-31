@@ -1,10 +1,11 @@
 """
 Starter for demonstration of laboratory work.
 """
-import json
 from pathlib import Path
+
 from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset, LLMPipeline
+from core_utils.project.lab_settings import LabSettings
+from lab_7_llm.main import (LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset)
 # pylint: disable=too-many-locals, undefined-variable, unused-import
 
 
