@@ -24,7 +24,6 @@ from core_utils.llm.time_decorator import report_time
 from transformers import (
         AutoModelForSequenceClassification,
         AutoTokenizer,
-        GenerationConfig,
     )
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -243,39 +242,38 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
-        pass
-#
-#     @torch.no_grad()
-#     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
-#         """
-#         Infer model on a single batch.
-#
-#         Args:
-#             sample_batch (Sequence[tuple[str, ...]]): Batch to infer the model
-#
-#         Returns:
-#             list[str]: Model predictions as strings
-#         """
-#
-#
-# class TaskEvaluator(AbstractTaskEvaluator):
-#     """
-#     A class that compares prediction quality using the specified metric.
-#     """
-#
-#     def __init__(self, data_path: Path, metrics: Iterable[Metrics]) -> None:
-#         """
-#         Initialize an instance of Evaluator.
-#
-#         Args:
-#             data_path (pathlib.Path): Path to predictions
-#             metrics (Iterable[Metrics]): List of metrics to check
-#         """
-#
-#     def run(self) -> dict:
-#         """
-#         Evaluate the predictions against the references using the specified metric.
-#
-#         Returns:
-#             dict: A dictionary containing information about the calculated metric
-#         """
+
+    @torch.no_grad()
+    def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
+        """
+        Infer model on a single batch.
+
+        Args:
+            sample_batch (Sequence[tuple[str, ...]]): Batch to infer the model
+
+        Returns:
+            list[str]: Model predictions as strings
+        """
+
+
+class TaskEvaluator(AbstractTaskEvaluator):
+    """
+    A class that compares prediction quality using the specified metric.
+    """
+
+    def __init__(self, data_path: Path, metrics: Iterable[Metrics]) -> None:
+        """
+        Initialize an instance of Evaluator.
+
+        Args:
+            data_path (pathlib.Path): Path to predictions
+            metrics (Iterable[Metrics]): List of metrics to check
+        """
+
+    def run(self) -> dict:
+        """
+        Evaluate the predictions against the references using the specified metric.
+
+        Returns:
+            dict: A dictionary containing information about the calculated metric
+        """
