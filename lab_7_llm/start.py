@@ -18,7 +18,7 @@ def main() -> None:
     with open(settings_path, 'r', encoding='utf-8') as file:
         settings = json.load(file)
 
-    importer = RawDataImporter(settings["parameters"]["model"])
+    importer = RawDataImporter(settings["parameters"]["dataset"])
     importer.obtain()
 
     preprocessor = RawDataPreprocessor(raw_data=importer.raw_data)
