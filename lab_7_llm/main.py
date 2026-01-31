@@ -12,7 +12,7 @@ import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -234,20 +234,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        if self._model is None:
-            return None
-
-        tokens = self._tokenizer(sample[0], return_tensors="pt")
-
-        self._model.eval()
-
-        with torch.no_grad():
-            output = self._model(**tokens)
-
-        predictions = torch.argmax(output.logits).item()
-
-        return str(predictions)
-
+        return str(self._infer_batch([sample])[0])
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -257,6 +244,20 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        dataloader = DataLoader(batch_size=self._batch_size, dataset=self._dataset)
+        infered_df = pd.DataFrame(self._dataset.data)
+
+        predictions = []
+
+        self._model.eval()
+
+        for batch in dataloader:
+            texts, labels = batch
+            preds = self._infer_batch(texts)
+            predictions.extend(preds)
+        infered_df["predictions"] = predictions
+
+        return infered_df
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -269,7 +270,23 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        samples = [sample[0] for sample in sample_batch]
 
+        tokens = self._tokenizer(
+            samples,
+            return_tensors='pt',
+            truncation=True,
+            padding="max_length",
+            max_length=self._max_length
+        ).to(self._device)
+
+        self._model.eval()
+
+        with torch.no_grad():
+            output = self._model(**tokens)
+            predictions = torch.argmax(output.logits, dim=-1)
+
+            return predictions.tolist()
 
 class TaskEvaluator(AbstractTaskEvaluator):
     """
