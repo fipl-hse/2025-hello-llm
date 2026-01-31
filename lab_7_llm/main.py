@@ -4,8 +4,22 @@ Laboratory work.
 Working with Large Language Models.
 """
 
+from pathlib import Path
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
+
+import pandas as pd
+# import pandas import DataFrame
+import torch
+from datasets import load_dataset
+from pandas.core.interchange.dataframe_protocol import DataFrame
+from torch.utils.data import Dataset
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -21,6 +35,10 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        self._raw_data = load_dataset(self._hf_name, split='train').to_pandas()
+
+        if not isinstance(self._raw_data, DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -41,6 +59,12 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        raw_data_df = self._raw_data.rename(
+            columns={"toxic": "target", "comment": "source"}
+        )
+        raw_data_df["target"] = raw_data_df["target"].replace({False: 0, True: 1}, inplace=True)
+        self._data = raw_data_df
+        self._data.reset_index(drop=True)
 
 
 class TaskDataset(Dataset):
@@ -55,6 +79,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self.data = data
 
     def __len__(self) -> int:
         """
@@ -84,6 +109,10 @@ class TaskDataset(Dataset):
             pandas.DataFrame: Preprocessed DataFrame
         """
 
+    @data.setter
+    def data(self, value):
+        self._data = value
+
 
 class LLMPipeline(AbstractLLMPipeline):
     """
@@ -91,7 +120,7 @@ class LLMPipeline(AbstractLLMPipeline):
     """
 
     def __init__(
-        self, model_name: str, dataset: TaskDataset, max_length: int, batch_size: int, device: str
+            self, model_name: str, dataset: TaskDataset, max_length: int, batch_size: int, device: str
     ) -> None:
         """
         Initialize an instance.
@@ -103,6 +132,11 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self.device = device
+        self.batch_size = batch_size
+        self.max_length = max_length
+        self.dataset = dataset
+        self.model_name = model_name
 
     def analyze_model(self) -> dict:
         """
@@ -159,6 +193,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self.data_path = data_path
+        self.metrics = metrics
 
     def run(self) -> dict:
         """
