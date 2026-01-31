@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "google-t5/t5-small",
+    "model": "t5-small",
     "dataset": "RocioUrquijo/en_de",
     "metrics": ["bleu"]
   },
-  "target_score": 4
+  "target_score": 6
 }
