@@ -22,10 +22,7 @@ from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
 try:
-    from transformers import (
-        AutoTokenizer,
-        XLMRobertaForSequenceClassification
-    )
+    from transformers import AutoTokenizer, XLMRobertaForSequenceClassification
 except ImportError:
     print('Library "transformers" not installed. Failed to import.')
 
