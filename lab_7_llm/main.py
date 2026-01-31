@@ -5,14 +5,30 @@ Working with Large Language Models.
 """
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
+
+# from sympy.codegen import Print
+from pathlib import Path
 from typing import Iterable, Sequence
+
+import pandas as pd
+import torch
+from datasets import load_dataset
+from torch.utils.data import Dataset
+from torchinfo import summary
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 
 
 class RawDataImporter(AbstractRawDataImporter):
     """
     A class that imports the HuggingFace dataset.
     """
-
     @report_time
     def obtain(self) -> None:
         """
@@ -22,12 +38,18 @@ class RawDataImporter(AbstractRawDataImporter):
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
 
+        dataset = load_dataset("dair-ai/emotion", split="validation")
+        dataframe = dataset.to_pandas()
+        self._raw_data = dataframe
+
+        if not isinstance(self._raw_data, pd.DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
+
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
     """
     A class that analyzes and preprocesses a dataset.
     """
-
     def analyze(self) -> dict:
         """
         Analyze a dataset.
@@ -35,13 +57,50 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        # 1. Number of samples
+        num_samples = len(self._raw_data)
 
+        # 2. Number of columns
+        num_columns = len(self._raw_data.columns)
+
+        # 3. Number of duplicates
+        num_duplicates = int(self._raw_data.duplicated().sum())
+
+        # 4. Number of empty rows
+        empty_rows = int(self._raw_data.isna().all(axis=1).sum())
+
+        # 5. Minimum and maximum length
+        if self._raw_data.empty:
+            min_len = max_len = 0
+        else:
+            text_cols = [col for col in self._raw_data.columns
+                         if self._raw_data[col].dtype == 'object' or pd.api.types.is_string_dtype(self._raw_data[col])]
+
+            df_to_use = self._raw_data[text_cols] if text_cols else self._raw_data
+            df_str = df_to_use.fillna('').astype(str)
+
+            lengths = df_str.apply(lambda row: len(' '.join(row.values).strip()), axis=1)
+            min_len = int(lengths.min())
+            max_len = int(lengths.max())
+
+        return {
+            "dataset_number_of_samples": num_samples,
+            "dataset_columns": num_columns,
+            "dataset_duplicates": num_duplicates,
+            "dataset_empty_rows": empty_rows,
+            "dataset_sample_min_len": min_len,
+            "dataset_sample_max_len": max_len
+        }
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
-
+        # Rename columns
+        self._raw_data.rename(columns={'label': 'target', 'text': 'source'}, inplace=True)
+        # Reset index
+        self._raw_data.reset_index(drop=True, inplace=True)
+        self._data = self._raw_data
 
 class TaskDataset(Dataset):
     """
@@ -55,6 +114,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data
 
     def __len__(self) -> int:
         """
@@ -63,6 +123,8 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
+
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -74,16 +136,18 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        row = self._data.iloc[index]
+        return tuple(str(value) for value in row)
 
     @property
-    def data(self) -> DataFrame:
+    def data(self) -> pd.DataFrame:
         """
         Property with access to preprocessed DataFrame.
 
         Returns:
             pandas.DataFrame: Preprocessed DataFrame
         """
-
+        return self._data
 
 class LLMPipeline(AbstractLLMPipeline):
     """
@@ -103,6 +167,15 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self._model_name = model_name
+        self._dataset = dataset
+        self._max_length = max_length
+        self._batch_size = batch_size
+        self._device = device
+
+        self._tokenizer = AutoTokenizer.from_pretrained("aiknowyou/it-emotion-analyzer")
+        self._model = AutoModelForSequenceClassification.from_pretrained("aiknowyou/it-emotion-analyzer").to(device)
+
 
     def analyze_model(self) -> dict:
         """
@@ -111,7 +184,31 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        config = self._model.config
+        input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
+        tokens = {"input_ids": input_ids, "attention_mask": input_ids}
 
+        stats = summary(
+            self._model,
+            input_data=tokens,
+            device=self._device,
+            verbose=0
+        )
+
+        input_shape_dict = {}
+        for key, value in stats.input_size.items():
+            input_shape_dict[key] = list(value)
+
+        return {
+            "input_shape": input_shape_dict,
+            "embedding_size": config.max_position_embeddings,
+            "output_shape": stats.summary_list[-1].output_size,
+            "num_trainable_params": stats.trainable_params,
+            "vocab_size": config.vocab_size,
+            "size": stats.total_param_bytes,
+            "max_context_length": config.max_length
+        }
+    
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
         """
@@ -123,6 +220,16 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        inputs = self._tokenizer(sample[0], return_tensors="pt")
+
+        self._model.eval()
+
+        with torch.no_grad():
+            outputs = self._model(**inputs)
+
+        predictions = torch.argmax(outputs.logits).item()
+
+        return str(predictions)
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
