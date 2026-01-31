@@ -19,7 +19,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
-from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
@@ -97,7 +97,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             .astype(int)
         )
 
-        self._raw_data.rename(columns={'labels': 'target', 'ru_text': 'source'}, inplace=True)
+        self._raw_data.rename(columns={'labels': ColumnNames.TARGET, 'ru_text': ColumnNames.SOURCE}, inplace=True)
         self._raw_data = self._raw_data.query("target != 8")
 
         mapping_ordered = {
@@ -108,9 +108,9 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             6: 4,
             7: 5
         }
-        self._raw_data.loc[:, 'target'] = self._raw_data['target'].map(mapping_ordered)
+        self._raw_data.loc[:, ColumnNames.TARGET] = self._raw_data[ColumnNames.TARGET].map(mapping_ordered)
 
-        self._raw_data.loc[:, 'source'] = self._raw_data['source'].apply(lambda x: re.sub(
+        self._raw_data.loc[:, ColumnNames.SOURCE] = self._raw_data[ColumnNames.SOURCE].apply(lambda x: re.sub(
             r'[^\w\s]', '', x.strip())
                                                                          )
 
@@ -255,7 +255,7 @@ class LLMPipeline(AbstractLLMPipeline):
             texts, labels = batch
             preds = self._infer_batch(texts)
             predictions.extend(preds)
-        infered_df["predictions"] = predictions
+        infered_df[ColumnNames.PREDICTION] = predictions
 
         return infered_df
 
@@ -301,6 +301,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """

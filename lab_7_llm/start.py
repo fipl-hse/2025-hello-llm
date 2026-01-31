@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from core_utils.llm.time_decorator import report_time
+from core_utils.project.lab_settings import LabSettings
 from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
 
 
@@ -15,14 +16,9 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    settings_path = Path(__file__).parent / 'settings.json'
+    settings = LabSettings(Path(__file__).parent / "settings.json")
 
-    with open(settings_path, 'r', encoding='utf-8') as file:
-        settings = json.load(file)
-
-    name = settings['parameters']['dataset']
-
-    data_importer = RawDataImporter(name)
+    data_importer = RawDataImporter(settings.parameters.dataset)
     data_importer.obtain()
 
     data_preprocessor = RawDataPreprocessor(data_importer.raw_data)
@@ -34,7 +30,7 @@ def main() -> None:
     data_preprocessor.transform()
     dataset = TaskDataset(data_preprocessor.data.head(100))
 
-    pipeline = LLMPipeline(settings['parameters']['model'], dataset,120, 1, 'cpu')
+    pipeline = LLMPipeline(settings.parameters.model, dataset,120, 1, 'cpu')
 
     for key, value in pipeline.analyze_model().items():
         print(f'{key} : {value}')
