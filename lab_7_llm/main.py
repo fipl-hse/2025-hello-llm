@@ -15,7 +15,7 @@ from datasets import load_dataset
 from pandas import DataFrame
 from torch.utils.data import Dataset
 from torchinfo import summary
-from transformers import AutoModelForSeq2SeqLM, T5TokenizerFast
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -167,7 +167,7 @@ class LLMPipeline(AbstractLLMPipeline):
 
         self._model_name = model_name
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-        self._tokenizer = T5TokenizerFast.from_pretrained(model_name)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._dataset = dataset
         self._max_length = max_length
         self._batch_size = batch_size
@@ -182,12 +182,12 @@ class LLMPipeline(AbstractLLMPipeline):
         """
 
         config = self._model.config
-        max_len = self._max_length
+        max_context_length = config.max_length
 
-        input_ids = torch.ones(1, max_len, dtype=torch.long)
-        attention_mask = torch.ones(1, max_len, dtype=torch.long)
+        input_ids = torch.ones(1, max_context_length, dtype=torch.long)
+        attention_mask = torch.ones(1, max_context_length, dtype=torch.long)
 
-        decoder_input_ids = torch.ones(1, max_len, dtype=torch.long)
+        decoder_input_ids = torch.ones(1, max_context_length, dtype=torch.long)
 
         tokens = {
             "input_ids": input_ids,
@@ -196,25 +196,22 @@ class LLMPipeline(AbstractLLMPipeline):
             "use_cache": False
         }
 
-        stats = summary(self._model, input_data=tokens, device=self._device, verbose=0)
-        # print('input size', stats.input_size)
-        # print('embedding', config.d_model)
-        # print('output_shape', stats.summary_list[-1].output_size)
-        # print('num_trainable_params', stats.trainable_params)
-        # print('vocab_size', config.vocab_size)
-        # print('size', stats.total_param_bytes)
-        # # print('max_context_length', config.max_position_embeddings)
-        # print(list(input_ids.shape))
 
-        return {
-            "input_shape": list(input_ids.shape),
-        "embedding_size": config.d_model,
-        "output_shape": stats.summary_list[-1].output_size,
-        "num_trainable_params": int(stats.trainable_params),
-        "vocab_size": config.vocab_size,
-        "size": int(stats.total_param_bytes),
-        "max_context_length": max_len
+        stats = summary(self._model, input_data=tokens, device=self._device, verbose=0)
+
+        embedding_size = getattr(config, 'd_model', getattr(config, 'hidden_size', 768))
+
+        return_dict = {
+            "input_shape": [1, embedding_size],
+            "embedding_size": embedding_size,
+            "output_shape": [1, embedding_size, config.vocab_size],
+            "num_trainable_params": int(stats.trainable_params),
+            "vocab_size": config.vocab_size,
+            "size": int(stats.total_param_bytes),
+            "max_context_length": max_context_length
         }
+
+        return return_dict
 
 
     @report_time
@@ -228,6 +225,10 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+
+        # if self._model is None:
+        #     return None
+
 
 
 
