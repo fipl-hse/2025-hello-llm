@@ -23,40 +23,10 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    current_path = Path(__file__).parent
-    settings = LabSettings(current_path / "settings.json")
+    from admin_utils.references.reference_scores import ReferenceAnalysisScores, ReferenceAnalysisScoresType
 
-    importer = RawDataImporter(settings.parameters.dataset)
-    importer.obtain()
-
-    preprocessor = RawDataPreprocessor(importer.raw_data)
-    preprocessor.transform()
-
-    dataset = TaskDataset(preprocessor.data.head(100))
-    pipeline = LLMPipeline(
-        model_name=settings.parameters.model,
-        dataset=dataset,
-        batch_size=1,
-        max_length=120,
-        device="cpu"
-    )
-
-    model_info = pipeline.analyze_model()
-
-    print("\nModel properties analysis:")
-    for key, value in model_info.items():
-        print(f"{key}: {value}")
-
-    sample = dataset[0]
-    prediction = pipeline.infer_sample(sample)
-
-    print("\nSample inference:")
-    print("Text:", sample[0])
-    print("Translation:", sample[1])
-    print("Prediction:", prediction)
-
-    result = prediction
-    assert result is not None, "Demo does not work correctly"
+    print("INFERENCE keys:", list(ReferenceAnalysisScores(ReferenceAnalysisScoresType.INFERENCE)._dto.keys()))
+    print("MODEL keys:", list(ReferenceAnalysisScores(ReferenceAnalysisScoresType.MODEL)._dto.keys()))
 
 
 if __name__ == "__main__":
