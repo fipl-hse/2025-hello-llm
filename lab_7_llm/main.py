@@ -17,6 +17,10 @@ from core_utils.llm.time_decorator import report_time
 
 from torch.utils.data import Dataset
 from torchinfo import summary
+from transformers import (
+        AlbertForSequenceClassification,
+        AutoTokenizer,
+    )
 
 import torch
 from pathlib import Path
@@ -75,7 +79,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
         self._data = self._raw_data.rename(columns={'text': ColumnNames.SOURCE, 'label': ColumnNames.TARGET})
-        # self._data = self._data.drop_duplicates())
+        self._data = self._data.drop_duplicates()
         self._data = self._data.reset_index(drop=True)
 
 class TaskDataset(Dataset):
@@ -112,7 +116,7 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
-        return tuple([index, self._data.loc[index]])
+        return tuple([index, self._data.iloc[index]])
 
     @property
     def data(self) -> DataFrame:
@@ -148,6 +152,8 @@ class LLMPipeline(AbstractLLMPipeline):
         self._max_length = max_length
         self._batch_size = batch_size
         self._device = device
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._model = AlbertForSequenceClassification.from_pretrained(model_name)
 
     def analyze_model(self) -> dict:
         """
@@ -155,20 +161,27 @@ class LLMPipeline(AbstractLLMPipeline):
 
         Returns:
             dict: Properties of a model
-        """
-        # summary()
+        """        
+        
+        embeddings_length = self._model.config.max_position_embeddings
+        ids = torch.ones(1, embeddings_length, dtype=torch.long)
+        tokens = {"input_ids": ids, "attention_mask": ids}
+        model_summary = summary(self._model, input_data=tokens, device=self._device, verbose=0)
+        
+        input_shape = {}
+        for key, value in model_summary.input_size.items():
+            input_shape[key] = list(value)
 
+        return {
+             "input_shape" : input_shape,
+             "embedding_size" : embeddings_length,
+             "output_shape" : model_summary.summary_list[-1].output_size,
+             "num_trainable_params" : model_summary.trainable_params,
+             "vocab_size" : self._model.config.vocab_size,
+             "size" : model_summary.total_param_bytes,
+             "max_context_length" : self._model.config.max_length
 
-        # return {
-        #     "input_shape" : 
-        #     "embedding_size" :
-        #     "output_shape" :
-        #     "num_trainable_params" :
-        #     "vocab_size" :
-        #     "size" :
-        #     "max_context_length" :
-
-        # }
+         }
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -182,6 +195,28 @@ class LLMPipeline(AbstractLLMPipeline):
             str | None: A prediction
         """
 
+        tokens = self._tokenizer(self._max_length, sample, return_tensors="pt", truncation=True)
+        # raw_tokens = self._tokenizer.convert_ids_to_tokens(tokens["input_ids"].tolist()[0])
+        # print(raw_tokens)
+        tokens = tokens["input_ids"].totensor()[0]
+
+        self._model.eval()
+
+        with torch.no_grad():
+            output = self._model(**tokens)
+
+        print(output.logits)
+        print(output.logits.shape)
+
+        predictions = torch.argmax(output.logits).item()
+
+        print(predictions)
+
+        labels = self._model.config.id2label
+        print(labels[predictions])
+
+        # return
+
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
         """
@@ -190,9 +225,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
-        # batch_size = 1;
-        # max_length = 120;
-        # device = 'cpu'.
+
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -228,3 +261,4 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+

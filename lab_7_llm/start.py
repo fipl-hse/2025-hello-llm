@@ -8,7 +8,6 @@ import types
 from pathlib import Path
 from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset, report_time
 
-
 @report_time
 def main() -> None:
     """
@@ -21,19 +20,20 @@ def main() -> None:
     importer.obtain()
 
     preprocessor = RawDataPreprocessor(importer.raw_data) #_raw_data
-    analyzed_dataset = preprocessor.analyze()
-    preprocessor.transform()
-    print(analyzed_dataset)
+    result = preprocessor.analyze()
 
+    preprocessor.transform()
     dataset = TaskDataset(preprocessor.data.head(100))
-    dataset_length = dataset.__len__()
-    item = dataset.__getitem__(0)
     preprocessed_data = dataset.data
 
-    result = preprocessed_data
-    print(result)
+    batch_size = 1
+    max_length = 120
+    device = 'cpu'
 
-    # pipeline = LLMPipeline(settings.parameters.model, dataset, max_length, batch_size, device)
+    pipeline = LLMPipeline(settings.parameters.model, dataset, max_length, batch_size, device) 
+    result = pipeline.analyze_model()
+    print(result)
+    
     assert result is not None, "Demo does not work correctly"
 
 
