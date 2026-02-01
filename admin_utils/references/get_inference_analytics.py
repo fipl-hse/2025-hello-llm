@@ -8,8 +8,9 @@ from pathlib import Path
 from pandas import DataFrame
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
+from transformers import set_seed
 
-from admin_utils.constants import DEVICE
+from admin_utils.constants import DEVICE, GLOBAL_SEED
 from admin_utils.references.get_model_analytics import get_references, save_reference
 from admin_utils.references.helpers import (
     get_classification_models,
@@ -141,6 +142,8 @@ def main() -> None:
     """
     Run collected reference scores.
     """
+    set_seed(GLOBAL_SEED)
+
     references_dir = Path(__file__).parent / "gold"
     references_path = references_dir / "reference_inference_analytics.json"
 

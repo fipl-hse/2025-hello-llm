@@ -9,6 +9,7 @@ from typing import Any
 
 import simplejson as json
 from tqdm import tqdm
+from transformers import set_seed
 
 try:
     from pandas import DataFrame
@@ -16,7 +17,7 @@ except ImportError:
     print('Library "pandas" not installed. Failed to import.')
     DataFrame = dict  # type: ignore
 
-from admin_utils.constants import DEVICE
+from admin_utils.constants import DEVICE, GLOBAL_SEED
 from lab_7_llm.main import LLMPipeline, TaskDataset
 
 
@@ -52,6 +53,8 @@ def main() -> None:
     """
     Run collected models analytics.
     """
+    set_seed(GLOBAL_SEED)
+
     batch_size = 64
     max_length = 120
     device = DEVICE

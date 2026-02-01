@@ -9,8 +9,16 @@ from typing import Any
 
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
+from transformers import set_seed
 
-from admin_utils.constants import DEVICE
+from admin_utils.constants import (
+    DEVICE,
+    GLOBAL_FINE_TUNING_BATCH_SIZE,
+    GLOBAL_INFERENCE_BATCH_SIZE,
+    GLOBAL_MAX_LENGTH,
+    GLOBAL_NUM_SAMPLES,
+    GLOBAL_SEED,
+)
 from admin_utils.references.get_model_analytics import get_references, save_reference
 from admin_utils.references.helpers import (
     collect_combinations,
@@ -63,14 +71,17 @@ def get_target_modules(  # pylint: disable=too-many-return-statements)
     ):
         return ["query", "key", "value", "dense"]
     if model_name in ("cointegrated/rubert-base-cased-nli-threeway"):
-        return ["key"]
+        return ["query", "key", "value"]
     if model_name in (
         "Helsinki-NLP/opus-mt-ru-en",
         "Helsinki-NLP/opus-mt-ru-es",
         "Helsinki-NLP/opus-mt-en-fr",
     ):
         return ["q_proj", "k_proj"]
-    if model_name in ("stevhliu/my_awesome_billsum_model", "google-t5/t5-small"):
+    if model_name in (
+        "stevhliu/my_awesome_billsum_model",
+        "google-t5/t5-small",
+    ):
         return ["q", "k", "v"]
     if model_name in ("UrukHan/t5-russian-summarization",):
         return ["q", "k", "wi", "wo"]
@@ -125,6 +136,8 @@ def main() -> None:
     """
     Run collected reference scores.
     """
+    set_seed(GLOBAL_SEED)
+
     project_root = Path(__file__).parent.parent.parent
     references_path = (
         project_root / "admin_utils" / "references" / "gold" / "reference_sft_scores.json"
@@ -138,18 +151,18 @@ def main() -> None:
     combinations = collect_combinations(references)
 
     inference_params = InferenceParams(
-        num_samples=100,
-        max_length=120,
-        batch_size=3,
+        num_samples=GLOBAL_NUM_SAMPLES,
+        max_length=GLOBAL_MAX_LENGTH,
+        batch_size=GLOBAL_INFERENCE_BATCH_SIZE,
         predictions_path=dist_dir / "predictions.csv",
         device=DEVICE,
     )
 
     sft_params = SFTParams(
-        batch_size=3,
+        batch_size=GLOBAL_FINE_TUNING_BATCH_SIZE,
         finetuned_model_path=dist_dir,
         device=DEVICE,
-        max_length=120,
+        max_length=GLOBAL_MAX_LENGTH,
         learning_rate=1e-3,
         max_fine_tuning_steps=50,
         rank=8,
@@ -167,14 +180,14 @@ def main() -> None:
         "stevhliu/my_awesome_billsum_model": 1e-4,
     }
     specific_rank = {
-        "Helsinki-NLP/opus-mt-en-fr": 16,
+        "Helsinki-NLP/opus-mt-en-fr": 8,
         "cointegrated/rubert-tiny2-cedr-emotion-detection": 16,
         "stevhliu/my_awesome_billsum_model": 24,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 24,
         "google-t5/t5-small": 24,
     }
     specific_alpha = {
-        "Helsinki-NLP/opus-mt-en-fr": 24,
+        "Helsinki-NLP/opus-mt-en-fr": 8,
         "cointegrated/rubert-tiny2-cedr-emotion-detection": 24,
         "stevhliu/my_awesome_billsum_model": 36,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 36,
@@ -184,6 +197,22 @@ def main() -> None:
     result = {}
     for model_name, dataset_name, metrics in tqdm(sorted(combinations)):
         print(model_name, dataset_name, metrics, flush=True)
+
+        if (model_name, dataset_name) in (
+            (
+                "cointegrated/rubert-base-cased-nli-threeway",
+                "cointegrated/nli-rus-translated-v2021",
+            ),
+            (
+                "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization",
+                "cnn_dailymail",
+            ),
+            ("stevhliu/my_awesome_billsum_model", "CarlBrendt/Summ_Dialog_News"),
+            ("stevhliu/my_awesome_billsum_model", "d0rj/curation-corpus-ru"),
+            ("tatiana-merz/turkic-cyrillic-classifier", "tatiana-merz/cyrillic_turkic_langs"),
+        ):
+            print(f"Skipping for {model_name} {dataset_name}")
+            continue
         prepare_result_section(result, model_name, dataset_name, metrics)
 
         sft_params.finetuned_model_path = dist_dir / model_name
