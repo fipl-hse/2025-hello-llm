@@ -42,7 +42,7 @@ def main() -> None:
     result = pipeline.infer_dataset()
     print(result)
 
-    predictions_path = Path(__file__).parent / 'dist' / 'predictions.csv'
+    predictions_path = Path(__file__).parent / 'predictions.csv'
     result.to_csv(predictions_path)
 
     assert result is not None, "Demo does not work correctly"
