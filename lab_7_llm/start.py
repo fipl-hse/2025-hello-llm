@@ -11,6 +11,7 @@ from lab_7_llm.main import (
     RawDataPreprocessor,
     report_time,
     TaskDataset,
+TaskEvaluator,
 )
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import
@@ -46,6 +47,21 @@ def main() -> None:
         print(f'{key}: {value}')
 
     print(pipeline.infer_sample(dataset[1]))
+
+    predictions_df = pipeline.infer_dataset()
+
+    predictions_file = Path(__file__).parent / "dist" / "predictions.csv"
+
+    predictions_file.parent.mkdir(parents=True, exist_ok=True)
+
+    predictions_df.to_csv(predictions_file, index=False)
+
+    predictions_df.to_csv(predictions_file)
+
+    evaluator = TaskEvaluator(predictions_file, settings['parameters']['metrics'])
+    result = evaluator.run()
+
+    print("Evaluation results:", result)
 
     assert result is not None, "Demo does not work correctly"
 

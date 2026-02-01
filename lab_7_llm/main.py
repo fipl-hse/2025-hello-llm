@@ -22,6 +22,7 @@ from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
+import evaluate
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -313,8 +314,6 @@ class LLMPipeline(AbstractLLMPipeline):
         return predictions
 
 
-
-
 class TaskEvaluator(AbstractTaskEvaluator):
     """
     A class that compares prediction quality using the specified metric.
@@ -329,6 +328,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
             metrics (Iterable[Metrics]): List of metrics to check
         """
 
+        self._data_path = data_path
+        self._metrics = metrics
+
     def run(self) -> dict:
         """
         Evaluate the predictions against the references using the specified metric.
@@ -336,3 +338,45 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+
+        if not self._data_path.exists():
+            raise FileNotFoundError(f"No data found at {self._data_path}")
+
+        data = pd.read_csv(self._data_path)
+
+        if 'predictions' not in data.columns or 'target' not in data.columns:
+            raise ValueError("Data must contain 'predictions' and 'target' columns")
+
+        predictions = data['predictions'].astype(str).tolist()
+        references = data['target'].astype(str).tolist()
+
+        results = {}
+
+        if Metrics.BLEU in self._metrics:
+            bleu_metric = evaluate.load("bleu")
+
+            references_for_bleu = [[ref] for ref in references]
+
+            bleu_result = bleu_metric.compute(
+                predictions=predictions,
+                references=references_for_bleu
+            )
+            results["bleu"] = float(bleu_result["bleu"])
+
+        if Metrics.ROUGE in self._metrics:
+            rouge_metric = evaluate.load("rouge", seed=77)
+
+            rouge_result = rouge_metric.compute(
+                predictions=predictions,
+                references=references,
+                use_stemmer=True,
+                use_aggregator=True
+            )
+
+            results["rouge"] = float(rouge_result["rougeL"])
+
+        print(f"Evaluation results: {results}")  # Для отладки
+
+        return results
+
+
