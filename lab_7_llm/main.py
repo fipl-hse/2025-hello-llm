@@ -15,20 +15,19 @@ from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, Co
 
 from core_utils.llm.time_decorator import report_time
 
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import (
         AlbertForSequenceClassification,
         AutoTokenizer,
     )
+from evaluate import load 
 
 import torch
 from pathlib import Path
 from pandas import DataFrame
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
-from core_utils.llm.raw_data_importer import AbstractRawDataImporter
-from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 
 
@@ -197,13 +196,8 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             return None
         
-        tokens = self._tokenizer(sample, return_tensors="pt")
-
-        self._model.eval()
-        with torch.no_grad():
-            output = self._model(**tokens)
-
-        return str(torch.argmax(output.logits).item())
+        predictions = self._infer_batch(sample)
+        return predictions[0]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -213,7 +207,17 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        dataset_loader = DataLoader(self._dataset, self._batch_size)
+        all_predictions = []
+        all_targets = []
 
+        for batch in dataset_loader:
+            batch = batch
+            predictions = self._infer_batch(batch[0])
+            all_predictions.extend(predictions)
+            all_targets.extend(batch[1].tolist())
+
+        return pd.DataFrame({'target': all_targets, 'predictions': all_predictions})
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -226,6 +230,14 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        
+        tokens = self._tokenizer(list(sample_batch), return_tensors="pt", padding=True, truncation=True)
+    
+        self._model.eval()
+        with torch.no_grad():
+            output = self._model(**tokens)
+        
+        return list(str(torch.argmax(output.logits).item()))
 
 
 class TaskEvaluator(AbstractTaskEvaluator):

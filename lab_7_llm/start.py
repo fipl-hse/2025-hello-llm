@@ -6,7 +6,7 @@ Starter for demonstration of laboratory work.
 import json
 import types
 from pathlib import Path
-from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset, report_time
+from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor,TaskEvaluator, TaskDataset, report_time
 
 @report_time
 def main() -> None:
@@ -34,10 +34,16 @@ def main() -> None:
     model_stats = pipeline.analyze_model()
     print(model_stats)
 
-    sample = dataset[1]
+    sample = dataset[0]
     text = sample[0]
-    result = pipeline.infer_sample(text)
+    sample_infer = pipeline.infer_sample(text)
+    print(sample_infer)
+
+    result = pipeline.infer_dataset()
     print(result)
+
+    predictions_path = Path(__file__).parent / 'dist' / 'predictions.csv'
+    result.to_csv(predictions_path)
 
     assert result is not None, "Demo does not work correctly"
 
