@@ -10,6 +10,8 @@ import torch
 from datasets import load_dataset
 from pandas import DataFrame
 from torch.utils.data import Dataset
+from torchinfo import summary
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -142,7 +144,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
-        self._data = data.copy()
+        self._data = data
 
     def __len__(self) -> int:
         """
@@ -163,12 +165,7 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
-        row = self._data.iloc[index]
-
-        if ColumnNames.SOURCE in self._data.columns:
-            return (str(row[ColumnNames.SOURCE]),)
-
-        return tuple(str(row[col]) for col in self._data.columns)
+        return tuple(self._data.iloc[index])
 
     @property
     def data(self) -> DataFrame:
@@ -199,6 +196,13 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self._model_name = model_name
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(device)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._dataset = dataset
+        self._max_length = max_length
+        self._batch_size = batch_size
+        self._device = device
 
     def analyze_model(self) -> dict:
         """
@@ -207,6 +211,36 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        config = self._model.config
+
+        input_ids = torch.ones((1, self._max_length), dtype=torch.long)
+        attention_mask = torch.ones((1, self._max_length), dtype=torch.long)
+
+        tokens = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask
+        }
+
+        stats = summary(
+            self._model,
+            input_data=tokens,
+            device=self._device,
+            verbose=0
+        )
+
+        input_shape_dict = {}
+        for key, value in stats.input_size.items():
+            input_shape_dict[key] = list(value)
+
+        return {
+            "input_shape": input_shape_dict,
+            "embedding_size": config.max_position_embeddings,
+            "output_shape": stats.summary_list[-1].output_size,
+            "num_trainable_params": stats.trainable_params,
+            "vocab_size": config.vocab_size,
+            "size": stats.total_param_bytes,
+            "max_context_length": config.max_length
+        }
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -219,6 +253,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        return str(self._infer_batch([sample])[0])
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:

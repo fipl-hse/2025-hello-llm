@@ -7,9 +7,9 @@ from pathlib import Path
 # pylint: disable=too-many-locals, undefined-variable, unused-import
 
 import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, EncoderDecoderModel
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor
+from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset, LLMPipeline
 
 
 @report_time
@@ -17,21 +17,21 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    tokenizer = AutoTokenizer.from_pretrained("dmitry-vorobiev/rubert_ria_headlines")
+    # tokenizer = AutoTokenizer.from_pretrained("dmitry-vorobiev/rubert_ria_headlines")
 
-    text = "Нити Аайог исследует использование блокчейна в образовании, здравоохранении и сельском хозяйстве"
-    tokens = tokenizer(text, return_tensors="pt")
-    print(tokens)
-    print(tokens.keys())
+    # text = "Нити Аайог исследует использование блокчейна в образовании, здравоохранении и сельском хозяйстве"
+    # tokens = tokenizer(text, return_tensors="pt")
+    # print(tokens)
+    # print(tokens.keys())
 
-    raw_tokens = tokenizer.convert_ids_to_tokens(tokens["input_ids"].tolist()[0])
-    print(raw_tokens)
+    # raw_tokens = tokenizer.convert_ids_to_tokens(tokens["input_ids"].tolist()[0])
+    # print(raw_tokens)
 
-    model = AutoModelForSeq2SeqLM.from_pretrained("dmitry-vorobiev/rubert_ria_headlines")
+    # model = AutoModelForSeq2SeqLM.from_pretrained("dmitry-vorobiev/rubert_ria_headlines")
 
-    model.to('cpu')
+    # model.to('cpu')
 
-    model.eval()
+    # model.eval()
 
     # with torch.no_grad():
     #     output = model(**tokens)
@@ -53,8 +53,26 @@ def main() -> None:
     data_preprocessor = RawDataPreprocessor(data_importer._raw_data)
     result = data_preprocessor.analyze()
 
-    for key, value in result.items():
-        print(f'{key} : {value}')
+    data_preprocessor.transform()
+
+    dataset = TaskDataset(data_preprocessor.data.head(100))
+
+    pipeline = LLMPipeline(
+        model_name="dmitry-vorobiev/rubert_ria_headlines",
+        dataset=dataset,
+        max_length=120,
+        batch_size=1,
+        device='cpu'
+    )
+
+    model_properties = pipeline.analyze_model()
+    for key, value in model_properties.items():
+        print(f'{key}: {value}')
+
+    sample = dataset[0]
+    print(sample[0][:100])
+    print(pipeline.infer_sample(sample))
+
     assert result is not None, "Demo does not work correctly"
 
 
