@@ -5,30 +5,29 @@ Working with Large Language Models.
 """
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
+from pathlib import Path
 from typing import Iterable, Sequence
 
-from datasets import load_dataset
 import pandas as pd
-
+import torch
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
-from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
-
+from core_utils.llm.raw_data_preprocessor import (
+    AbstractRawDataPreprocessor,
+    ColumnNames,
+)
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
-
+from datasets import load_dataset
+from evaluate import load
+from pandas import DataFrame
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import (
-        AlbertForSequenceClassification,
-        AutoTokenizer,
-    )
-from evaluate import load 
-
-import torch
-from pathlib import Path
-from pandas import DataFrame
-from core_utils.llm.llm_pipeline import AbstractLLMPipeline
-from core_utils.llm.metrics import Metrics
-from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+    AlbertForSequenceClassification,
+    AutoTokenizer,
+)
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -43,7 +42,7 @@ class RawDataImporter(AbstractRawDataImporter):
 
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
-        """        
+        """
         self._raw_data = load_dataset(self._hf_name, split="test").to_pandas()
 
         if not isinstance(self._raw_data, pd.DataFrame):
@@ -77,7 +76,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         Apply preprocessing transformations to the raw dataset.
         """
-        self._data = self._raw_data.rename(columns={'text': ColumnNames.SOURCE, 'label': ColumnNames.TARGET})
+        self._data = self._raw_data.rename(columns={'text': ColumnNames.SOURCE,
+                                                    'label': ColumnNames.TARGET})
         self._data = self._data.drop_duplicates()
         self._data = self._data.reset_index(drop=True)
 
@@ -134,7 +134,8 @@ class LLMPipeline(AbstractLLMPipeline):
     """
 
     def __init__(
-        self, model_name: str, dataset: TaskDataset, max_length: int, batch_size: int, device: str
+        self, model_name: str, dataset: TaskDataset,
+        max_length: int, batch_size: int, device: str
     ) -> None:
         """
         Initialize an instance.
@@ -160,13 +161,14 @@ class LLMPipeline(AbstractLLMPipeline):
 
         Returns:
             dict: Properties of a model
-        """        
-        
+        """
+
         embeddings_length = self._model.config.max_position_embeddings
         ids = torch.ones(1, embeddings_length, dtype=torch.long)
         tokens = {"input_ids": ids, "attention_mask": ids}
-        model_summary = summary(self._model, input_data=tokens, device=self._device, verbose=0)
-        
+        model_summary = summary(self._model, input_data=tokens,
+                                device=self._device, verbose=0)
+
         input_shape = {}
         for key, value in model_summary.input_size.items():
             input_shape[key] = list(value)
@@ -195,7 +197,7 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         if self._model is None:
             return None
-        
+
         predictions = self._infer_batch(sample)
         return predictions[0]
 
@@ -230,13 +232,14 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
-        
-        tokens = self._tokenizer(list(sample_batch), return_tensors="pt", padding=True, truncation=True)
-    
+
+        tokens = self._tokenizer(list(sample_batch), return_tensors="pt",
+                                 padding=True, truncation=True)
+
         self._model.eval()
         with torch.no_grad():
             output = self._model(**tokens)
-        
+
         return list(str(torch.argmax(output.logits).item()))
 
 

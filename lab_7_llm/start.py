@@ -6,7 +6,16 @@ Starter for demonstration of laboratory work.
 import json
 import types
 from pathlib import Path
-from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor,TaskEvaluator, TaskDataset, report_time
+
+from lab_7_llm.main import (
+    LLMPipeline,
+    RawDataImporter,
+    RawDataPreprocessor,
+    TaskDataset,
+    TaskEvaluator,
+    report_time,
+)
+
 
 @report_time
 def main() -> None:
@@ -30,7 +39,8 @@ def main() -> None:
     max_length = 120
     device = 'cpu'
 
-    pipeline = LLMPipeline(settings.parameters.model, dataset, max_length, batch_size, device) 
+    pipeline = LLMPipeline(settings.parameters.model, dataset,
+                           max_length, batch_size, device)
     model_stats = pipeline.analyze_model()
     print(model_stats)
 
@@ -45,7 +55,8 @@ def main() -> None:
     predictions_path = Path(__file__).parent / 'predictions.csv'
     dataset_infer.to_csv(predictions_path)
 
-    evaluator = TaskEvaluator(data_path=predictions_path, metrics=settings.parameters.metrics)
+    evaluator = TaskEvaluator(data_path=predictions_path,
+                              metrics=settings.parameters.metrics)
     result = evaluator.run()
     print(result)
 
