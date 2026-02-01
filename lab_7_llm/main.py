@@ -209,7 +209,6 @@ class LLMPipeline(AbstractLLMPipeline):
         all_targets = []
 
         for batch in dataset_loader:
-            batch = batch
             predictions = self._infer_batch(batch[0])
             all_predictions.extend(predictions)
             all_targets.extend(batch[1].tolist())
