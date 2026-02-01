@@ -111,11 +111,11 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             6: 4,
             7: 5
         }
-        self._raw_data.loc[:, ColumnNames.TARGET] = self._raw_data[
+        self._raw_data[ColumnNames.TARGET.value] = self._raw_data[
             ColumnNames.TARGET
         ].map(mapping_ordered)
 
-        self._raw_data.loc[:, ColumnNames.SOURCE] = self._raw_data[
+        self._raw_data[ColumnNames.SOURCE.value] = self._raw_data[
             ColumnNames.SOURCE
         ].apply(lambda x: re.sub(
             r'[^\w\s]',
@@ -206,6 +206,9 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        if self._model is None:
+            raise ValueError("The model is not initialized")
+
         config = self._model.config
         input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
         tokens = {"input_ids": input_ids, "attention_mask": input_ids}
@@ -259,9 +262,8 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model.eval()
 
         for batch in dataloader:
-            texts, labels = batch
-            preds = self._infer_batch(texts)
-            targets.extend(labels.tolist())
+            preds = self._infer_batch(batch[0])
+            targets.extend(batch[1].tolist())
             predictions.extend(preds)
 
         return pd.DataFrame({"target": targets, "predictions": predictions})
@@ -277,6 +279,9 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        if self._model is None:
+            raise ValueError("The model is not initialized")
+
         samples = [sample[0] for sample in sample_batch]
 
         tokens = self._tokenizer(
@@ -318,12 +323,11 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
-
         df = pd.read_csv(self._data_path)
         predictions = df[ColumnNames.PREDICTION.value].tolist()
         targets = df[ColumnNames.TARGET.value].tolist()
 
-        metric = str(self._metrics[0])
+        metric = str(list(self._metrics)[0])
         metric_evaluate = load(metric)
         score = metric_evaluate.compute(predictions=predictions,
                                     references=targets,
