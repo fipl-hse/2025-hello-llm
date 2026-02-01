@@ -11,11 +11,10 @@ import torch
 from pathlib import Path
 from datasets import load_dataset
 from torch.utils.data import Dataset
+from torchinfo import summary
 from transformers import (
-        AutoModelForCausalLM,
         AutoModelForSequenceClassification,
         AutoTokenizer,
-        GenerationConfig,
     )
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
@@ -72,12 +71,17 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
         transformed_df = self._raw_data
-        classes ={}
-        n = 0
-        for tag in transformed_df['label']:
-            if tag not in classes:
-                classes[tag] = n
-                n += 1
+        classes ={
+                "tat": "0",
+                "rus": "1",
+                "kir": "2",
+                "krc": "3",
+                "bak": "4",
+                "sah": "5",
+                "kaz": "6",
+                "tyv": "7",
+                "chv": "8"
+            }
         transformed_df = transformed_df.rename(columns={'label': ColumnNames.TARGET, 'text': ColumnNames.SOURCE})
         transformed_df[ColumnNames.TARGET] = transformed_df[ColumnNames.TARGET].apply(lambda x: classes[x])
         self._data = transformed_df
@@ -162,6 +166,17 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        config = self._model.config
+        ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
+        result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids}, device="cpu", verbose=0)
+
+        analisys = {'input_shape': result.input_size,
+                    'embedding_size': config.max_position_embeddings,
+                    'output_shape': result.summary_list[-1].output_size,
+                    'num_trainable_params': result.trainable_params,
+                    'vocab_size': config.vocab_size,
+                    'size': result.total_param_bytes,
+                    'max_context_length': 20}
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -175,11 +190,11 @@ class LLMPipeline(AbstractLLMPipeline):
             str | None: A prediction
         """
         tokens = self._tokenizer(sample[0], return_tensors="pt")
+        self._model.eval()
         with torch.no_grad():
             output = self._model(**tokens)
         predictions = torch.argmax(output.logits).item()
-        labels = self._model.config.id2label
-        return labels[predictions]
+        return str(predictions)
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:

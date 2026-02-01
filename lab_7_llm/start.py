@@ -33,8 +33,8 @@ def main() -> None:
 
     dataset = TaskDataset(dataset_preprocessor.data.head(100))
 
-    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 1, 120, 'cpu')
-    print(pipeline.infer_sample(dataset[1]))
+    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 1, 'cpu')
+    print(pipeline.infer_sample(dataset[0]))
 
     result = dataset_preprocessor
     assert result is not None, "Demo does not work correctly"
