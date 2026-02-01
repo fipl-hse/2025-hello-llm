@@ -4,12 +4,14 @@ Starter for demonstration of laboratory work.
 import json
 from pathlib import Path
 
+import torch
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+from core_utils.llm.time_decorator import report_time
+from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
+
 # pylint: disable=too-many-locals, undefined-variable, unused-import
 
-import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset, LLMPipeline
 
 
 @report_time

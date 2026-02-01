@@ -5,13 +5,14 @@ Working with Large Language Models.
 """
 from pathlib import Path
 from typing import Iterable, Sequence
+
 import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
 from torch.utils.data import Dataset
 from torchinfo import summary
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -258,7 +259,21 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        return str(self._infer_batch([sample])[0])
+        if self._model is None:
+            return None
+
+        tokens = self._tokenizer(
+            sample[0],
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=self._max_length
+        )
+
+        with torch.no_grad():
+            output = self._model.generate(**tokens)
+
+        return self._tokenizer.decode(output[0], skip_special_tokens=True)
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
