@@ -213,12 +213,16 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         config = self._model.config
 
-        input_ids = torch.ones((1, self._max_length), dtype=torch.long)
-        attention_mask = torch.ones((1, self._max_length), dtype=torch.long)
+        max_context_length = config.max_length
+
+        input_ids = torch.ones((1, max_context_length), dtype=torch.long)
+        attention_mask = torch.ones((1, max_context_length), dtype=torch.long)
+        decoder_input_ids = torch.ones(1, max_context_length, dtype=torch.long)
 
         tokens = {
             "input_ids": input_ids,
-            "attention_mask": attention_mask
+            "attention_mask": attention_mask,
+            "decoder_input_ids": decoder_input_ids
         }
 
         stats = summary(
@@ -228,16 +232,17 @@ class LLMPipeline(AbstractLLMPipeline):
             verbose=0
         )
 
-        input_shape_dict = {}
-        for key, value in stats.input_size.items():
-            input_shape_dict[key] = list(value)
+        print("config:", config)
+        print("stats:", stats)
+
+        embedding_size = getattr(config, 'd_model', config.encoder.max_position_embeddings)
 
         return {
-            "input_shape": input_shape_dict,
-            "embedding_size": config.max_position_embeddings,
-            "output_shape": stats.summary_list[-1].output_size,
+            "input_shape": [1, embedding_size],
+            "embedding_size": embedding_size,
+            "output_shape": [1, embedding_size, self._tokenizer.vocab_size],
             "num_trainable_params": stats.trainable_params,
-            "vocab_size": config.vocab_size,
+            "vocab_size": self._tokenizer.vocab_size,
             "size": stats.total_param_bytes,
             "max_context_length": config.max_length
         }
