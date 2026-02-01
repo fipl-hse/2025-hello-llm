@@ -10,7 +10,7 @@ import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
@@ -20,6 +20,8 @@ from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
+import evaluate
+import nltk
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 
@@ -233,9 +235,6 @@ class LLMPipeline(AbstractLLMPipeline):
             verbose=0
         )
 
-        print("config:", config)
-        print("stats:", stats)
-
         embedding_size = getattr(config, 'd_model', config.encoder.max_position_embeddings)
 
         return {
@@ -259,21 +258,22 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        if self._model is None:
-            return None
-
-        tokens = self._tokenizer(
-            sample[0],
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=self._max_length
-        )
-
-        with torch.no_grad():
-            output = self._model.generate(**tokens)
-
-        return self._tokenizer.decode(output[0], skip_special_tokens=True)
+        # if self._model is None:
+        #     return None
+        #
+        # tokens = self._tokenizer(
+        #     sample[0],
+        #     return_tensors="pt",
+        #     padding=True,
+        #     truncation=True,
+        #     max_length=self._max_length
+        # )
+        #
+        # with torch.no_grad():
+        #     output = self._model.generate(**tokens)
+        #
+        # return self._tokenizer.decode(output[0], skip_special_tokens=True)
+        return self._infer_batch([sample])[0]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -283,6 +283,27 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        if self._model is None:
+            return pd.DataFrame()
+
+        dataloader = DataLoader(
+            self._dataset,
+            batch_size=self._batch_size,
+            shuffle=False,
+            collate_fn=lambda batch: list(zip(*batch))
+        )
+
+        all_predictions = []
+
+        for batch in dataloader:
+            sources = batch[0]
+            batch_predictions = self._infer_batch(list(zip(sources)))
+            all_predictions.extend(batch_predictions)
+
+        return pd.DataFrame({
+            'target': [item[1] for item in self._dataset],
+            'predictions': all_predictions
+        })
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -295,7 +316,39 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        if not sample_batch or self._model is None:
+            return []
 
+        source_texts = [sample[0] for sample in sample_batch]
+
+        tokens = self._tokenizer(
+            source_texts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=self._max_length
+        )
+
+        tokens = {key: value.to(self._device) for key, value in tokens.items()}
+
+        output_ids = self._model.generate(
+        **tokens,
+        max_length=25,
+        min_length=8,
+        num_beams=5,
+        length_penalty=0.7,
+        no_repeat_ngram_size=3,
+        early_stopping=True,
+        repetition_penalty=1.3,
+    )
+
+        predictions = self._tokenizer.batch_decode(
+            output_ids,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=True
+        )
+
+        return predictions
 
 class TaskEvaluator(AbstractTaskEvaluator):
     """
@@ -310,6 +363,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
@@ -318,3 +373,36 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        data = pd.read_csv(self._data_path)
+
+        predictions = data['predictions'].astype(str).tolist()
+        references = data['target'].astype(str).tolist()
+
+        results = {}
+
+        if Metrics.BLEU in self._metrics:
+            bleu_metric = evaluate.load("bleu")
+
+            references_for_bleu = [[ref] for ref in references]
+
+            bleu_result = bleu_metric.compute(
+                predictions=predictions,
+                references=references_for_bleu
+            )
+            results["bleu"] = float(bleu_result["bleu"])
+
+        if Metrics.ROUGE in self._metrics:
+            rouge_metric = evaluate.load("rouge", seed=77)
+
+            rouge_result = rouge_metric.compute(
+                predictions=predictions,
+                references=references,
+                use_stemmer=True,
+                use_aggregator=True
+            )
+
+            results["rouge"] = float(rouge_result["rougeL"])
+
+        # print(results)
+        return results
+

@@ -2,7 +2,7 @@
   "parameters": {
     "model": "dmitry-vorobiev/rubert_ria_headlines",
     "dataset": "d0rj/curation-corpus-ru",
-    "metrics": []
+    "metrics": ["bleu", "rouge"]
   },
-  "target_score": 6
+  "target_score": 8
 }
