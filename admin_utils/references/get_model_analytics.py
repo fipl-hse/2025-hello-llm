@@ -9,7 +9,11 @@ from typing import Any
 
 import simplejson as json
 from tqdm import tqdm
-from transformers import set_seed
+
+try:
+    from transformers import set_seed
+except ImportError:
+    print('Library "transformers" not installed. Failed to import.')
 
 try:
     from pandas import DataFrame

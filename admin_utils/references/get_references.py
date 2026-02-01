@@ -9,7 +9,11 @@ from typing import Any
 
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
-from transformers import set_seed
+
+try:
+    from transformers import set_seed
+except ImportError:
+    print('Library "transformers" not installed. Failed to import.')
 
 from admin_utils.constants import DEVICE, GLOBAL_SEED
 from admin_utils.references.get_model_analytics import get_references, save_reference
