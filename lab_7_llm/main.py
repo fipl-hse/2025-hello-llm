@@ -326,6 +326,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
         df = pd.read_csv(self._data_path)
         predictions = df[ColumnNames.PREDICTION.value].tolist()
         targets = df[ColumnNames.TARGET.value].tolist()
+        result = {}
 
         metric = str(list(self._metrics)[0])
         metric_evaluate = load(metric)
@@ -333,4 +334,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
                                     references=targets,
                                     average="micro")
 
-        return score
+        for key, value in score.items():
+            result[key] = value
+
+        return result
