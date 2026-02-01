@@ -10,10 +10,9 @@ from typing import Iterable, Sequence
 
 import pandas as pd
 import torch
-import torchinfo
 from datasets import load_dataset
 from pandas import DataFrame
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
@@ -223,26 +222,23 @@ class LLMPipeline(AbstractLLMPipeline):
             str | None: A prediction
         """
 
-        if self._model is None:
-            return None
+        # if self._model is None:
+        #     return None
+        #
+        # tokens = self._tokenizer(
+        #     sample[0],
+        #     return_tensors="pt",
+        #     padding=True,
+        #     truncation=True,
+        #     max_length=self._max_length
+        # )
+        #
+        # with torch.no_grad():
+        #     output = self._model.generate(**tokens)
+        #
+        # return self._tokenizer.decode(output[0], skip_special_tokens=True)
 
-        tokens = self._tokenizer(
-            sample[0],
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=self._max_length
-        )
-
-        with torch.no_grad():
-            output = self._model.generate(**tokens)
-
-        return self._tokenizer.decode(output[0], skip_special_tokens=True)
-
-
-
-
-
+        return self._infer_batch([sample])[0]
 
 
     @report_time
@@ -253,6 +249,29 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+
+        if self._model is None:
+            return pd.DataFrame()
+
+        dataloader = DataLoader(
+            self._dataset,
+            batch_size=self._batch_size,
+            shuffle=False,
+            collate_fn=lambda batch: list(zip(*batch))
+        )
+
+        all_predictions = []
+
+        for batch in dataloader:
+            sources = batch[0]
+            batch_predictions = self._infer_batch(list(zip(sources)))
+            all_predictions.extend(batch_predictions)
+
+        return pd.DataFrame({
+            'target': self._dataset.data['target'].tolist(),
+            'predictions': all_predictions
+        })
+
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -265,6 +284,35 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+
+        if not sample_batch or self._model is None:
+            return []
+
+        source_texts = [sample[0] for sample in sample_batch]
+
+        tokens = self._tokenizer(
+            source_texts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=self._max_length
+        )
+
+        tokens = {key: value.to(self._device) for key, value in tokens.items()}
+
+        output_ids = self._model.generate(
+            **tokens,
+            max_length=self._max_length,
+        )
+
+        predictions = self._tokenizer.batch_decode(
+            output_ids,
+            skip_special_tokens=True
+        )
+
+        return predictions
+
+
 
 
 class TaskEvaluator(AbstractTaskEvaluator):

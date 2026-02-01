@@ -2,7 +2,7 @@
   "parameters": {
     "model": "UrukHan/t5-russian-summarization",
     "dataset": "IlyaGusev/gazeta",
-    "metrics": []
+    "metrics": ["bleu", "rouge"]
   },
-  "target_score": 6
+  "target_score": 8
 }

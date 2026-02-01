@@ -37,6 +37,16 @@ def main() -> None:
     for key, value in result.items():
         print(f'{key} : {value}')
 
+    preprocessor.transform()
+    dataset = TaskDataset(preprocessor.data.head(100))
+
+    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 1, 'cpu')
+
+    for key, value in pipeline.analyze_model().items():
+        print(f'{key}: {value}')
+
+    print(pipeline.infer_sample(dataset[1]))
+
     assert result is not None, "Demo does not work correctly"
 
 
