@@ -39,11 +39,15 @@ def main() -> None:
     sample_infer = pipeline.infer_sample(text)
     print(sample_infer)
 
-    result = pipeline.infer_dataset()
-    print(result)
+    dataset_infer = pipeline.infer_dataset()
+    print(dataset_infer)
 
     predictions_path = Path(__file__).parent / 'predictions.csv'
-    result.to_csv(predictions_path)
+    dataset_infer.to_csv(predictions_path)
+
+    evaluator = TaskEvaluator(data_path=predictions_path, metrics=settings.parameters.metrics)
+    result = evaluator.run()
+    print(result)
 
     assert result is not None, "Demo does not work correctly"
 

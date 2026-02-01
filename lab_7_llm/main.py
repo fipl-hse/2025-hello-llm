@@ -253,6 +253,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._metrics = metrics
+        self._data_path = data_path
+
 
     def run(self) -> dict:
         """
@@ -261,4 +264,13 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        metrics = load(str(self._metrics[0]))
 
+        data_pred = pd.read_csv(self._data_path)
+
+        results = metrics.compute(
+            predictions=list(data_pred['predictions']),
+            references=list(data_pred['target']),
+            average='micro'
+            )
+        return results
