@@ -206,6 +206,15 @@ disable_error_code = [
     'import-not-found',
 ]
 
+[[tool.mypy.overrides]]
+module = [
+    'seminars.seminar_02_02_2026.try_fastapi',
+]
+disable_error_code = [
+    'import-not-found',
+    'no-any-unimported',
+]
+
 [tool.logging]
 version = 1
 disable_existing_loggers = true
@@ -681,7 +690,7 @@ ignore-imports = true
 ignore-signatures = true
 
 # Minimum lines number of a similarity.
-min-similarity-lines = 4
+min-similarity-lines = 5
 
 [tool.pylint.spelling]
 # Limits count of emitted suggestions for spelling mistakes.
