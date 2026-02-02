@@ -45,18 +45,24 @@ def main() -> None:
     print(model_stats)
 
     sample = dataset[0]
-    text = sample[0]
-    sample_infer = pipeline.infer_sample(text)
+    sample_infer = pipeline.infer_sample(sample)
     print(sample_infer)
 
-    dataset_infer = pipeline.infer_dataset()
+    # Dataset inference
+    batch_size=64
+
+    dataset_pipeline = LLMPipeline(settings.parameters.model, dataset,
+                           max_length, batch_size, device)
+
+    dataset_infer = dataset_pipeline.infer_dataset()
     print(dataset_infer)
 
-    predictions_path = Path(__file__).parent / 'predictions.csv'
+    predictions_path = Path(__file__).parent / 'dist'/ 'predictions.csv'
     dataset_infer.to_csv(predictions_path)
 
     evaluator = TaskEvaluator(data_path=predictions_path,
                               metrics=settings.parameters.metrics)
+    
     result = evaluator.run()
     print(result)
 

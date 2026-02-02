@@ -193,7 +193,8 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             return None
 
-        predictions = self._infer_batch(sample)
+        predictions = self._infer_batch(sample[0])
+
         return predictions[0]
 
     @report_time
@@ -227,14 +228,14 @@ class LLMPipeline(AbstractLLMPipeline):
             list[str]: Model predictions as strings
         """
 
-        tokens = self._tokenizer(list(sample_batch), return_tensors="pt",
+        tokens = self._tokenizer(sample_batch, return_tensors="pt",
                                  padding=True, truncation=True)
 
         self._model.eval()
         with torch.no_grad():
             output = self._model(**tokens)
 
-        return list(str(torch.argmax(output.logits).item()))
+        return [str(torch.argmax(pred).item()) for pred in output.logits]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
