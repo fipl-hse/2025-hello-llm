@@ -34,6 +34,7 @@ def main() -> None:
     dataset = TaskDataset(dataset_preprocessor.data.head(100))
 
     pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 1, 'cpu')
+    print(pipeline.analyze_model())
     print(pipeline.infer_sample(dataset[0]))
 
     result = dataset_preprocessor

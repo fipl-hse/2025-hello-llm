@@ -170,13 +170,14 @@ class LLMPipeline(AbstractLLMPipeline):
         ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
         result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids}, device="cpu", verbose=0)
 
-        analisys = {'input_shape': result.input_size,
+        analysis = {'input_shape': {k: list(v) for k, v in result.input_size.items()},
                     'embedding_size': config.max_position_embeddings,
                     'output_shape': result.summary_list[-1].output_size,
                     'num_trainable_params': result.trainable_params,
                     'vocab_size': config.vocab_size,
                     'size': result.total_param_bytes,
                     'max_context_length': 20}
+        return analysis
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
