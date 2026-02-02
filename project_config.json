@@ -12,16 +12,14 @@
     ],
     "addons": [
         {
-            "name": "admin_utils",
-            "coverage": 0
-        },
-        {
-            "name": "seminars",
-            "coverage": 0
-        },
-        {
             "name": "core_utils",
-            "coverage": 0
+            "need_uml": true
+        },
+        {
+            "name": "seminars"
+        },
+        {
+            "name": "admin_utils"
         }
     ],
     "repository": {
