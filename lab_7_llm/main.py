@@ -182,12 +182,14 @@ class LLMPipeline(AbstractLLMPipeline):
             verbose=0
         )
 
-        embedding_size = getattr(config, 'd_model', config.encoder.max_position_embeddings)
+        input_shape = {}
+        for key, value in model_summary.input_size.items():
+            input_shape[key] = list(value)
 
         return {
-            "input_shape": [1, embedding_size],
-            "embedding_size": config.max_position_embeddings,
-            "output_shape": [1, embedding_size, self._tokenizer.vocab_size],
+            "input_shape": input_shape,
+            "embedding_size": self._model.config.max_position_embeddings,
+            "output_shape": model_summary.summary_list[-1].output_size,
             "num_trainable_params": model_summary.trainable_params,
             "vocab_size": self._tokenizer.vocab_size,
             "size": model_summary.total_param_bytes,
