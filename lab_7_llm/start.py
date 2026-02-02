@@ -66,7 +66,7 @@ def main() -> None:
         model_name="dmitry-vorobiev/rubert_ria_headlines",
         dataset=dataset,
         max_length=120,
-        batch_size=1,
+        batch_size=64,
         device='cpu'
     )
 

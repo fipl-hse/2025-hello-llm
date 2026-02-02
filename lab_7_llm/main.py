@@ -235,8 +235,17 @@ class LLMPipeline(AbstractLLMPipeline):
             verbose=0
         )
 
-        embedding_size = getattr(config, 'd_model', config.encoder.max_position_embeddings)
+        embedding_size = config.encoder.max_position_embeddings
 
+        print({
+            "input_shape": [1, embedding_size],
+            "embedding_size": embedding_size,
+            "output_shape": [1, embedding_size, self._tokenizer.vocab_size],
+            "num_trainable_params": stats.trainable_params,
+            "vocab_size": self._tokenizer.vocab_size,
+            "size": stats.total_param_bytes,
+            "max_context_length": config.max_length
+        })
         return {
             "input_shape": [1, embedding_size],
             "embedding_size": embedding_size,
@@ -332,15 +341,7 @@ class LLMPipeline(AbstractLLMPipeline):
         tokens = {key: value.to(self._device) for key, value in tokens.items()}
 
         output_ids = self._model.generate(
-        **tokens,
-        max_length=25,
-        min_length=8,
-        num_beams=5,
-        length_penalty=0.7,
-        no_repeat_ngram_size=3,
-        early_stopping=True,
-        repetition_penalty=1.3,
-    )
+        **tokens)
 
         predictions = self._tokenizer.batch_decode(
             output_ids,
@@ -403,6 +404,6 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
             results["rouge"] = float(rouge_result["rougeL"])
 
-        # print(results)
+        #print(results)
         return results
 
