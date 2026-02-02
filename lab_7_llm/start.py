@@ -8,7 +8,7 @@ from core_utils.project.lab_settings import LabSettings
 # pylint: disable=too-many-locals, undefined-variable, unused-import
 
 
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset, LLMPipeline
+from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
 
 
 @report_time
