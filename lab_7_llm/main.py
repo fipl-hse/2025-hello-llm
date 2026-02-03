@@ -85,7 +85,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: 1 if x == "Good" else 0)
         # self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x:
         #                                                                      "Negative" if x == "Neutral" else x)
-        # self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: "Negative" if x == "Bad" else x)
+        # self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x:
+        #                                                                       "Negative" if x == "Bad" else x)
 
         self._data = self._data.reset_index()
 
