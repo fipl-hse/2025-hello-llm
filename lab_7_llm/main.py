@@ -210,7 +210,18 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             return None
 
-        return self._infer_batch([sample])[0]
+        tokens = self._tokenizer(
+              sample[0],
+              return_tensors="pt",
+              padding=True,
+              truncation=True,
+              max_length=self._max_length
+          )
+
+        with torch.no_grad():
+            output = self._model.generate(**tokens)
+
+        return self._tokenizer.decode(output[0], skip_special_tokens=True)
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
