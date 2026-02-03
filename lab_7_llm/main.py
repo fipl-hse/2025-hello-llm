@@ -215,6 +215,11 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model.to(self._device)
         self._model.eval()
 
+        if isinstance(sample, dict):
+            sample = tuple(str(v) for v in sample.values())
+        elif not isinstance(sample, tuple):
+            sample = (str(sample),)
+
         if len(sample) == 2:
             tokens = self._tokenizer(
                 sample[0],
