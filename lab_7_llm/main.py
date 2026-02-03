@@ -307,12 +307,10 @@ class LLMPipeline(AbstractLLMPipeline):
             max_length=self._max_length,
         )
 
-        predictions = self._tokenizer.batch_decode(
+        return self._tokenizer.batch_decode(
             output_ids,
             skip_special_tokens=True
         )
-
-        return predictions
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -379,3 +377,4 @@ class TaskEvaluator(AbstractTaskEvaluator):
         print(f"Evaluation results: {results}")  # Для отладки
 
         return results
+    
