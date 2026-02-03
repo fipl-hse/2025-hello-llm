@@ -213,7 +213,7 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model.to(self._device)
         self._model.eval()
 
-        text = " ".join(sample)
+        text = " ".join(str(item) for item in sample)
         tokens = self._tokenizer(
               text,
               return_tensors="pt",
