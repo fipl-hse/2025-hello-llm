@@ -190,10 +190,10 @@ class LLMPipeline(AbstractLLMPipeline):
 
         return {
             "input_shape": input_shape,
-            "embedding_size": self._model.config.max_position_embeddings,
+            "embedding_size": config.hidden_size,
             "output_shape": model_summary.summary_list[-1].output_size,
             "num_trainable_params": model_summary.trainable_params,
-            "vocab_size": config.vocab_size,
+            "vocab_size": self._tokenizer.vocab_size,
             "size": model_summary.total_param_bytes,
             "max_context_length": config.max_position_embeddings
         }
@@ -223,6 +223,8 @@ class LLMPipeline(AbstractLLMPipeline):
               truncation=True,
               max_length=self._max_length
           )
+
+        tokens = {k: v.to(self._device) for k, v in tokens.items()}
 
         with torch.no_grad():
             outputs = self._model(**tokens)
