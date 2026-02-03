@@ -215,14 +215,23 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model.to(self._device)
         self._model.eval()
 
-        text = " ".join(str(item) for item in sample)
-        tokens = self._tokenizer(
-              text,
-              return_tensors="pt",
-              padding=True,
-              truncation=True,
-              max_length=self._max_length
-          )
+        if len(sample) == 2:
+            tokens = self._tokenizer(
+                sample[0],
+                sample[1],
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=self._max_length,
+            )
+        else:
+            tokens = self._tokenizer(
+                sample[0],
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=self._max_length,
+            )
 
         tokens = {k: v.to(self._device) for k, v in tokens.items()}
 
