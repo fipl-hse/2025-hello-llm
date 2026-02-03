@@ -212,40 +212,13 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             return None
 
-        self._model.to(self._device)
+        tokens = self._tokenizer(sample[0], return_tensors="pt", padding=True, truncation=True)
+
         self._model.eval()
-
-        if isinstance(sample, dict):
-            sample = tuple(str(v) for v in sample.values())
-        elif not isinstance(sample, tuple):
-            sample = (str(sample),)
-
-        if len(sample) == 2:
-            tokens = self._tokenizer(
-                sample[0],
-                sample[1],
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self._max_length,
-            )
-        else:
-            tokens = self._tokenizer(
-                sample[0],
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self._max_length,
-            )
-
-        tokens = {k: v.to(self._device) for k, v in tokens.items()}
-
         with torch.no_grad():
-            outputs = self._model(**tokens)
-            logits = outputs.logits
-            predicted_class_id = torch.argmax(logits, dim=-1).item()
+            output = self._model(**tokens)
 
-        return str(predicted_class_id)
+        return str(torch.argmax(output.logits).item())
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
