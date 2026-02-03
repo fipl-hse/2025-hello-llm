@@ -83,7 +83,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         )
         self._data = self._data.dropna().drop_duplicates()
         self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: "Positive" if x == "Good" else x)
-        self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: "Negative" if x == "Neutral" else x)
+        self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x:
+                                                                              "Negative" if x == "Neutral" else x)
         self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: "Negative" if x == "Bad" else x)
 
         self._data = self._data.reset_index()
