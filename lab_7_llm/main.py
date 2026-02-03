@@ -14,7 +14,7 @@ from datasets import Dataset, load_dataset
 from pandas import DataFrame
 from torch.utils.data import Dataset
 from torchinfo import summary
-from transformers import AutoModelForSequenceClassification, BertTokenizerFast
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -159,7 +159,7 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
         self._dataset = dataset
         self._device = device
-        self._tokenizer = BertTokenizerFast.from_pretrained(model_name)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._batch_size = batch_size
         self._max_length = max_length
 
@@ -193,9 +193,9 @@ class LLMPipeline(AbstractLLMPipeline):
             "embedding_size": self._model.config.max_position_embeddings,
             "output_shape": model_summary.summary_list[-1].output_size,
             "num_trainable_params": model_summary.trainable_params,
-            "vocab_size": self._tokenizer.vocab_size,
+            "vocab_size": config.vocab_size,
             "size": model_summary.total_param_bytes,
-            "max_context_length": config.max_length
+            "max_context_length": config.max_position_embeddings
         }
 
     @report_time
