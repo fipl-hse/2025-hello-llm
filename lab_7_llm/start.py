@@ -3,6 +3,7 @@ Starter for demonstration of laboratory work.
 """
 import json
 from pathlib import Path
+
 from core_utils.llm.metrics import Metrics
 from lab_7_llm.main import (
     LLMPipeline,
@@ -30,6 +31,9 @@ def main() -> None:
 
     importer = RawDataImporter(name)
     importer.obtain()
+
+    if importer.raw_data is None:
+        raise ValueError("Failed to obtain raw data")
 
     preprocessor = RawDataPreprocessor(importer.raw_data)
     result = preprocessor.analyze()
@@ -65,3 +69,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+

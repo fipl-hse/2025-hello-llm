@@ -90,9 +90,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             "summary": "target",
         })
 
-        processed_dataset = processed_dataset.reset_index(drop=True)
+        self._data = processed_dataset.reset_index(drop=True)
 
-        self._data = processed_dataset
         print(processed_dataset)
 
 
@@ -199,14 +198,14 @@ class LLMPipeline(AbstractLLMPipeline):
 
         stats = summary(self._model, input_data=tokens, device=self._device, verbose=0)
 
-        embedding_size = getattr(config, 'd_model', getattr(config, 'hidden_size', 768))
+        embedding_size = getattr(self._model.config, 'd_model', getattr(self._model.config, 'hidden_size', 768))
 
         return {
             "input_shape": [1, embedding_size],
             "embedding_size": embedding_size,
-            "output_shape": [1, embedding_size, config.vocab_size],
+            "output_shape": [1, embedding_size, self._model.config.vocab_size],
             "num_trainable_params": int(stats.trainable_params),
-            "vocab_size": config.vocab_size,
+            "vocab_size": self._model.config.vocab_size,
             "size": int(stats.total_param_bytes),
             "max_context_length": max_context_length
         }
