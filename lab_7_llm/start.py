@@ -38,13 +38,10 @@ def main() -> None:
         device='cpu'
     )
 
-    model_properties = pipeline.analyze_model()
-    for key, value in model_properties.items():
+    for key, value in pipeline.analyze_model().items():
         print(f'{key}: {value}')
 
-    sample = dataset[0]
-
-    result = pipeline.infer_sample(sample)
+    result = pipeline.infer_sample(dataset[1])
     print(result)
     assert result is not None, "Demo does not work correctly"
 
