@@ -43,7 +43,6 @@ def main() -> None:
         print(f'{key}: {value}')
 
     sample = dataset[0]
-    print(sample[0][:100])
 
     result = pipeline.infer_sample(sample)
     print(result)
