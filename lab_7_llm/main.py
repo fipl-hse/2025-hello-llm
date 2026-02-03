@@ -161,6 +161,7 @@ class LLMPipeline(AbstractLLMPipeline):
         self._batch_size = batch_size
         self._max_length = max_length
 
+
     def analyze_model(self) -> dict:
         """
         Analyze model computing properties.
