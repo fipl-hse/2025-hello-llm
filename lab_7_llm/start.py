@@ -3,12 +3,19 @@ Starter for demonstration of laboratory work.
 """
 
 import json
-
-# pylint: disable=too-many-locals, undefined-variable, unused-import
 from pathlib import Path
 
+from core_utils.llm.metrics import Metrics
 from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
+from lab_7_llm.main import (
+    LLMPipeline,
+    RawDataImporter,
+    RawDataPreprocessor,
+    TaskDataset,
+    TaskEvaluator,
+)
+
+BASE_PATH = Path(__file__).parent
 
 
 @report_time
@@ -16,7 +23,7 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    with open(Path(__file__).parent / 'settings.json', 'r', encoding='utf-8') as f:
+    with open(BASE_PATH / 'settings.json', 'r', encoding='utf-8') as f:
         settings = json.load(f)
 
     importer = RawDataImporter(settings['parameters']['dataset'])
@@ -25,19 +32,32 @@ def main() -> None:
     preprocessor = RawDataPreprocessor(importer.raw_data)
 
     result = preprocessor.analyze()
-
+    print('Dataset analysis:')
     for key, value in result.items():
-        print(f"{key}: {value}")
+        print(f'{key}: {value}')
 
     preprocessor.transform()
     dataset = TaskDataset(preprocessor.data.head(100))
 
-    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 1, 'cpu')
+    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 2, 'cpu')
 
+    predictions_path = BASE_PATH / 'dist' / 'predictions.csv'
+
+    if not predictions_path.exists():
+        pipeline.infer_dataset().to_csv(predictions_path)
+
+    print('\nModel analysis:')
     for key, value in pipeline.analyze_model().items():
         print(f'{key}: {value}')
 
-    print(pipeline.infer_sample(dataset[1]))
+    print(f'\nModel inference: {pipeline.infer_sample(dataset[0])}')
+
+    metrics = [Metrics(metric) for metric in settings['parameters']['metrics']]
+    evaluator = TaskEvaluator(BASE_PATH / 'dist' / 'predictions.csv', metrics)
+
+    print('\nEvaluation:')
+    for key, value in evaluator.run().items():
+        print(f'{key}: {value}')
 
     assert result is not None, "Demo does not work correctly"
 

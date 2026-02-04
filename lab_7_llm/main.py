@@ -8,10 +8,11 @@ Working with Large Language Models.
 from pathlib import Path
 from typing import Iterable, Sequence
 
+import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
@@ -181,12 +182,10 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        tokens = self._tokenizer(sample[0], return_tensors="pt", padding=True, truncation=True)
+        if not self._model or not self._tokenizer:
+            return None
 
-        with torch.no_grad():
-            output = self._model.generate(**tokens)
-
-        return self._tokenizer.decode(output[0], skip_special_tokens=True)
+        return self._infer_batch([sample])[0]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -196,6 +195,13 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        predictions, references = [], []
+
+        for sources, targets in DataLoader(self._dataset, batch_size=self._batch_size):
+            predictions.extend(self._infer_batch(sources))
+            references.extend(targets)
+
+        return pd.DataFrame({"target": references, "prediction": predictions})
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -208,6 +214,9 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        return [self._tokenizer.decode(self._model.generate(**self._tokenizer(source,
+                return_tensors="pt", padding=True, truncation=True))[0], skip_special_tokens=True)
+                for source in sample_batch]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -223,6 +232,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
@@ -231,3 +242,10 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        data = pd.read_csv(self._data_path)
+
+        return {metric.value: evaluate.load(metric.value).compute(
+                predictions=data["prediction"].tolist(),
+                references=data["target"].tolist())["bleu"]
+                for metric in self._metrics
+                }

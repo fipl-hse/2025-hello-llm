@@ -4,5 +4,5 @@
     "dataset": "enimai/MuST-C-fr",
     "metrics": ["bleu"]
   },
-  "target_score": 6
+  "target_score": 8
 }
