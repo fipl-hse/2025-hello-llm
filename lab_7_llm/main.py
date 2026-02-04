@@ -214,10 +214,8 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         if self._model is None:
             return {}
-        
-        config = self._model.config
 
-        max_context_length = config.max_length
+        max_context_length = self._model.config.max_length
 
         input_ids = torch.ones((1, max_context_length), dtype=torch.long)
         attention_mask = torch.ones((1, max_context_length), dtype=torch.long)
