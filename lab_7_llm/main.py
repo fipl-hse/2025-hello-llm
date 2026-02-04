@@ -214,7 +214,7 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         if self._model is None:
             return {}
-    
+        
         config = self._model.config
 
         max_context_length = config.max_length
