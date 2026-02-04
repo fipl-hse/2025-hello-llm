@@ -82,7 +82,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             columns={"content": ColumnNames.SOURCE, "grade3": ColumnNames.TARGET}
         )
         self._data = self._data.dropna().drop_duplicates()
-        self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: 1 if x == "Good" else 0)
+        self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: 1 if x == "Good" else 2)
         # self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x:
         #                                                                      "Negative" if x == "Neutral" else x)
         # self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x:
@@ -229,7 +229,7 @@ class LLMPipeline(AbstractLLMPipeline):
         with torch.no_grad():
             outputs = self._model(**tokens)
             logits = outputs.logits
-            predicted_class_id = torch.argmax(logits, dim=-1).item()
+            predicted_class_id = torch.argmax(logits, dim=0).item()
 
         return str(predicted_class_id)
 
