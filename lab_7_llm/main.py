@@ -73,7 +73,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
         self._data = self._raw_data.copy()
-        self._data = self._data.rename(columns={'en': ColumnNames.SOURCE.value, 'fr': ColumnNames.TARGET.value})
+        self._data = self._data.rename(columns={'en': ColumnNames.SOURCE.value,
+                                                'fr': ColumnNames.TARGET.value})
         self._data = self._data.drop_duplicates(subset=[ColumnNames.SOURCE.value])
         self._data = self._data.reset_index(drop=True)
 
@@ -156,7 +157,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        if not self._model:
+        if not isinstance(self._model, torch.nn.Module):
             return {}
 
         embeddings_length = self._model.config.max_position_embeddings
@@ -206,7 +207,8 @@ class LLMPipeline(AbstractLLMPipeline):
             predictions.extend(self._infer_batch(sources))
             references.extend(targets)
 
-        return pd.DataFrame({ColumnNames.TARGET.value: references, ColumnNames.PREDICTION.value: predictions})
+        return pd.DataFrame({ColumnNames.TARGET.value: references,
+                             ColumnNames.PREDICTION.value: predictions})
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -220,9 +222,9 @@ class LLMPipeline(AbstractLLMPipeline):
             list[str]: Model predictions as strings
         """
         return [
-            self._tokenizer.decode(
-                self._model.generate(**self._tokenizer(
-                    source, return_tensors="pt", padding=True, truncation=True))[0], skip_special_tokens=True)
+            self._tokenizer.decode(self._model.generate(**self._tokenizer(
+                source, return_tensors="pt", padding=True, truncation=True))[0],
+                                   skip_special_tokens=True)
             for source in sample_batch
         ]
 
