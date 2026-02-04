@@ -33,6 +33,9 @@ def main() -> None:
     data_importer = RawDataImporter(name)
     data_importer.obtain()
 
+    if data_importer.raw_data is None:
+        return
+
     data_preprocessor = RawDataPreprocessor(data_importer.raw_data)
     result = data_preprocessor.analyze()
 
