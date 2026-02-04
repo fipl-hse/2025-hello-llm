@@ -4,13 +4,14 @@ Laboratory work.
 Working with Large Language Models.
 """
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import cast, Iterable, Sequence
 
 import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
+from torch.nn import Module
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
@@ -228,6 +229,9 @@ class LLMPipeline(AbstractLLMPipeline):
             "decoder_input_ids": decoder_input_ids
         }
 
+        if not isinstance(self._model, Module):
+            raise ValueError("The model has incompatible type")
+
         stats = summary(
             self._model,
             input_data=tokens,
@@ -325,7 +329,7 @@ class LLMPipeline(AbstractLLMPipeline):
             clean_up_tokenization_spaces=True
         )
 
-        return predictions
+        return cast(list[str], predictions)
 
 class TaskEvaluator(AbstractTaskEvaluator):
     """
