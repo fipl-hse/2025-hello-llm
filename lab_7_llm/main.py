@@ -6,7 +6,7 @@ Working with Large Language Models.
 from pathlib import Path
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
-from typing import Iterable, Sequence
+from typing import cast, Iterable, Sequence
 
 import evaluate
 import pandas as pd
@@ -81,10 +81,10 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
 
-        processed_dataset = self._raw_data.copy()
+        #processed_dataset = self._raw_data.copy()
 
         columns_to_drop = ['title', 'date', 'url']
-        processed_dataset = processed_dataset.drop(columns=columns_to_drop)
+        processed_dataset = self._raw_data.drop(columns=columns_to_drop)
 
         processed_dataset = processed_dataset.rename(columns={
             "text": "source",
@@ -202,13 +202,10 @@ class LLMPipeline(AbstractLLMPipeline):
 
         stats = summary(self._model, input_data=tokens, device=self._device, verbose=0)
 
-        embedding_size = getattr(self._model.config, 'd_model',
-                                 getattr(self._model.config, 'hidden_size', 768))
-
         return {
-            "input_shape": [1, embedding_size],
-            "embedding_size": embedding_size,
-            "output_shape": [1, embedding_size, self._model.config.vocab_size],
+            "input_shape": [1, self._model.config.hidden_size],
+            "embedding_size": self._model.config.hidden_size,
+            "output_shape": [1, self._model.config.hidden_size, self._model.config.vocab_size],
             "num_trainable_params": int(stats.trainable_params),
             "vocab_size": self._model.config.vocab_size,
             "size": int(stats.total_param_bytes),
@@ -311,10 +308,12 @@ class LLMPipeline(AbstractLLMPipeline):
             max_length=self._max_length,
         )
 
-        return self._tokenizer.batch_decode(
+        predictions = self._tokenizer.batch_decode(
             output_ids,
             skip_special_tokens=True
         )
+
+        return cast(list[str], predictions)
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
