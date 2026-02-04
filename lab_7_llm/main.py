@@ -160,22 +160,22 @@ class LLMPipeline(AbstractLLMPipeline):
         if not isinstance(self._model, torch.nn.Module):
             return {}
 
-        embeddings_length = self._model.config.max_position_embeddings
-        ids = torch.ones(1, int(embeddings_length), dtype=torch.long)
+        config = self._model.config
+        embeddings_length = getattr(config, 'max_position_embeddings')
+
+        ids = torch.ones((1, embeddings_length), dtype=torch.long, device=self._device)
         tokens = {"input_ids": ids, "decoder_input_ids": ids}
 
         result = summary(self._model, input_data=tokens, device=self._device, verbose=0)
-
         return({
             'input_shape': list(result.input_size['input_ids']),
-            'embedding_size': self._model.config.d_model,
+            'embedding_size': config.d_model,
             'output_shape': result.summary_list[-1].output_size,
             'num_trainable_params': result.trainable_params,
-            'vocab_size': self._model.config.vocab_size,
+            'vocab_size': config.vocab_size,
             'size': result.total_param_bytes,
-            'max_context_length': self._model.config.max_length
+            'max_context_length': config.max_length
         })
-
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
