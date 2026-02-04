@@ -188,15 +188,13 @@ class LLMPipeline(AbstractLLMPipeline):
         for key, value in model_summary.input_size.items():
             input_shape[key] = list(value)
 
-        size = sum(p.numel() * p.element_size() for p in self._model.parameters())
-
         return {
             "input_shape": input_shape,
             "embedding_size": config.hidden_size,
             "output_shape": list(model_summary.summary_list[-1].output_size),
             "num_trainable_params": model_summary.trainable_params,
             "vocab_size": self._tokenizer.vocab_size,
-            "size": size,
+            "size": model_summary.total_param_bytes,
             "max_context_length": self._max_length
         }
 
@@ -217,23 +215,14 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model.to(self._device)
         self._model.eval()
 
-        if len(sample) == 1:
-            tokens = self._tokenizer(
-                sample[0],
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self._max_length
-            )
-        else:
-            tokens = self._tokenizer(
-                sample[0],
-                sample[1],
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-                max_length=self._max_length
-            )
+        text = sample[0] if isinstance(sample[0], str) else sample[1]
+        tokens = self._tokenizer(
+              text,
+              return_tensors="pt",
+              padding=True,
+              truncation=True,
+              max_length=self._max_length
+          )
 
         tokens = {k: v.to(self._device) for k, v in tokens.items()}
 
