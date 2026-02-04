@@ -237,7 +237,7 @@ class LLMPipeline(AbstractLLMPipeline):
             verbose=0
         )
 
-        embedding_size = config.encoder.max_position_embeddings
+        embedding_size = self._model.config.encoder.max_position_embeddings
 
         return {
             "input_shape": [1, embedding_size],
@@ -246,7 +246,7 @@ class LLMPipeline(AbstractLLMPipeline):
             "num_trainable_params": stats.trainable_params,
             "vocab_size": self._tokenizer.vocab_size,
             "size": stats.total_param_bytes,
-            "max_context_length": config.max_length
+            "max_context_length": self._model.config.max_length
         }
 
     @report_time
