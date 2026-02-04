@@ -378,4 +378,3 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
         return results
     
-
