@@ -9,11 +9,15 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset, TaskEvaluator
-
+from lab_7_llm.main import (
+    LLMPipeline,
+    RawDataImporter,
+    RawDataPreprocessor,
+    TaskDataset,
+    TaskEvaluator,
+)
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import
-
 
 
 @report_time
@@ -21,28 +25,6 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    # tokenizer = AutoTokenizer.from_pretrained("dmitry-vorobiev/rubert_ria_headlines")
-
-    # text = "Нити Аайог исследует использование блокчейна в образовании, здравоохранении и сельском хозяйстве"
-    # tokens = tokenizer(text, return_tensors="pt")
-    # print(tokens)
-    # print(tokens.keys())
-
-    # raw_tokens = tokenizer.convert_ids_to_tokens(tokens["input_ids"].tolist()[0])
-    # print(raw_tokens)
-
-    # model = AutoModelForSeq2SeqLM.from_pretrained("dmitry-vorobiev/rubert_ria_headlines")
-
-    # model.to('cpu')
-
-    # model.eval()
-
-    # with torch.no_grad():
-    #     output = model(**tokens)
-
-    # print(output.logits)
-    # print(output.logits.shape)
-
     result = None
     settings_path = Path(__file__).parent / 'settings.json'
 

@@ -6,11 +6,13 @@ Working with Large Language Models.
 from pathlib import Path
 from typing import Iterable, Sequence
 
+import evaluate
+import nltk
 import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
@@ -20,8 +22,6 @@ from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
-import evaluate
-import nltk
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 
@@ -237,15 +237,6 @@ class LLMPipeline(AbstractLLMPipeline):
 
         embedding_size = config.encoder.max_position_embeddings
 
-        print({
-            "input_shape": [1, embedding_size],
-            "embedding_size": embedding_size,
-            "output_shape": [1, embedding_size, self._tokenizer.vocab_size],
-            "num_trainable_params": stats.trainable_params,
-            "vocab_size": self._tokenizer.vocab_size,
-            "size": stats.total_param_bytes,
-            "max_context_length": config.max_length
-        })
         return {
             "input_shape": [1, embedding_size],
             "embedding_size": embedding_size,
@@ -267,21 +258,6 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        # if self._model is None:
-        #     return None
-        #
-        # tokens = self._tokenizer(
-        #     sample[0],
-        #     return_tensors="pt",
-        #     padding=True,
-        #     truncation=True,
-        #     max_length=self._max_length
-        # )
-        #
-        # with torch.no_grad():
-        #     output = self._model.generate(**tokens)
-        #
-        # return self._tokenizer.decode(output[0], skip_special_tokens=True)
         return self._infer_batch([sample])[0]
 
     @report_time
@@ -397,13 +373,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
             rouge_result = rouge_metric.compute(
                 predictions=predictions,
-                references=references,
-                use_stemmer=True,
-                use_aggregator=True
-            )
+                references=references)
 
             results["rouge"] = float(rouge_result["rougeL"])
 
-        #print(results)
         return results
 
