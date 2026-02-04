@@ -174,7 +174,7 @@ class LLMPipeline(AbstractLLMPipeline):
             raise ValueError("The model is not initialized")
 
         config = self._model.config
-        ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
+        ids = torch.ones(1, self._max_length, dtype=torch.long)
         tokens = {"input_ids": ids, "attention_mask": ids}
 
         model_summary = summary(
@@ -191,11 +191,11 @@ class LLMPipeline(AbstractLLMPipeline):
         return {
             "input_shape": input_shape,
             "embedding_size": config.hidden_size,
-            "output_shape": model_summary.summary_list[-1].output_size,
+            "output_shape": list(model_summary.summary_list[-1].output_size),
             "num_trainable_params": model_summary.trainable_params,
             "vocab_size": self._tokenizer.vocab_size,
             "size": model_summary.total_param_bytes,
-            "max_context_length": config.max_position_embeddings
+            "max_context_length": self._max_length
         }
 
     @report_time
@@ -215,7 +215,7 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model.to(self._device)
         self._model.eval()
 
-        text = " ".join(str(item) for item in sample)
+        text = sample[0] if isinstance(sample[0], str) else sample[1]
         tokens = self._tokenizer(
               text,
               return_tensors="pt",
@@ -229,7 +229,7 @@ class LLMPipeline(AbstractLLMPipeline):
         with torch.no_grad():
             outputs = self._model(**tokens)
             logits = outputs.logits
-            predicted_class_id = torch.argmax(logits, dim=0).item()
+            predicted_class_id = torch.argmax(logits, dim=1).item()
 
         return str(predicted_class_id)
 
