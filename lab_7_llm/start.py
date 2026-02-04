@@ -4,9 +4,6 @@ Starter for demonstration of laboratory work.
 import json
 from pathlib import Path
 
-import torch
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.time_decorator import report_time
 from lab_7_llm.main import (

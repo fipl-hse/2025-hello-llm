@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 import evaluate
-import nltk
 import pandas as pd
 import torch
 from datasets import load_dataset
@@ -378,4 +377,5 @@ class TaskEvaluator(AbstractTaskEvaluator):
             results["rouge"] = float(rouge_result["rougeL"])
 
         return results
+    
 
