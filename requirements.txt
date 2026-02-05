@@ -1,6 +1,6 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
-evaluate==0.4.6
 datasets==4.5.0
+evaluate==0.4.6
 pandas==2.3.3
 torch==2.9.1
 torchinfo==1.8.0

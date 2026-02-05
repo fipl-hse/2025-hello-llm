@@ -77,7 +77,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         self._data = self._raw_data
         self._data = self._data.rename(columns={'EN': ColumnNames.SOURCE, 'DE': ColumnNames.TARGET})
         self._data = self._data.drop_duplicates(subset=[ColumnNames.SOURCE])
-        self._data[ColumnNames.SOURCE] = ("Translate from English to German: " + self._data[ColumnNames.SOURCE].astype(str))
+        self._data[ColumnNames.SOURCE] = ("Translate from English to German: " +
+                                          self._data[ColumnNames.SOURCE].astype(str))
         self._data = self._data.reset_index(drop=True)
 
 
@@ -114,7 +115,8 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
-        return str(self._data[ColumnNames.SOURCE].iloc[index]), str(self._data[ColumnNames.TARGET].iloc[index])
+        return (str(self._data[ColumnNames.SOURCE].iloc[index]),
+                str(self._data[ColumnNames.TARGET].iloc[index]))
 
     @property
     def data(self) -> DataFrame:
@@ -264,7 +266,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
-        super().__init__(data_path, metrics)
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
