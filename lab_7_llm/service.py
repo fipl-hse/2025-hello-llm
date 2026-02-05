@@ -34,7 +34,8 @@ def init_application() -> tuple:
     with open(BASE_PATH / 'settings.json', 'r', encoding='utf-8') as f:
         settings = json.load(f)
 
-    return FastAPI(), LLMPipeline(settings['parameters']['model'], TaskDataset(pd.DataFrame()), 120, 1, 'cpu')
+    return FastAPI(), LLMPipeline(settings['parameters']['model'],
+                                  TaskDataset(pd.DataFrame()), 120, 1, 'cpu')
 
 
 app, pipeline = init_application()
