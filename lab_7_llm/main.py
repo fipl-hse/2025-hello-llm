@@ -14,6 +14,8 @@ import torch
 from datasets import load_dataset
 from pandas import DataFrame
 from torch.utils.data import Dataset
+from torchinfo import summary
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -75,12 +77,19 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        processed_data = self._raw_data.drop(columns=['id'])
+        self._data = (processed_data
+                  .rename(columns={'article': 'source', 'highlights': 'target'})
+                  .drop_duplicates()
+                  .assign(source=lambda x: x['source'].str.replace('\(CNN\)', '', regex=True))
+                  .reset_index(drop=True))
 
 
 class TaskDataset(Dataset):
     """
     A class that converts pd.DataFrame to Dataset and works with it.
     """
+
 
     def __init__(self, data: pd.DataFrame) -> None:
         """
@@ -89,6 +98,8 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data
+
 
     def __len__(self) -> int:
         """
@@ -97,6 +108,8 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
+    
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -108,6 +121,8 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        return tuple(self._data.iloc[index])
+    
 
     @property
     def data(self) -> DataFrame:
@@ -117,6 +132,7 @@ class TaskDataset(Dataset):
         Returns:
             pandas.DataFrame: Preprocessed DataFrame
         """
+        return self._data
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -137,6 +153,14 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self._model_name = model_name
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._dataset = dataset
+        self._max_length = max_length
+        self._batch_size = batch_size
+        self._device = device
+
 
     def analyze_model(self) -> dict:
         """
@@ -145,6 +169,27 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        max_context_length = self._model.config.n_positions
+
+        model_stats = summary(
+            self._model,
+            verbose=0,
+            device=self._device,
+        )
+
+        vocab_size = self._model.config.vocab_size
+        embedding_size = self._model.config.hidden_size
+
+        return {
+            'input_shape': [1, max_context_length],
+            'embedding_size': embedding_size,
+            'output_shape': [1, self._max_length, vocab_size],
+            'num_trainable_params': model_stats.trainable_params,
+            'vocab_size': vocab_size,
+            'size': model_stats.total_param_bytes,
+            'max_context_length': max_context_length,
+        }
+
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -157,6 +202,28 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        if self._model is None:
+            return None
+        
+        inputs = self._tokenizer(
+            sample[0],
+            truncation=True,
+            padding=True,
+            max_length=self._max_length,
+            return_tensors='pt'
+        ).to(self._device)
+
+        with torch.no_grad():
+            output = self._model.generate(
+                **inputs,
+                max_length=self._max_length,
+            )
+
+        return self._tokenizer.decode(
+            output[0],
+            skip_special_tokens=True
+        )
+
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:

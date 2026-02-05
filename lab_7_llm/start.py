@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor
+from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
 
 
 @report_time
@@ -31,6 +31,21 @@ def main() -> None:
 
     for parameter, value in result.items():
         print(f'{parameter} : {value}')
+    
+    preprocessor.transform()
+    dataset = TaskDataset(preprocessor.data.head(100))
+    pipeline = LLMPipeline(
+        model_name=settings['parameters']['model'],
+        dataset=TaskDataset,
+        max_length=120,
+        batch_size=1,
+        device='cpu'
+    )
+    model_analysis = pipeline.analyze_model()
+    for parameter, value in model_analysis.items():
+        print(f'{parameter} : {value}')
+    
+    print(pipeline.infer_sample(dataset[0]))
 
     assert result is not None, "Demo does not work correctly"
 
