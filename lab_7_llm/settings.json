@@ -2,7 +2,6 @@
   "parameters": {
     "model": "nandakishormpai/t5-small-machine-articles-tag-generation",
     "dataset": "cnn_dailymail",
-    "version": "1.0.0",
     "metrics": []
   },
   "target_score": 6

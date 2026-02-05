@@ -18,7 +18,6 @@ class ParametersModel:
 
     model: str
     dataset: str
-    version: str
     metrics: list[Metrics]
 
 

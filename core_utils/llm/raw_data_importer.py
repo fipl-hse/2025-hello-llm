@@ -24,7 +24,7 @@ class AbstractRawDataImporter(ABC):
     #: A dataset in a table format
     _raw_data: DataFrame | None
 
-    def __init__(self, hf_name: str | None, hf_version: str | None = None) -> None:
+    def __init__(self, hf_name: str | None) -> None:
         """
         Initialize an instance of AbstractRawDataImporter.
 
@@ -33,7 +33,6 @@ class AbstractRawDataImporter(ABC):
         """
         self._hf_name = hf_name
         self._raw_data = None
-        self._hf_version = hf_version
 
     @abstractmethod
     def obtain(self) -> None:

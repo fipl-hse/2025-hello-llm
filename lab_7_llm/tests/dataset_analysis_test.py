@@ -32,7 +32,7 @@ class DatasetWorkingTest(unittest.TestCase):
 
         settings = LabSettings(Path(__file__).parent.parent / "settings.json")
 
-        importer = RawDataImporter(settings.parameters.dataset, settings.parameters.version)
+        importer = RawDataImporter(settings.parameters.dataset)
         importer.obtain()
 
         if importer.raw_data is None:

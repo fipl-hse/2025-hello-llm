@@ -22,8 +22,7 @@ def main() -> None:
         settings = json.load(file)
     
     name = settings['parameters']['dataset']
-    version = settings['parameters']['version']
-    importer = RawDataImporter(hf_name=name, hf_version=version)
+    importer = RawDataImporter(hf_name=name)
     importer.obtain()
 
     preprocessor = RawDataPreprocessor(raw_data=importer.raw_data)
