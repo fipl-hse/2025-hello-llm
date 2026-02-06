@@ -180,10 +180,6 @@ class LLMPipeline(AbstractLLMPipeline):
             verbose=0
         )
 
-        # input_shape = {}
-        # for key, value in model_summary.input_size.items():
-        #     input_shape[key] = list(value)
-
         return {
             "input_shape": {k: list(v) for k, v in model_summary.input_size.items()},
             "embedding_size": config.max_position_embeddings,

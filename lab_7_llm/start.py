@@ -41,8 +41,6 @@ def main() -> None:
     for key, value in pipeline.analyze_model().items():
         print(f'{key}: {value}')
 
-    print(pipeline.infer_sample(dataset[1]))
-
     result = dataset_processor
     print(result)
     assert result is not None, "Demo does not work correctly"
