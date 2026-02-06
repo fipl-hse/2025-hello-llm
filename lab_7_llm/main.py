@@ -255,9 +255,10 @@ class LLMPipeline(AbstractLLMPipeline):
         source_texts = [str(sample[0]) for sample in sample_batch]
 
         tokens = self._tokenizer(source_texts, return_tensors="pt",
-                                 padding=True, truncation=True)
+                                 padding=True, truncation=True, max_length=self._max_length)
 
         tokens = {k: v.to(self._device) for k, v in tokens.items()}
+        self._model.to(self._device)
 
         self._model.eval()
         output = self._model(**tokens)
