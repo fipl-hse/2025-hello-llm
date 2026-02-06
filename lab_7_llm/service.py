@@ -10,7 +10,7 @@ def init_application() -> tuple:
     Initialize core application.
 
     Returns:
-        tuple: tuple of three objects, instance of FastAPI server, LLMPipeline and SFTPipeline.
+        tuple: tuple of two objects, instance of FastAPI server and LLMPipeline pipeline.
     """
 
 
