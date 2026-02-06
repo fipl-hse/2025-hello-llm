@@ -34,14 +34,12 @@ def main() -> None:
         model_name=settings.parameters.model,
         dataset=dataset,
         max_length=120,
-        batch_size=1,
+        batch_size=64,
         device='cpu'
     )
 
     for key, value in pipeline.analyze_model().items():
         print(f'{key}: {value}')
-
-    # print(pipeline.infer_sample(dataset[0]))
 
     result = pipeline.infer_dataset()
     print(result)
