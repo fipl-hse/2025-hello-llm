@@ -4,8 +4,22 @@ Laboratory work.
 Working with Large Language Models.
 """
 
+from pathlib import Path
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
+
+import pandas as pd
+# import pandas import DataFrame
+import torch
+from datasets import load_dataset
+from pandas import DataFrame
+from torch.utils.data import Dataset
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -21,6 +35,11 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        dataset = load_dataset(self._hf_name, split='train')
+        self._raw_data = dataset.to_pandas()
+
+        if not isinstance(self._raw_data, pd.DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -35,12 +54,29 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        source_column = "neutral"
+        text_data = self._raw_data[source_column].dropna()
+
+        return {
+            "dataset_number_of_samples": len(self._raw_data),
+            "dataset_columns": len(self._raw_data.columns),
+            "dataset_duplicates": int(self._raw_data.duplicated().sum()),
+            "dataset_empty_rows": int(self._raw_data.isnull().any(axis=1).sum()),
+            "dataset_sample_min_len": int(text_data.str.len().min()) if not text_data.empty else 0,
+            "dataset_sample_max_len": int(text_data.str.len().max()) if not text_data.empty else 0
+        }
 
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        raw_data_df = self._raw_data.rename(
+            columns={"toxic": ColumnNames.TARGET.value, "neutral": ColumnNames.SOURCE.value}
+        ).drop_duplicates()
+        raw_data_df[ColumnNames.TARGET.value] = raw_data_df[ColumnNames.SOURCE.value].replace({False: 0, True: 1})
+        self._data = raw_data_df
+        self._data.reset_index(drop=True)
 
 
 class TaskDataset(Dataset):
@@ -55,6 +91,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self.data = data
 
     def __len__(self) -> int:
         """
@@ -84,6 +121,10 @@ class TaskDataset(Dataset):
             pandas.DataFrame: Preprocessed DataFrame
         """
 
+    @data.setter
+    def data(self, value):
+        self._data = value
+
 
 class LLMPipeline(AbstractLLMPipeline):
     """
@@ -103,6 +144,11 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self.device = device
+        self.batch_size = batch_size
+        self.max_length = max_length
+        self.dataset = dataset
+        self.model_name = model_name
 
     def analyze_model(self) -> dict:
         """
@@ -159,6 +205,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self.data_path = data_path
+        self.metrics = metrics
 
     def run(self) -> dict:
         """
