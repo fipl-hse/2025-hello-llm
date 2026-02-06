@@ -14,4 +14,4 @@ def init_application() -> tuple:
     """
 
 
-app, pipeline = (None, None)
+app, pre_trained_pipeline, fine_tuned_pipeline = (None, None, None)
