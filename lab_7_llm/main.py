@@ -10,9 +10,9 @@ from typing import Iterable, Sequence
 
 import pandas as pd
 import torch
-from datasets import Dataset, load_dataset
+from datasets import load_dataset
 from pandas import DataFrame
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchinfo import summary
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -83,10 +83,6 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         )
         self._data = self._data.dropna().drop_duplicates()
         self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: 1 if x == "Good" else 2)
-        # self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x:
-        #                                                                      "Negative" if x == "Neutral" else x)
-        # self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x:
-        #                                                                       "Negative" if x == "Bad" else x)
 
         self._data = self._data.reset_index()
 
@@ -127,7 +123,7 @@ class TaskDataset(Dataset):
         return tuple(self._data.iloc[index])
 
     @property
-    def data(self) -> DataFrame:
+    def data(self) -> pd.DataFrame:
         """
         Property with access to preprocessed DataFrame.
 
@@ -212,26 +208,7 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             return None
 
-        self._model.to(self._device)
-        self._model.eval()
-
-        text = sample[0] if isinstance(sample[0], str) else sample[1]
-        tokens = self._tokenizer(
-              text,
-              return_tensors="pt",
-              padding=True,
-              truncation=True,
-              max_length=self._max_length
-          )
-
-        tokens = {k: v.to(self._device) for k, v in tokens.items()}
-
-        with torch.no_grad():
-            outputs = self._model(**tokens)
-            logits = outputs.logits
-            predicted_class_id = torch.argmax(logits, dim=1).item()
-
-        return str(predicted_class_id)
+        return self._infer_batch([sample])[0]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -241,6 +218,25 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        if self._model is None:
+            return pd.DataFrame()
+
+        dataloader = DataLoader(self._dataset, self._batch_size)
+        predictions = []
+        targets = []
+
+        for batch in dataloader:
+            texts = batch[0]
+            labels = batch[1]
+
+            reconstructed_batch = [(text,) for text in texts]
+
+            batch_predictions = self._infer_batch(reconstructed_batch)
+
+            predictions.extend(batch_predictions)
+            targets.extend(labels)
+
+        return pd.DataFrame({"target": targets, "predictions": predictions})
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -253,6 +249,21 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        if self._model is None:
+            raise ValueError("The model is not initialized")
+
+        source_texts = [str(sample[0]) for sample in sample_batch]
+
+        tokens = self._tokenizer(source_texts, return_tensors="pt",
+                                 padding=True, truncation=True)
+
+        tokens = {k: v.to(self._device) for k, v in tokens.items()}
+
+        self._model.eval()
+        output = self._model(**tokens)
+        predictions = torch.argmax(output.logits, dim=-1)
+
+        return [str(p.item()) for p in predictions]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
