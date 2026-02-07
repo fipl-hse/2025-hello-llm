@@ -5,17 +5,16 @@ Working with Large Language Models.
 """
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
+from pathlib import Path
 from typing import Iterable, Sequence
+
 import pandas as pd
 import torch
-from pathlib import Path
 from datasets import load_dataset
-from torch.utils.data import Dataset
+from pandas import DataFrame
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
-from transformers import (
-        AutoModelForSequenceClassification,
-        AutoTokenizer,
-    )
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -23,6 +22,7 @@ from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
+
 
 class RawDataImporter(AbstractRawDataImporter):
     """
@@ -39,7 +39,7 @@ class RawDataImporter(AbstractRawDataImporter):
         """
         ds = load_dataset(self._hf_name, split='validation')
         self._raw_data = ds.to_pandas()
-        if not isinstance(self._raw_data, pd.DataFrame):
+        if not isinstance(self._raw_data, DataFrame):
             raise TypeError("Downloaded dataset is not pd.DataFrame")
 
 
@@ -123,7 +123,7 @@ class TaskDataset(Dataset):
         return tuple(self._data.iloc[index])
 
     @property
-    def data(self) -> pd.DataFrame:
+    def data(self) -> DataFrame:
         """
         Property with access to preprocessed DataFrame.
 
@@ -198,13 +198,16 @@ class LLMPipeline(AbstractLLMPipeline):
         return str(predictions)
 
     @report_time
-    def infer_dataset(self) -> pd.DataFrame:
+    def infer_dataset(self) -> DataFrame:
         """
         Infer model on a whole dataset.
 
         Returns:
             pd.DataFrame: Data with predictions
         """
+        dataset_loader = DataLoader(self._dataset, batch_size=self._batch_size)
+        return next(iter(dataset_loader))
+
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
