@@ -168,9 +168,9 @@ class TaskDataset(Dataset):
         """
         row = self._data.iloc[index]
         return (
-            str(row[ColumnNames.SOURCE]),  
-            str(row[ColumnNames.TARGET])   
-        )
+            str(row[ColumnNames.SOURCE]),
+            str(row[ColumnNames.TARGET])
+            )
 
     @property
     def data(self) -> DataFrame:
@@ -285,14 +285,16 @@ class LLMPipeline(AbstractLLMPipeline):
         )
 
         all_predictions = []
+        targets = []
 
         for batch in dataloader:
-            sources = batch[0]
-            batch_predictions = self._infer_batch(list(zip(sources)))
+            sources, target_texts = batch[0], batch[1]
+            batch_predictions = self._infer_batch(list(zip(sources, target_texts)))
             all_predictions.extend(batch_predictions)
+            targets.extend(target_texts)
 
         return pd.DataFrame({
-            'target': [item[1] for item in self._dataset],
+            'target': targets,
             'predictions': all_predictions
         })
 
@@ -384,4 +386,4 @@ class TaskEvaluator(AbstractTaskEvaluator):
             results["rouge"] = float(rouge_result["rougeL"])
 
         return results
-    
+        
