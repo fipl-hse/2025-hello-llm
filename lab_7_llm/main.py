@@ -275,5 +275,5 @@ class TaskEvaluator(AbstractTaskEvaluator):
         references = df["target"].astype(int).tolist()
 
         score = evaluate.load("f1").compute(predictions=predictions,
-                                            references=references, average="weighted")
-        return {"f1": float(f"{score['f1']:.5f}")}
+                                            references=references, average="micro")
+        return {"f1": round(score["f1"], 5)}
