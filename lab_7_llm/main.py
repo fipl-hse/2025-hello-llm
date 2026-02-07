@@ -8,12 +8,13 @@ Working with Large Language Models.
 
 # from sympy.codegen import Print
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, cast
 
 import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
+from torch import nn
 from torch.utils.data import Dataset
 from torchinfo import summary
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -179,18 +180,16 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        assert self._model is not None, "Model is not initialized"
-
         config = self._model.config
+        model_module = cast(nn.Module, self._model)
+
         input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
         attention_mask = torch.ones_like(input_ids)
 
-        stats = summary(
-            self._model,
-            input_data={"input_ids": input_ids, "attention_mask": attention_mask},
-            device=self._device,
-            verbose=0
-        )
+        stats = summary(model_module,
+                        input_data={"input_ids": input_ids, "attention_mask": attention_mask},
+                        device=self._device,
+                        verbose=0)
 
         return {
             "input_shape": {k: list(v) for k, v in stats.input_size.items()},
