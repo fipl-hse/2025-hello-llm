@@ -244,6 +244,9 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        if self._model is None:
+            raise RuntimeError("Model is not initialized")
+
         texts = [sample[0] for sample in sample_batch]
         self._model.eval()
 
