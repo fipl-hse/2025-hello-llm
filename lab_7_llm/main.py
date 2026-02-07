@@ -19,7 +19,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
-from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
@@ -115,7 +115,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         })
 
         self._data = processed_data.reset_index(drop=True)
-        
+
 
 class TaskDataset(Dataset):
     """
@@ -341,24 +341,28 @@ class TaskEvaluator(AbstractTaskEvaluator):
         references = data['target'].astype(str).tolist()
 
         results = {}
-
-        if Metrics.BLEU in self._metrics and Metrics.ROUGE in self._metrics:
+        
+        if Metrics.BLEU in self._metrics:
             bleu_metric = evaluate.load("bleu")
-            rouge_metric = evaluate.load("rouge", seed=77)
-            
+
             references_for_bleu = [[ref] for ref in references]
-            
+
             bleu_result = bleu_metric.compute(
                 predictions=predictions,
                 references=references_for_bleu
             )
             results["bleu"] = float(bleu_result["bleu"])
-            
+
+        if Metrics.ROUGE in self._metrics:
+            rouge_metric = evaluate.load("rouge", seed=77)
+
             rouge_result = rouge_metric.compute(
                 predictions=predictions,
                 references=references
             )
+
             results["rouge"] = float(rouge_result["rougeL"])
 
+        # print(results)
         return results
-            
+                
