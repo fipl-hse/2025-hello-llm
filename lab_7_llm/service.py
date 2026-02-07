@@ -60,11 +60,12 @@ def get_root(request: Request) -> HTMLResponse:
 
 @app.post("/infer")
 def infer(query: Query) -> dict:
+    """
+    the main endpoint of inference
+    """
     result = int(pipeline.infer_sample(query.question))
 
     emotions = ["Радость", "Грусть", "Страх", "Злость", "Нейтрально", "Другое"]
 
     if 0 <= result < len(emotions):
         return {"infer": emotions[result]}
-    else:
-        return {"infer": "Неизвестное состояние"}
