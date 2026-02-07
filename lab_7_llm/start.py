@@ -68,8 +68,6 @@ def main() -> None:
 
     predictions_df.to_csv(predictions_file, index=False)
 
-    predictions_df.to_csv(predictions_file)
-
     metric_names = settings['parameters']['metrics']
     metrics = [Metrics[metric.upper()] for metric in metric_names]
 

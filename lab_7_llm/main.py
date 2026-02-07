@@ -365,6 +365,5 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
             results["rouge"] = float(rouge_result["rougeL"])
 
-        #print(results)
         return results
     
