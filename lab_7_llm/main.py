@@ -9,7 +9,6 @@ Working with Large Language Models.
 # from sympy.codegen import Print
 from pathlib import Path
 from typing import Iterable, Sequence, cast
-
 import evaluate
 import pandas as pd
 import torch
@@ -223,7 +222,8 @@ class LLMPipeline(AbstractLLMPipeline):
             pd.DataFrame: Data with predictions
         """
         predictions = []
-        dataset_len = len(self._dataset)
+
+        dataset_len = len(self._dataset.data)
         for i in range(0, dataset_len, self._batch_size):
             batch = [self._dataset[idx] for idx in range(i, min(i + self._batch_size,
                                                                 dataset_len))]
