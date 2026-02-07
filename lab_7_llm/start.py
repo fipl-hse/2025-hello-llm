@@ -27,6 +27,7 @@ def main() -> None:
     name = settings['parameters']['dataset']
     dataset_importer = RawDataImporter(name)
     dataset_importer.obtain()
+    assert dataset_importer._raw_data is not None
 
     dataset_preprocessor = RawDataPreprocessor(dataset_importer._raw_data)
     for feature in dataset_preprocessor.analyze().items():

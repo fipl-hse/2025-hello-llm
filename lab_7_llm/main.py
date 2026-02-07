@@ -82,8 +82,10 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
                 "tyv": "7",
                 "chv": "8"
             }
-        transformed_df = transformed_df.rename(columns={'label': ColumnNames.TARGET, 'text': ColumnNames.SOURCE})
-        transformed_df[ColumnNames.TARGET] = transformed_df[ColumnNames.TARGET].apply(lambda x: classes[x])
+        transformed_df = transformed_df.rename(columns={'label': ColumnNames.TARGET,
+                                                        'text': ColumnNames.SOURCE})
+        transformed_df[ColumnNames.TARGET] = transformed_df[ColumnNames.TARGET].apply(lambda x:
+                                                                                      classes[x])
         self._data = transformed_df
 
 
@@ -156,8 +158,8 @@ class LLMPipeline(AbstractLLMPipeline):
         self._max_length = max_length
         self._batch_size = batch_size
         self._device = device
-        self._tokenizer = AutoTokenizer.from_pretrained("tatiana-merz/turkic-cyrillic-classifier")
-        self._model = AutoModelForSequenceClassification.from_pretrained("tatiana-merz/turkic-cyrillic-classifier")
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
     def analyze_model(self) -> dict:
         """
@@ -166,9 +168,11 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        assert self._model is not None
         config = self._model.config
         ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
-        result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids}, device="cpu", verbose=0)
+        result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids},
+                          device="cpu", verbose=0)
 
         analysis = {'input_shape': {k: list(v) for k, v in result.input_size.items()},
                     'embedding_size': config.max_position_embeddings,
@@ -205,7 +209,8 @@ class LLMPipeline(AbstractLLMPipeline):
         for sources, targets in data_loader:
             predictions.extend(self._infer_batch(sources))
             references.extend(targets)
-        inferred_ds = pd.DataFrame({ColumnNames.TARGET.value: references, ColumnNames.PREDICTION.value: predictions})
+        inferred_ds = pd.DataFrame({ColumnNames.TARGET.value: references, 
+                                    ColumnNames.PREDICTION.value: predictions})
         return inferred_ds
 
 
@@ -220,6 +225,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        assert self._model is not None
         samples = [sample[0] for sample in sample_batch]
         tokens = self._tokenizer(samples, return_tensors="pt", truncation=True, padding=True)
         self._model.eval()
@@ -242,6 +248,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
