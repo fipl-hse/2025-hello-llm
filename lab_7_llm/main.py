@@ -190,12 +190,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        tokens = self._tokenizer(sample[0], return_tensors="pt")
-        self._model.eval()
-        with torch.no_grad():
-            output = self._model(**tokens)
-        predictions = torch.argmax(output.logits).item()
-        return str(predictions)
+        return self._infer_batch([sample])[0]
 
     @report_time
     def infer_dataset(self) -> DataFrame:
@@ -205,8 +200,13 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
-        dataset_loader = DataLoader(self._dataset, batch_size=self._batch_size)
-        return next(iter(dataset_loader))
+        predictions, references = [], []
+        data_loader = DataLoader(self._dataset, batch_size=self._batch_size)
+        for sources, targets in data_loader:
+            predictions.extend(self._infer_batch(sources))
+            references.extend(targets)
+        inferred_ds = pd.DataFrame({ColumnNames.TARGET.value: references, ColumnNames.PREDICTION.value: predictions})
+        return inferred_ds
 
 
     @torch.no_grad()
@@ -220,6 +220,13 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        samples = [sample[0] for sample in sample_batch]
+        tokens = self._tokenizer(samples, return_tensors="pt", truncation=True, padding=True)
+        self._model.eval()
+        with torch.no_grad():
+            output = self._model(**tokens)
+        predictions = torch.argmax(output.logits, dim=-1)
+        return [str(p.item()) for p in predictions]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
