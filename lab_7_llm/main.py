@@ -206,7 +206,6 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        # Используем _infer_batch для одного сэмпла
         return self._infer_batch([sample])[0]
 
     @report_time
@@ -247,7 +246,7 @@ class LLMPipeline(AbstractLLMPipeline):
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
         predicted_ids = torch.argmax(self._model(**inputs).logits, dim=-1).cpu().tolist()
-        return [str(pred) for pred in predicted_ids]
+        return [str(prediction) for prediction in predicted_ids]
 
 class TaskEvaluator(AbstractTaskEvaluator):
     """
