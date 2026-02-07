@@ -93,6 +93,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         self._raw_data.reset_index(drop=True, inplace=True)
         self._data = self._raw_data
 
+
 class TaskDataset(Dataset):
     """
     A class that converts pd.DataFrame to Dataset and works with it.
@@ -140,6 +141,7 @@ class TaskDataset(Dataset):
         """
         return self._data
 
+
 class LLMPipeline(AbstractLLMPipeline):
     """
     A class that initializes a model, analyzes its properties and infers it.
@@ -181,9 +183,10 @@ class LLMPipeline(AbstractLLMPipeline):
         input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
         attention_mask = torch.ones_like(input_ids)
 
-        stats = summary(self._model, input_data={"input_ids": input_ids,
-                                                 "attention_mask": attention_mask},
-                        device=self._device, verbose=0)
+        stats = summary(self._model,
+                        input_data={"input_ids": input_ids, "attention_mask": attention_mask},
+                        device=self._device,
+                        verbose=0)
 
         return {
             "input_shape": {k: list(v) for k, v in stats.input_size.items()},
@@ -217,9 +220,10 @@ class LLMPipeline(AbstractLLMPipeline):
             pd.DataFrame: Data with predictions
         """
         predictions = []
-        for i in range(0, len(self._dataset), self._batch_size):
+        dataset_len = len(self._dataset)
+        for i in range(0, dataset_len, self._batch_size):
             batch = [self._dataset[idx] for idx in range(i, min(i + self._batch_size,
-                                                                len(self._dataset)))]
+                                                                dataset_len))]
             predictions.extend(self._infer_batch(batch))
 
         result_df = self._dataset.data.copy()
@@ -241,12 +245,16 @@ class LLMPipeline(AbstractLLMPipeline):
         texts = [sample[0] for sample in sample_batch]
         self._model.eval()
 
-        inputs = self._tokenizer(texts, return_tensors="pt", truncation=True,
-                                 padding=True, max_length=self._max_length)
+        inputs = self._tokenizer(texts,
+                                 return_tensors="pt",
+                                 truncation=True,
+                                 padding=True,
+                                 max_length=self._max_length)
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
         predicted_ids = torch.argmax(self._model(**inputs).logits, dim=-1).cpu().tolist()
         return [str(prediction) for prediction in predicted_ids]
+
 
 class TaskEvaluator(AbstractTaskEvaluator):
     """
@@ -276,5 +284,6 @@ class TaskEvaluator(AbstractTaskEvaluator):
         references = result["target"].astype(int).tolist()
 
         score = evaluate.load("f1").compute(predictions=predictions,
-                                            references=references, average="micro")
+                                            references=references,
+                                            average="micro")
         return {"f1": round(score["f1"], 5)}
