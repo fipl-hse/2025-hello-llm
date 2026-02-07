@@ -166,25 +166,35 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        max_context_length = self._model.config.n_positions
+        max_input_length = self._model.config.n_positions
+
+        input_ids = torch.ones(1, max_input_length, dtype=torch.long)
+        attention_mask = torch.ones(1, max_input_length, dtype=torch.long)
+
+        decoder_input_ids = torch.ones(1, max_input_length, dtype=torch.long)
+
+        tokens = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "decoder_input_ids": decoder_input_ids,
+            "use_cache": False
+        }
 
         model_stats = summary(
             self._model,
+            input_data=tokens,
             verbose=0,
             device=self._device,
         )
 
-        vocab_size = self._model.config.vocab_size
-        embedding_size = self._model.config.hidden_size
-
         return {
-            'input_shape': [1, max_context_length],
-            'embedding_size': embedding_size,
-            'output_shape': [1, self._max_length, vocab_size],
+            'input_shape': [1, max_input_length],
+            'embedding_size': self._model.config.hidden_size,
+            'output_shape': model_stats.summary_list[-1].output_size,
             'num_trainable_params': model_stats.trainable_params,
-            'vocab_size': vocab_size,
+            'vocab_size': self._model.config.vocab_size,
             'size': model_stats.total_param_bytes,
-            'max_context_length': max_context_length,
+            'max_context_length': self._model.config.max_length,
         }
 
 
