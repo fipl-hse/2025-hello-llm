@@ -8,6 +8,7 @@ Working with Large Language Models.
 from pathlib import Path
 from typing import Iterable, Sequence
 
+import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
@@ -168,7 +169,8 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        assert self._model is not None
+        if self._model is None:
+            raise ValueError("The model is not initialized")
         config = self._model.config
         ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
         result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids},
@@ -225,7 +227,8 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
-        assert self._model is not None
+        if self._model is None:
+            raise ValueError("The model is not initialized")
         samples = [sample[0] for sample in sample_batch]
         tokens = self._tokenizer(samples, return_tensors="pt", truncation=True, padding=True)
         self._model.eval()
@@ -258,3 +261,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        data = pd.read_csv(self._data_path)
+        return {str(metric): evaluate.load(str(metric)).compute(
+                predictions=data[ColumnNames.PREDICTION.value].tolist(),
+                references=data[ColumnNames.TARGET.value].tolist(), average="micro")
+                for metric in self._metrics}

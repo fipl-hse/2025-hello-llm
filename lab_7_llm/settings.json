@@ -2,7 +2,7 @@
   "parameters": {
     "model": "tatiana-merz/turkic-cyrillic-classifier",
     "dataset": "tatiana-merz/cyrillic_turkic_langs",
-    "metrics": []
+    "metrics": ["f1"]
   },
   "target_score": 8
 }

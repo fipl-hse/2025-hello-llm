@@ -12,6 +12,7 @@ from lab_7_llm.main import (
     RawDataImporter,
     RawDataPreprocessor,
     TaskDataset,
+    TaskEvaluator
 )
 
 
@@ -27,7 +28,8 @@ def main() -> None:
     name = settings['parameters']['dataset']
     dataset_importer = RawDataImporter(name)
     dataset_importer.obtain()
-    assert dataset_importer._raw_data is not None
+    if dataset_importer.raw_data is None:
+        return
 
     dataset_preprocessor = RawDataPreprocessor(dataset_importer._raw_data)
     for feature in dataset_preprocessor.analyze().items():
@@ -36,11 +38,20 @@ def main() -> None:
 
     dataset = TaskDataset(dataset_preprocessor.data.head(100))
 
-    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 1, 'cpu')
-    print(pipeline.analyze_model())
+    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 64, 'cpu')
+    for key, value in pipeline.analyze_model().items():
+        print(f'{key} : {value}')
     print(pipeline.infer_sample(dataset[0]))
 
-    result = dataset_preprocessor
+    predictions_df = pipeline.infer_dataset()
+
+    predictions_file = Path(__file__).parent / "dist" / "predictions.csv"
+    predictions_file.parent.mkdir(parents=True, exist_ok=True)
+    predictions_df.to_csv(predictions_file)
+
+    evaluator = TaskEvaluator(predictions_file, settings['parameters']['metrics'])
+    result = evaluator.run()
+    print("Evaluation results:", result)
     assert result is not None, "Demo does not work correctly"
 
 
