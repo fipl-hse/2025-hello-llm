@@ -31,34 +31,35 @@ def main() -> None:
     importer = RawDataImporter(dataset_name)
     importer.obtain()
 
-    preprocessor = RawDataPreprocessor(importer.raw_data)
-    result = preprocessor.analyze()
+    if importer.raw_data is not None:
+        preprocessor = RawDataPreprocessor(importer.raw_data)
+        result = preprocessor.analyze()
 
-    for key, value in result.items():
-        print(f'{key} : {value}')
+        for key, value in result.items():
+            print(f'{key} : {value}')
 
-    preprocessor.transform()
-    dataset = TaskDataset(preprocessor.data.head(100))
+        preprocessor.transform()
+        dataset = TaskDataset(preprocessor.data.head(100))
 
-    model = settings['parameters']['model']
+        model = settings['parameters']['model']
 
-    pipeline = LLMPipeline(model, dataset, 120, 64, 'cpu')
+        pipeline = LLMPipeline(model, dataset, 120, 64, 'cpu')
 
-    for key, value in pipeline.analyze_model().items():
-        print(f'{key} : {value}')
+        for key, value in pipeline.analyze_model().items():
+            print(f'{key} : {value}')
 
-    print(pipeline.infer_sample(dataset[1]))
+        print(pipeline.infer_sample(dataset[1]))
 
-    predictions_path = Path(__file__).parent / "dist" / "predictions.csv"
-    predictions_path.parent.mkdir(parents=True, exist_ok=True)
-    pipeline.infer_dataset().to_csv(predictions_path, index=False)
-    print("Saved to:", predictions_path)
+        predictions_path = Path(__file__).parent / "dist" / "predictions.csv"
+        predictions_path.parent.mkdir(parents=True, exist_ok=True)
+        pipeline.infer_dataset().to_csv(predictions_path, index=False)
+        print("Saved to:", predictions_path)
 
-    evaluator = TaskEvaluator(predictions_path, settings['parameters']['metrics'])
-    evaluation_results = evaluator.run()
-    print(evaluation_results)
+        evaluator = TaskEvaluator(predictions_path, settings['parameters']['metrics'])
+        evaluation_results = evaluator.run()
+        print(evaluation_results)
 
-    assert result is not None, "Demo does not work correctly"
+        assert result is not None, "Demo does not work correctly"
 
 
 if __name__ == "__main__":
