@@ -1,0 +1,4 @@
+body { margin: 40px; }
+textarea { width: 100%; padding: 8px; }
+button { padding: 8px; background: blue; color: white; }
+#output { margin-top: 15px; padding: 10px; background: #eee; }
