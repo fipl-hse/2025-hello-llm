@@ -261,13 +261,14 @@ class LLMPipeline(AbstractLLMPipeline):
             self._dataset,
             batch_size=self._batch_size,
             shuffle=False,
-            collate_fn=lambda batch: [item for item in batch]
+            collate_fn=lambda batch: list(zip(*batch))
         )
 
         all_predictions = []
 
         for batch in dataloader:
-            batch_predictions = self._infer_batch(batch)
+            sources = batch[0]
+            batch_predictions = self._infer_batch(list(zip(sources)))
             all_predictions.extend(batch_predictions)
 
         return pd.DataFrame({
@@ -341,7 +342,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
         references = data['target'].astype(str).tolist()
 
         results = {}
-        
+
         if Metrics.BLEU in self._metrics:
             bleu_metric = evaluate.load("bleu")
 
@@ -363,6 +364,6 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
             results["rouge"] = float(rouge_result["rougeL"])
 
-        # print(results)
+        print(results)
         return results
-                
+
