@@ -110,7 +110,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         processed_data = processed_data.drop(columns=columns_to_drop)
 
         processed_data = processed_data.rename(columns={
-            "text": "source",
+            "article_content": "source",
             "summary": "target",
         })
 
