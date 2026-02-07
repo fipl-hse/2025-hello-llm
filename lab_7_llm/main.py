@@ -107,31 +107,15 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         processed_data = self._raw_data.copy()
 
         columns_to_drop = ['title', 'date', 'url']
+        processed_data = processed_data.drop(columns=columns_to_drop)
 
-        existing_columns = [col for col in columns_to_drop if col in processed_data.columns]
-        if existing_columns:
-            processed_data = processed_data.drop(columns=existing_columns)
+        processed_data = processed_data.rename(columns={
+            "text": "source",
+            "summary": "target",
+        })
 
-        if 'article_content' in processed_data.columns:
-            processed_data = processed_data.rename(
-                columns={'article_content': ColumnNames.SOURCE}
-            )
-
-        if 'summary' in processed_data.columns:
-            processed_data = processed_data.rename(
-                columns={'summary': ColumnNames.TARGET}
-            )
-
-        processed_data = processed_data.reset_index(drop=True)
-
-        if ColumnNames.SOURCE in processed_data.columns:
-            processed_data = processed_data.dropna(subset=[ColumnNames.SOURCE])
-
-        if ColumnNames.TARGET in processed_data.columns:
-            processed_data = processed_data.dropna(subset=[ColumnNames.TARGET])
-
-        self._data = processed_data
-
+        self._data = processed_data.reset_index(drop=True)
+        
 
 class TaskDataset(Dataset):
     """
@@ -166,11 +150,7 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
-        row = self._data.iloc[index]
-        return (
-            str(row[ColumnNames.SOURCE]),
-            str(row[ColumnNames.TARGET])
-            )
+        return tuple(self._data.iloc[index])
 
     @property
     def data(self) -> DataFrame:
@@ -281,20 +261,17 @@ class LLMPipeline(AbstractLLMPipeline):
             self._dataset,
             batch_size=self._batch_size,
             shuffle=False,
-            collate_fn=lambda batch: list(zip(*batch))
+            collate_fn=lambda batch: [item for item in batch]
         )
 
         all_predictions = []
-        targets = []
 
         for batch in dataloader:
-            sources, target_texts = batch[0], batch[1]
-            batch_predictions = self._infer_batch(list(zip(sources, target_texts)))
+            batch_predictions = self._infer_batch(batch)
             all_predictions.extend(batch_predictions)
-            targets.extend(target_texts)
 
         return pd.DataFrame({
-            'target': targets,
+            'target': self._dataset.data['target'].tolist(),
             'predictions': all_predictions
         })
 
@@ -365,25 +342,23 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
         results = {}
 
-        if Metrics.BLEU in self._metrics:
+        if Metrics.BLEU in self._metrics and Metrics.ROUGE in self._metrics:
             bleu_metric = evaluate.load("bleu")
-
+            rouge_metric = evaluate.load("rouge", seed=77)
+            
             references_for_bleu = [[ref] for ref in references]
-
+            
             bleu_result = bleu_metric.compute(
                 predictions=predictions,
                 references=references_for_bleu
             )
             results["bleu"] = float(bleu_result["bleu"])
-
-        if Metrics.ROUGE in self._metrics:
-            rouge_metric = evaluate.load("rouge", seed=77)
-
+            
             rouge_result = rouge_metric.compute(
                 predictions=predictions,
-                references=references)
-
+                references=references
+            )
             results["rouge"] = float(rouge_result["rougeL"])
 
         return results
-        
+            
