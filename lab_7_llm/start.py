@@ -42,7 +42,6 @@ def main() -> None:
     data_preprocessor.transform()
 
     dataset = TaskDataset(data_preprocessor.data.head(100))
-    print(dataset)
 
     pipeline = LLMPipeline(
         model_name="dmitry-vorobiev/rubert_ria_headlines",
@@ -56,9 +55,7 @@ def main() -> None:
     for key, value in model_properties.items():
         print(f'{key}: {value}')
 
-    sample = dataset[0]
-    print(sample[0][:100])
-    print(pipeline.infer_sample(sample))
+    print(pipeline.infer_sample(dataset[1]))
 
     predictions_df = pipeline.infer_dataset()
 
