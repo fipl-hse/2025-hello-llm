@@ -303,7 +303,8 @@ class LLMPipeline(AbstractLLMPipeline):
         tokens = {key: value.to(self._device) for key, value in tokens.items()}
 
         output_ids = self._model.generate(
-        **tokens)
+        **tokens,
+        max_length=self._max_length)
 
         predictions = self._tokenizer.batch_decode(
             output_ids,
@@ -364,6 +365,6 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
             results["rouge"] = float(rouge_result["rougeL"])
 
-        print(results)
+        #print(results)
         return results
-
+    
