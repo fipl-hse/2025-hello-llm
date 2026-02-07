@@ -272,9 +272,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
-        df = pd.read_csv(self._data_path)
-        predictions = df["predictions"].astype(int).tolist()
-        references = df["target"].astype(int).tolist()
+        result = pd.read_csv(self._data_path)
+        predictions = result["predictions"].astype(int).tolist()
+        references = result["target"].astype(int).tolist()
 
         score = evaluate.load("f1").compute(predictions=predictions,
                                             references=references, average="micro")
