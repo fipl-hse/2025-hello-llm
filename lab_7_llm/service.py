@@ -32,13 +32,13 @@ def init_application() -> tuple:
     Returns:
         tuple: tuple of two objects, instance of FastAPI server and LLMPipeline pipeline.
     """
-    app = FastAPI()
+    llm_app = FastAPI()
 
     settings = LabSettings(Path(__file__).parent / "settings.json")
-    pipeline = LLMPipeline(model_name=settings.parameters.model,
+    llm_pipeline = LLMPipeline(model_name=settings.parameters.model,
                            dataset=TaskDataset(pd.DataFrame()),
                            batch_size=1, max_length=120, device='cpu')
-    return app, pipeline
+    return llm_app, llm_pipeline
 
 app, pipeline = init_application()
 app.mount("/assets", StaticFiles(directory=f"{MAIN_PATH}/assets"), name="assets")
@@ -59,6 +59,8 @@ async def infer(query: Query) -> dict[str, str]:
 
     """
     result = pipeline.infer_sample(query.question)
+    output = str()
+
     if int(result) == 0:
         output = 'Negative sentiment'
     elif int(result) == 1:
