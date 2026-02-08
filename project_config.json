@@ -2,6 +2,20 @@
     "labs": [
         {
             "name": "lab_7_llm",
+            "coverage": 86,
+            "stubs": [
+                "main.py",
+                "service.py",
+                "start.py"
+            ],
+            "settings": {
+                "ignore": [
+                    "lab_8_sft"
+                ]
+            }
+        },
+        {
+            "name": "lab_8_sft",
             "coverage": 83,
             "stubs": [
                 "main.py",
@@ -49,7 +63,8 @@
         "specific_file_rules": {
             "service.py": {
                 "replacement": {
-                    "lab_7_llm": "app, pipeline = None, None"
+                    "lab_7_llm": "app, pipeline = None, None",
+                    "lab_8_sft": "app, pre_trained_pipeline, fine_tuned_pipeline = None, None, None"
                 }
             }
         }
