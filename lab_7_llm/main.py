@@ -4,16 +4,17 @@ Laboratory work.
 Working with Large Language Models.
 """
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
+
+from pathlib import Path
+from typing import Iterable, Sequence
+
 import datasets
 import pandas as pd
 import torch
-
 from evaluate import load
-from pathlib import Path
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoTokenizer, BertForSequenceClassification
-from typing import Iterable, Sequence
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -72,8 +73,10 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
         preprocessed = self._raw_data[['content', 'sentiment']]
-        preprocessed = preprocessed.rename(columns={"sentiment": ColumnNames.TARGET, "content": ColumnNames.SOURCE})
-        preprocessed[ColumnNames.TARGET] = preprocessed[ColumnNames.TARGET].apply(lambda x: 1 if x == 'positive' else 2)
+        preprocessed = preprocessed.rename(columns={"sentiment": ColumnNames.TARGET,
+                                                    "content": ColumnNames.SOURCE})
+        preprocessed[ColumnNames.TARGET] = (preprocessed[ColumnNames.TARGET].
+                                            apply(lambda x: 1 if x == 'positive' else 2))
         self._data = preprocessed
 
 
@@ -227,7 +230,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
-        super().__init__(data_path, metrics)
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
