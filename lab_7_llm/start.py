@@ -12,7 +12,7 @@ from lab_7_llm.main import (
     RawDataImporter,
     RawDataPreprocessor,
     TaskDataset,
-    TaskEvaluator
+    TaskEvaluator,
 )
 
 
@@ -31,7 +31,7 @@ def main() -> None:
     if dataset_importer.raw_data is None:
         return
 
-    dataset_preprocessor = RawDataPreprocessor(dataset_importer._raw_data)
+    dataset_preprocessor = RawDataPreprocessor(dataset_importer.raw_data)
     for feature in dataset_preprocessor.analyze().items():
         print(f'{feature[0]}: {feature[1]}')
     dataset_preprocessor.transform()

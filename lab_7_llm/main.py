@@ -13,6 +13,7 @@ import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
+from torch.nn import Module
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -171,6 +172,8 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         if self._model is None:
             raise ValueError("The model is not initialized")
+        if not isinstance(self._model, Module):
+            raise ValueError("The model has incompatible type")
         config = self._model.config
         ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
         result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids},
