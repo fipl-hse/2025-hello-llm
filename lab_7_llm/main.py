@@ -149,7 +149,7 @@ class LLMPipeline(AbstractLLMPipeline):
         self._batch_size = batch_size
         self._device = device
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self._model = AlbertForSequenceClassification.from_pretrained(model_name) # or AlbertForSequenceClassification
+        self._model = AlbertForSequenceClassification.from_pretrained(model_name)
 
     def analyze_model(self) -> dict:
         """
@@ -274,7 +274,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
             results: dict[Any, Any]  = hf_metric.compute(
                                                 predictions=list(data_pred['predictions']),
                                                 references=list(data_pred['target']),
-                                                average='weighted'
+                                                average='weighted',
                                                 )
 
         return results

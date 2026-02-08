@@ -3,8 +3,6 @@ Starter for demonstration of laboratory work.
 """
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import
-import json
-import types
 from pathlib import Path
 
 from core_utils.llm.time_decorator import report_time
@@ -29,7 +27,7 @@ def main() -> None:
     importer.obtain()
 
     if importer.raw_data is None:
-        return 
+        return
 
     preprocessor = RawDataPreprocessor(importer.raw_data) #_raw_data
     dataset_stats = preprocessor.analyze()
@@ -49,6 +47,7 @@ def main() -> None:
 
     sample = dataset[0]
     sample_infer = pipeline.infer_sample(sample)
+    print(sample_infer)
 
     # Dataset inference
     batch_size=64
