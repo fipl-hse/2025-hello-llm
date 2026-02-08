@@ -44,8 +44,6 @@ def main() -> None:
     for k, v in pipeline.analyze_model().items():
         print(f'{k}: {v}')
 
-    print('\nLabel prediction for 1 sample:\n', pipeline.infer_sample(dataset[0]))
-
     predictions_path = Path(__file__).parent / 'dist' / 'predictions.csv'
     predictions_path.parent.mkdir(exist_ok=True)
     pipeline.infer_dataset().to_csv(predictions_path)
