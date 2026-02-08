@@ -204,7 +204,7 @@ class LLMPipeline(AbstractLLMPipeline):
 
         for batch in DataLoader(self._dataset, batch_size=self._batch_size):
             predictions.extend(self._infer_batch(batch))
-            references.extend([text for text in batch[1]])
+            references.extend(list(batch[1]))
 
         return pd.DataFrame({ColumnNames.TARGET.value: references,
                              ColumnNames.PREDICTION.value: predictions})
@@ -220,7 +220,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
-        sources = [source for source in sample_batch[0]]
+        sources = list(sample_batch[0])
 
         inputs = self._tokenizer(sources, return_tensors="pt", padding=True,
                                  truncation=True, max_length=self._max_length).to(self._device)
