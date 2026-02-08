@@ -175,7 +175,7 @@ class LLMPipeline(AbstractLLMPipeline):
         if not isinstance(self._model, Module):
             raise ValueError("The model has incompatible type")
         config = self._model.config
-        ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
+        ids = torch.ones(1, int(config.max_position_embeddings), dtype=torch.long)
         result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids},
                           device="cpu", verbose=0)
 
@@ -214,7 +214,7 @@ class LLMPipeline(AbstractLLMPipeline):
         for sources, targets in data_loader:
             predictions.extend(self._infer_batch(sources))
             references.extend(targets)
-        inferred_ds = pd.DataFrame({ColumnNames.TARGET.value: references, 
+        inferred_ds = pd.DataFrame({ColumnNames.TARGET.value: references,
                                     ColumnNames.PREDICTION.value: predictions})
         return inferred_ds
 
