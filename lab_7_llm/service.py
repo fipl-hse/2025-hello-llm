@@ -6,13 +6,13 @@ Web service for model inference.
 from pathlib import Path
 
 import pandas as pd
-from core_utils.project.lab_settings import LabSettings
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic.dataclasses import dataclass
 
+from core_utils.project.lab_settings import LabSettings
 from lab_7_llm.main import LLMPipeline, TaskDataset
 
 MAIN_PATH = Path(__file__).parent
