@@ -175,7 +175,8 @@ class LLMPipeline(AbstractLLMPipeline):
         if not isinstance(self._model, Module):
             raise ValueError("The model has incompatible type")
         config = self._model.config
-        ids = torch.ones(1, int(config.max_position_embeddings), dtype=torch.long)
+        embeddings_length = getattr(config, 'max_position_embeddings')
+        ids = torch.ones((1, embeddings_length), dtype=torch.long)
         result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids},
                           device="cpu", verbose=0)
 
@@ -268,4 +269,4 @@ class TaskEvaluator(AbstractTaskEvaluator):
         return {str(metric): evaluate.load(str(metric)).compute(
                 predictions=data[ColumnNames.PREDICTION.value].tolist(),
                 references=data[ColumnNames.TARGET.value].tolist(), average="micro")
-                for metric in self._metrics}
+                for metric in self._metrics}['f1']
