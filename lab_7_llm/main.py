@@ -55,16 +55,15 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
-        df_copy = self._raw_data.copy()
-        df_copy = df_copy.dropna(subset=['en'])
+        text_lengths = self._raw_data.en.dropna().str.len()
 
         return {
             'dataset_number_of_samples': len(self._raw_data),
             'dataset_columns': len(self._raw_data.columns),
             'dataset_duplicates': int(self._raw_data.duplicated().sum()),
             'dataset_empty_rows': int(self._raw_data.isna().sum().sum()),
-            'dataset_sample_min_len': df_copy.en.map(len).min(),
-            'dataset_sample_max_len': df_copy.en.map(len).max()
+            'dataset_sample_min_len': text_lengths.min(),
+            'dataset_sample_max_len': text_lengths.max()
         }
 
     @report_time

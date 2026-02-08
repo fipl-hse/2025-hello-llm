@@ -1,7 +1,6 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('translate-button');
-    const input = document.getElementById('text-input');
-    const output = document.getElementById('text-output');
+const btn = document.getElementById('translate-button');
+const input = document.getElementById('text-input');
+const output = document.getElementById('text-output');
 
     btn.addEventListener('click', async function() {
         const inputText = input.value.trim();

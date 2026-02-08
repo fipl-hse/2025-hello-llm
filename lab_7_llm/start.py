@@ -39,11 +39,12 @@ def main() -> None:
         print(f'{key}: {value}')
 
     preprocessor.transform()
-    dataset = TaskDataset(preprocessor.data.head(100))
+    dataset = TaskDataset(preprocessor.data.head(5))
 
-    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 64, 'cpu')
+    pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 1, 'cpu')
 
     predictions_path = BASE_PATH / 'dist' / 'predictions.csv'
+    predictions_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not predictions_path.exists():
         pipeline.infer_dataset().to_csv(predictions_path)
@@ -52,7 +53,12 @@ def main() -> None:
     for key, value in pipeline.analyze_model().items():
         print(f'{key}: {value}')
 
-    print(f'\nModel inference: {pipeline.infer_sample(dataset[0])}')
+    source, reference = dataset[0]
+
+    print("\nModel inference:")
+    print(f"Source: {source}")
+    print(f"Reference: {reference}")
+    print(f"Predicted: {pipeline.infer_sample(dataset[0])}")
 
     metrics = [Metrics(metric) for metric in settings['parameters']['metrics']]
     evaluator = TaskEvaluator(BASE_PATH / 'dist' / 'predictions.csv', metrics)
