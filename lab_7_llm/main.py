@@ -266,9 +266,11 @@ class TaskEvaluator(AbstractTaskEvaluator):
             dict: A dictionary containing information about the calculated metric
         """
         data = pd.read_csv(self._data_path)
+        predictions=data[ColumnNames.TARGET.value].tolist()
+        references=[str(x) for x in data[ColumnNames.TARGET.value].tolist()]
         result = {str(metric): evaluate.load(str(metric)).compute(
-                predictions=data[ColumnNames.TARGET.value].tolist(),
-                references=data[ColumnNames.PREDICTION.value].tolist(), average="micro")
+                predictions=predictions,
+                references=references, average="micro")
                 for metric in self._metrics}['f1']
         if not isinstance(result, dict):
             raise ValueError("Wrong type")
