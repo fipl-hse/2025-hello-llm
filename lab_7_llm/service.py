@@ -6,17 +6,16 @@ Web service for model inference.
 from pathlib import Path
 
 import pandas as pd
-from pydantic.dataclasses import dataclass  
-from lab_7_llm.main import LLMPipeline
+from core_utils.project.lab_settings import LabSettings
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic.dataclasses import dataclass
 
-from core_utils.project.lab_settings import LabSettings
 from lab_7_llm.main import LLMPipeline, TaskDataset
 
-APP_FOLDER = "lab_7_llm"
+MAIN_PATH = Path(__file__).parent
 
 @dataclass
 class Query:
@@ -42,15 +41,15 @@ def init_application() -> tuple:
     return app, pipeline
 
 app, pipeline = init_application()
-app.mount("/assets", StaticFiles(directory=f"{APP_FOLDER}/assets/templates"), name="assets")
+app.mount("/assets", StaticFiles(directory=f"{MAIN_PATH}/assets"), name="assets")
 
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
+async def root(request: Request) -> HTMLResponse:
     """
     Root endpoint of application.
 
     """
-    templates = Jinja2Templates(directory=f"{APP_FOLDER}/assets/templates")
+    templates = Jinja2Templates(directory=f"{MAIN_PATH}/assets")
     return templates.TemplateResponse("index.html",  {"request": request})
 
 @app.post("/infer")
@@ -60,9 +59,8 @@ async def infer(query: Query) -> dict[str, str]:
 
     """
     result = pipeline.infer_sample(query.question)
-    if result == 0:
+    if int(result) == 0:
         output = 'Negative sentiment'
-    else:
+    elif int(result) == 1:
         output = 'Positive sentiment'
-
     return {"infer": output}

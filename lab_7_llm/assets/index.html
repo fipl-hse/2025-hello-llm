@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>LLM Inference Service</title>
-        <link href="{{ url_for('assets', path='/css/styles.css') }}" rel="stylesheet"> -->
+        <link href="{{ url_for('assets', path='/styles.css') }}" rel="stylesheet">
     </head>
     <body>
         <div class="container">
@@ -13,7 +13,7 @@
             <div class="input-section">
                 <label for="query-input">Your query:</label>
                 <input type="text" id="query-input" placeholder="Write your query here..." autofocus>
-                <button id="send-button">Send query</button>
+                <button id="send-button" type="button">Send query</button>
 
             </div>
 
@@ -22,6 +22,6 @@
                 <div id="output" class="output-box"></div>
             </div>
         </div>
-        <script src="{{ url_for('assets', path='/js/main.js') }}"></script>
+        <script src="{{ url_for('assets', path='/main.js') }}"></script>
     </body>
 </html>
