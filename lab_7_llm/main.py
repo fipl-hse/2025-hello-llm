@@ -6,13 +6,14 @@ Working with Large Language Models.
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Any, Iterable, Sequence
 
 import pandas as pd
 import torch
 from datasets import load_dataset
 from evaluate import load
 from pandas import DataFrame
+from torch.nn import Module
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AlbertForSequenceClassification, AutoTokenizer
@@ -38,7 +39,7 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
-        self._raw_data = load_dataset(self._hf_name, split="test").to_pandas()
+        self._raw_data: pd.DataFrame = load_dataset(self._hf_name, split="test").to_pandas()
 
         if not isinstance(self._raw_data, pd.DataFrame):
             raise TypeError("Downloaded dataset is not pd.DataFrame")
@@ -148,7 +149,7 @@ class LLMPipeline(AbstractLLMPipeline):
         self._batch_size = batch_size
         self._device = device
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self._model = AlbertForSequenceClassification.from_pretrained(model_name)
+        self._model = AlbertForSequenceClassification.from_pretrained(model_name) # or AlbertForSequenceClassification
 
     def analyze_model(self) -> dict:
         """
@@ -161,6 +162,9 @@ class LLMPipeline(AbstractLLMPipeline):
         embeddings_length = self._model.config.max_position_embeddings
         ids = torch.ones(1, embeddings_length, dtype=torch.long)
         tokens = {"input_ids": ids, "attention_mask": ids}
+
+        if not isinstance(self._model, Module):
+            raise ValueError("The model has incompatible type")
         model_summary = summary(self._model, input_data=tokens,
                                 device=self._device, verbose=0)
 
@@ -190,10 +194,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        if self._model is None:
-            return None
-
-        predictions = self._infer_batch(sample[0])
+        predictions = self._infer_batch([sample])
 
         return predictions[0]
 
@@ -227,8 +228,11 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        if self._model is None:
+            raise ValueError("The model is not initialized")
 
-        tokens = self._tokenizer(sample_batch, return_tensors="pt",
+        samples = [sample[0] for sample in sample_batch]
+        tokens = self._tokenizer(samples, return_tensors="pt",
                                  padding=True, truncation=True)
 
         self._model.eval()
@@ -262,13 +266,15 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
-        metrics = load(str(self._metrics[0]))
 
         data_pred = pd.read_csv(self._data_path)
 
-        results = metrics.compute(
-            predictions=list(data_pred['predictions']),
-            references=list(data_pred['target']),
-            average='micro'
-            )
+        for metric in self._metrics:
+            hf_metric = load(str(metric))
+            results: dict[Any, Any]  = hf_metric.compute(
+                                                predictions=list(data_pred['predictions']),
+                                                references=list(data_pred['target']),
+                                                average='weighted'
+                                                )
+
         return results

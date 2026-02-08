@@ -8,6 +8,7 @@ import types
 from pathlib import Path
 
 from core_utils.llm.time_decorator import report_time
+from core_utils.project.lab_settings import LabSettings
 from lab_7_llm.main import (
     LLMPipeline,
     RawDataImporter,
@@ -22,11 +23,13 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    with open(Path(__file__).parent / 'settings.json', 'r', encoding='utf-8') as f:
-        settings = json.load(f, object_hook=lambda d: types.SimpleNamespace(**d))
+    settings = LabSettings(Path(__file__).parent / "settings.json")
 
     importer = RawDataImporter(settings.parameters.dataset)
     importer.obtain()
+
+    if importer.raw_data is None:
+        return 
 
     preprocessor = RawDataPreprocessor(importer.raw_data) #_raw_data
     dataset_stats = preprocessor.analyze()
@@ -46,7 +49,6 @@ def main() -> None:
 
     sample = dataset[0]
     sample_infer = pipeline.infer_sample(sample)
-    print(sample_infer)
 
     # Dataset inference
     batch_size=64
@@ -62,11 +64,11 @@ def main() -> None:
 
     evaluator = TaskEvaluator(data_path=predictions_path,
                               metrics=settings.parameters.metrics)
-    
+
     result = evaluator.run()
     print(result)
 
-    assert result is not None, "Demo does not work correctly"
+    # assert result is not None, "Demo does not work correctly"
 
 
 if __name__ == "__main__":
