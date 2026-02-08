@@ -344,25 +344,22 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
         results = {}
 
-        if Metrics.BLEU in self._metrics:
-            bleu_metric = evaluate.load("bleu")
+        for metric in self._metrics:
+            if metric == Metrics.BLEU:
+                bleu_metric = evaluate.load("bleu")
+                references_for_bleu = [[ref] for ref in references]
+                bleu_result = bleu_metric.compute(
+                    predictions=predictions,
+                    references=references_for_bleu
+                )
+                results["bleu"] = float(bleu_result["bleu"])
 
-            references_for_bleu = [[ref] for ref in references]
-
-            bleu_result = bleu_metric.compute(
-                predictions=predictions,
-                references=references_for_bleu
-            )
-            results["bleu"] = float(bleu_result["bleu"])
-
-        if Metrics.ROUGE in self._metrics:
-            rouge_metric = evaluate.load("rouge", seed=77)
-
-            rouge_result = rouge_metric.compute(
-                predictions=predictions,
-                references=references
-            )
-
-            results["rouge"] = float(rouge_result["rougeL"])
+            elif metric == Metrics.ROUGE:
+                rouge_metric = evaluate.load("rouge", seed=77)
+                rouge_result = rouge_metric.compute(
+                    predictions=predictions,
+                    references=references
+                )
+                results["rouge"] = float(rouge_result["rougeL"])
 
         return results
