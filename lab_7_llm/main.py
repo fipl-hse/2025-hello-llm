@@ -38,8 +38,7 @@ class RawDataImporter(AbstractRawDataImporter):
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
 
-        dataframe = load_dataset("dair-ai/emotion", split="validation").to_pandas()
-        self._raw_data = dataframe
+        self._raw_data = load_dataset("dair-ai/emotion", split="validation").to_pandas()
 
         if not isinstance(self._raw_data, pd.DataFrame):
             raise TypeError("Dataset is not pd.DataFrame")
