@@ -5,7 +5,7 @@ import pathlib
 
 from core_utils.llm.time_decorator import report_time
 # pylint: disable=too-many-locals, undefined-variable, unused-import
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor
+from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset, LLMPipeline
 from core_utils.project.lab_settings import LabSettings
 
 
@@ -21,8 +21,29 @@ def main() -> None:
     importer.obtain()
 
     preprocessor = RawDataPreprocessor(importer.raw_data)
+    preprocessor.transform()
     analysis_result = preprocessor.analyze()
-    result = analysis_result
+
+    dataset = TaskDataset(preprocessor.data.loc[:100])
+
+    pipeline = LLMPipeline(
+        model_name=settings.parameters.model,
+        dataset=dataset,
+        max_length=120,
+        batch_size=1,
+        device='cpu'
+    )
+
+    model_analysis = pipeline.analyze_model()
+
+    sample = dataset[0]
+    prediction = pipeline.infer_sample(sample)
+
+    result = {
+        "dataset_analysis": analysis_result,
+        "model_analysis": model_analysis,
+        "sample_prediction": prediction
+    }
 
     assert result is not None, "Demo does not work correctly"
 
