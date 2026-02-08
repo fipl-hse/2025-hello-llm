@@ -1,7 +1,6 @@
 """
 Starter for demonstration of laboratory work.
 """
-
 import json
 from pathlib import Path
 
@@ -39,7 +38,7 @@ def main() -> None:
         print(f'{key}: {value}')
 
     preprocessor.transform()
-    dataset = TaskDataset(preprocessor.data.head(5))
+    dataset = TaskDataset(preprocessor.data.head(100))
 
     pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 1, 'cpu')
 
