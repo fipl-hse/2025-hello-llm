@@ -204,8 +204,7 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             return None
 
-        text = " ".join(sample)
-        return self._infer_batch([(text,)])[0]
+        return self._infer_batch([sample])[0]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -249,7 +248,7 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             raise ValueError("The model is not initialized")
 
-        source_texts = [str(sample[0]) for sample in sample_batch]
+        source_texts = [" ".join(sample) for sample in sample_batch]
 
         tokens = self._tokenizer(source_texts, return_tensors="pt",
                                  padding=True, truncation=True, max_length=self._max_length)
@@ -258,10 +257,10 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model.to(self._device)
 
         self._model.eval()
-        output = self._model(**tokens)
-        predictions = torch.argmax(output.logits, dim=-1)
 
-        return [str(p.item()) for p in predictions]
+        output = [str(torch.argmax(prediction).item())
+                  for prediction in self._model(**tokens).logits]
+        return ["2" if label == "0" else label for label in output]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
