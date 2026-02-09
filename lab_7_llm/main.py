@@ -69,8 +69,6 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             "dataset_columns": len(self._raw_data.columns),
             "dataset_duplicates": int(self._raw_data.duplicated().sum()),
             "dataset_empty_rows": self._raw_data.isna().any(axis=1).sum(),
-            # "dataset_sample_min_len": min(len(str(row)) for row in dataset['text']),
-            # "dataset_sample_max_len": max(len(str(row)) for row in dataset['text']),
             "dataset_sample_min_len": dataset['text'].astype(str).str.len().min(axis=0),
             "dataset_sample_max_len": dataset['text'].astype(str).str.len().max(axis=0),
         }
@@ -358,4 +356,3 @@ class TaskEvaluator(AbstractTaskEvaluator):
             results["rouge"] = float(rouge_result["rougeL"])
 
         return results
-    
