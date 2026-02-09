@@ -59,6 +59,7 @@ def main() -> None:
     print(dataset_infer)
 
     predictions_path = Path(__file__).parent / 'dist'/ 'predictions.csv'
+    predictions_path.parent.mkdir(parents=True, exist_ok=True)
     dataset_infer.to_csv(predictions_path)
 
     evaluator = TaskEvaluator(data_path=predictions_path,
