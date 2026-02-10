@@ -2,7 +2,7 @@
   "parameters": {
     "model": "blanchefort/rubert-base-cased-sentiment-rusentiment",
     "dataset": "blinoff/kinopoisk",
-    "metrics": []
+    "metrics": ["f1"]
   },
-  "target_score": 6
+  "target_score": 8
 }
