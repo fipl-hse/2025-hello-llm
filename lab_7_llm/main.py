@@ -10,8 +10,8 @@ from typing import Iterable, Sequence
 
 import pandas as pd
 import torch
-from evaluate import load
 from datasets import load_dataset
+from evaluate import load
 from pandas import DataFrame
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
@@ -38,7 +38,9 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
-        self._raw_data = load_dataset(self._hf_name, revision="refs/convert/parquet", split="train").to_pandas()
+        self._raw_data = load_dataset(self._hf_name,
+                                      revision="refs/convert/parquet",
+                                      split="train").to_pandas()
 
         if not isinstance(self._raw_data, pd.DataFrame):
             raise TypeError("Downloaded dataset is not pd.DataFrame")
@@ -217,8 +219,6 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         if self._model is None:
             return pd.DataFrame()
-
-        print(self._dataset._data.columns)
 
         dataloader = DataLoader(self._dataset, self._batch_size)
         predictions = []
