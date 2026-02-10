@@ -28,6 +28,8 @@ def main() -> None:
     dataset_importer = RawDataImporter(settings.parameters.dataset)
     dataset_importer.obtain()
 
+    if dataset_importer is None:
+        raise ValueError("DataFrame is required for preprocessing")
     dataset_processor = RawDataPreprocessor(dataset_importer.raw_data)
     print(dataset_processor.analyze())
 

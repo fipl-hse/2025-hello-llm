@@ -85,7 +85,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             columns={"content": ColumnNames.SOURCE, "grade3": ColumnNames.TARGET}
         )
         self._data = self._data.dropna().drop_duplicates()
-        self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x: 1 if x == "Good" else 2)
+        self._data[ColumnNames.TARGET] = self._data[ColumnNames.TARGET].apply(lambda x:
+                                                                              1 if x == "Good" else 2)
 
         self._data = self._data.reset_index()
 
