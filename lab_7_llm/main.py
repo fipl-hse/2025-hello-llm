@@ -166,7 +166,13 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        tensor_data = torch.ones(1, self._model.config.d_model, dtype=torch.long).to(self._device)
+        batch_size = self._batch_size
+
+        tensor_data = torch.ones(
+            batch_size,
+            self._model.config.d_model,
+            dtype=torch.long
+        ).to(self._device)
 
         input_data = {
             "input_ids": tensor_data,
@@ -180,7 +186,10 @@ class LLMPipeline(AbstractLLMPipeline):
         )
 
         return {
-            "input_shape": {"input_ids": list(tensor_data.shape), "decoder_input_ids": list(tensor_data.shape)},
+            "input_shape": {
+                "input_ids": list(tensor_data.shape),
+                "decoder_input_ids": list(tensor_data.shape)
+            },
             "embedding_size": self._model.config.d_model,
             "output_shape": model_summary.summary_list[-1].output_size,
             "num_trainable_params": model_summary.trainable_params,
