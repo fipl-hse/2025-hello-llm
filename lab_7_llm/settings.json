@@ -1,10 +1,10 @@
 {
   "parameters": {
-    "model": "stevhliu/my_awesome_billsum_model",
+    "model": "UrukHan/t5-russian-summarization",
     "dataset": "CarlBrendt/Summ_Dialog_News",
     "metrics": [
       "rouge"
     ]
   },
-  "target_score": 4
+  "target_score": 6
 }

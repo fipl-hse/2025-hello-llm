@@ -6,7 +6,8 @@ Starter for demonstration of laboratory work.
 import json
 from pathlib import Path
 from core_utils.llm.time_decorator import report_time
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor
+from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset, LLMPipeline
+
 
 
 @report_time
@@ -14,29 +15,45 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
+    # 1. Загрузка настроек
     root_path = Path(__file__).parent
     with open(root_path / 'settings.json', 'r', encoding='utf-8') as file:
         settings = json.load(file)
 
-    dataset_name = settings['parameters']['dataset']
-    importer = RawDataImporter(dataset_name)
+    # 2. Загрузка данных
+    importer = RawDataImporter(settings['parameters']['dataset'])
     importer.obtain()
 
-    if importer.raw_data is None:
-        raise ValueError("Raw Data is None after obtaining")
-
+    # 3. Препроцессинг
     preprocessor = RawDataPreprocessor(importer.raw_data)
-
-    analysis = preprocessor.analyze()
-    print("Dataset Analysis:", analysis)
-
     preprocessor.transform()
 
-    result = preprocessor.data
+    # 4. Создание датасета (берем 10 примеров для теста скорости)
+    dataset = TaskDataset(preprocessor.data.head(10))
 
-    print("First 5 rows of preprocessed data:")
-    print(result.head())
+    # 5. Инициализация пайплайна
+    pipeline = LLMPipeline(
+        model_name=settings['parameters']['model'],
+        dataset=dataset,
+        max_length=120,
+        batch_size=1,
+        device='cpu'
+    )
 
+    # 6. Анализ модели
+    model_analysis = pipeline.analyze_model()
+    print("Model Analysis:", model_analysis)
+
+    # 7. Инференс одного примера
+    sample = dataset[0]
+    print(f"\nSource Text: {sample[0][:200]}...")  # Показываем начало текста
+    print(f"Target Summary: {sample[1]}")
+
+    prediction = pipeline.infer_sample(sample)
+    print(f"Model Prediction: {prediction}")
+
+    # Проверка для assert
+    result = prediction
     assert result is not None, "Demo does not work correctly"
 
 
