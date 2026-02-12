@@ -17,7 +17,7 @@ jobs:
   install-dependencies:
     name: Installing dependencies
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v6
@@ -31,7 +31,7 @@ jobs:
     name: PR name check
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    timeout-minutes: 5
+    timeout-minutes: 20
     needs: [ install-dependencies ]
     env:
       PR_NAME: ${{ github.event.pull_request.title }}
@@ -50,7 +50,7 @@ jobs:
   code-style:
     name: Code Style
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     needs: [ install-dependencies ]
     env:
       PR_NAME: ${{ github.event.pull_request.title }}
@@ -69,7 +69,7 @@ jobs:
   mypy-checks:
     name: Mypy checks
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     needs: [ install-dependencies ]
 
     steps:
