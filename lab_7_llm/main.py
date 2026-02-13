@@ -195,7 +195,7 @@ class LLMPipeline(AbstractLLMPipeline):
             "num_trainable_params": model_summary.trainable_params,
             "vocab_size": self._model.config.vocab_size,
             "size": model_summary.total_param_bytes,
-            "max_context_length": self._model.config.n_positions
+            "max_context_length": self._model.config.max_length
         }
 
     @report_time
