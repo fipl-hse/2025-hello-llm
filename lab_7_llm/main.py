@@ -75,12 +75,12 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         Apply preprocessing transformations to the raw dataset.
         """
-        df = df.drop(columns=["de", "en", "fr", "it", "nl", "pl"])
-        df = df.rename(columns={"ru": ColumnNames.SOURCE, "es": ColumnNames.TARGET})
-        df = df.dropna()
-        df = df.drop_duplicates()
-        df = df.reset_index(drop=True)
-        self._data = df
+        self._data = self._raw_data
+        self._data = self._data.drop(columns=["de", "en", "fr", "it", "nl", "pl"])
+        self._data = self._data.rename(columns={"ru": ColumnNames.SOURCE, "es": ColumnNames.TARGET})
+        self._data = self._data.dropna()
+        self._data = self._data.drop_duplicates()
+        self._data = self._data.reset_index(drop=True)
 
 
 class TaskDataset(Dataset):

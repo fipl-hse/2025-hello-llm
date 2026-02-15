@@ -23,22 +23,30 @@ def main() -> None:
     importer.obtain()
 
     preprocessor = RawDataPreprocessor(importer.raw_data)
-    analyzed_dataset = preprocessor.analyze()
-
-    result = analyzed_dataset
-    assert result is not None, "Demo does not work correctly"
-
     preprocessor.transform()
+
     dataset = TaskDataset(preprocessor.data.head(100))
-    batch_size = 1
-    max_length = 120
-    device = "cpu"
-    pipeline = LLMPipeline(settings.parameters.model, dataset, max_length, batch_size, device)
-    model_analysis = pipeline.analyze_model()
-    print(model_analysis)
+    pipeline = LLMPipeline(
+        model_name=settings.parameters.model,
+        dataset=dataset,
+        batch_size=1,
+        max_length=120,
+        device="cpu"
+    )
+
+    model_info = pipeline.analyze_model()
+    for key, value in model_info.items():
+        print(f"{key}: {value}")
+
     sample = dataset[0]
-    sample_pred = pipeline.infer_sample(sample)
-    print(sample_pred)
+    prediction = pipeline.infer_sample(sample)
+
+    print("Source (ru):", sample[0])
+    print("Target (es):", sample[1])
+    print("Prediction:", prediction)
+
+    result = prediction
+    assert result is not None, "Demo does not work correctly"
     
 
 if __name__ == "__main__":
