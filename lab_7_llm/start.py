@@ -1,12 +1,14 @@
 """
 Starter for demonstration of laboratory work.
 """
+
 import pathlib
 
 from core_utils.llm.time_decorator import report_time
-# pylint: disable=too-many-locals, undefined-variable, unused-import
-from lab_7_llm.main import RawDataImporter, RawDataPreprocessor, TaskDataset, LLMPipeline
 from core_utils.project.lab_settings import LabSettings
+
+# pylint: disable=too-many-locals, undefined-variable, unused-import
+from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
 
 
 @report_time
@@ -14,7 +16,7 @@ def main() -> None:
     """
     Run the translation pipeline.
     """
-    path_to_settings = pathlib.Path(__file__).parent / 'settings.json'
+    path_to_settings = pathlib.Path(__file__).parent / "settings.json"
     settings = LabSettings(path_to_settings)
 
     importer = RawDataImporter(settings.parameters.dataset)
@@ -31,7 +33,7 @@ def main() -> None:
         dataset=dataset,
         max_length=120,
         batch_size=1,
-        device='cpu'
+        device="cpu",
     )
 
     model_analysis = pipeline.analyze_model()
@@ -42,7 +44,7 @@ def main() -> None:
     result = {
         "dataset_analysis": analysis_result,
         "model_analysis": model_analysis,
-        "sample_prediction": prediction
+        "sample_prediction": prediction,
     }
 
     assert result is not None, "Demo does not work correctly"

@@ -5,23 +5,26 @@ Working with Large Language Models.
 """
 
 from pathlib import Path
+
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
 
 import pandas as pd
+
 # import pandas import DataFrame
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
 from torch.utils.data import Dataset
+from torchinfo import summary
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
-from torchinfo import summary
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -37,7 +40,7 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
-        dataset = load_dataset(self._hf_name, split='train')
+        dataset = load_dataset(self._hf_name, split="train")
         self._raw_data = dataset.to_pandas()
 
         if not isinstance(self._raw_data, pd.DataFrame):
@@ -64,8 +67,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             "dataset_columns": len(self._raw_data.columns),
             "dataset_duplicates": int(self._raw_data.duplicated().sum()),
             "dataset_empty_rows": int(self._raw_data.isnull().any(axis=1).sum()),
-            "dataset_sample_min_len": int(text_data.str.len().min()) if not text_data.empty else 0,
-            "dataset_sample_max_len": int(text_data.str.len().max()) if not text_data.empty else 0
+            "dataset_sample_min_len": int(text_data.str.len().min()),
+            "dataset_sample_max_len": int(text_data.str.len().max()),
         }
 
     @report_time
@@ -76,7 +79,9 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         raw_data_df = self._raw_data.rename(
             columns={"toxic": ColumnNames.TARGET.value, "neutral": ColumnNames.SOURCE.value}
         ).drop_duplicates()
-        raw_data_df[ColumnNames.TARGET.value] = raw_data_df[ColumnNames.SOURCE.value].replace({False: 0, True: 1})
+        raw_data_df[ColumnNames.TARGET.value] = raw_data_df[ColumnNames.SOURCE.value].replace(
+            {False: 0, True: 1}
+        )
         self._data = raw_data_df
         self._data.reset_index(drop=True)
 
@@ -168,17 +173,9 @@ class LLMPipeline(AbstractLLMPipeline):
 
         input_ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long).to(self._device)
 
-        inputs = {
-            'input_ids': input_ids,
-            'attention_mask': input_ids
-        }
+        inputs = {"input_ids": input_ids, "attention_mask": input_ids}
 
-        model_stats = summary(
-            self._model,
-            input_data=inputs,
-            verbose=0,
-            device=self._device
-        )
+        model_stats = summary(self._model, input_data=inputs, verbose=0, device=self._device)
 
         return {
             "input_shape": {k: list(v.shape) for k, v in inputs.items()},
@@ -187,7 +184,7 @@ class LLMPipeline(AbstractLLMPipeline):
             "num_trainable_params": model_stats.trainable_params,
             "vocab_size": config.vocab_size,
             "size": model_stats.total_param_bytes,
-            "max_context_length": config.max_length
+            "max_context_length": config.max_length,
         }
 
     @report_time
@@ -205,7 +202,9 @@ class LLMPipeline(AbstractLLMPipeline):
             return None
 
         text = sample[0]
-        inputs = self._tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=self._max_length)
+        inputs = self._tokenizer(
+            text, return_tensors="pt", padding=True, truncation=True, max_length=self._max_length
+        )
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
         with torch.no_grad():
