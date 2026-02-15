@@ -162,15 +162,19 @@ class LLMPipeline(AbstractLLMPipeline):
             dict: Properties of a model
         """
         config = self._model.config
+        ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
+        tokens = {"input_ids": ids, "decoder_input_ids": ids}
+        result = summary(self._model, input_data=tokens, device="cpu", verbose=0)
+
         return {
-            "input_shape": [self._batch_size, self._max_length],
-            "embedding_size": config.d_model,
-            "output_shape": [self._batch_size, self._max_length, config.vocab_size],
-            "num_trainable_params": sum(paramm.numel() for paramm in self._model.parameters() if paramm.requires_grad),
-            "vocab_size": config.vocab_size,
-            "size": sum(paramm.numel() for paramm in self._model.parameters()),
-            "max_context_length": getattr(config, 'max_length', self._max_length)
-        }
+            "input_shape": [1, config.max_position_embeddings],
+            "embedding_size": int(config.max_position_embeddings),
+            "output_shape": result.summary_list[-1].output_size,
+            "num_trainable_params": int(result.trainable_params),
+            "vocab_size": int(config.vocab_size),
+            "size": int(result.total_param_bytes),
+            "max_context_length": int(config.max_length),
+            }
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -197,8 +201,8 @@ class LLMPipeline(AbstractLLMPipeline):
         outputs = self._model.generate(
             **inputs, 
             max_new_tokens=self._max_length, 
-            do_sample=False,
-            num_beams=5
+            # do_sample=False,
+            # num_beams=5
         )
         return self._tokenizer.decode(outputs[0], skip_special_tokens=True)
 
