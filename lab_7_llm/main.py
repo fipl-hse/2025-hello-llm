@@ -14,7 +14,6 @@ import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
-from torch import argmax
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoTokenizer, DebertaV2ForQuestionAnswering
@@ -44,10 +43,6 @@ class RawDataImporter(AbstractRawDataImporter):
 
         if not isinstance(self._raw_data, pd.DataFrame):
             raise TypeError("The downloaded dataset is not pd.DataFrame")
-        self._raw_data = load_dataset(self._hf_name, split="test").to_pandas()
-
-        if not isinstance(self._raw_data, pd.DataFrame):
-            raise TypeError("The downloaded dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -68,10 +63,10 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         return {
             "dataset_number_of_samples": len(self._raw_data),
             "dataset_columns": len(self._raw_data.columns),
-            "dataset_duplicates": self._raw_data.duplicated().sum(),
-            "dataset_empty_rows": self._raw_data.isna().any(axis=1).sum(),
-            "dataset_sample_min_len": lengths.min().min(),
-            "dataset_sample_max_len": lengths.max().max(),
+            "dataset_duplicates": int(self._raw_data.duplicated().sum()),
+            "dataset_empty_rows": int(self._raw_data.isna().any(axis=1).sum()),
+            "dataset_sample_min_len": int(lengths.min().min()),
+            "dataset_sample_max_len": int(lengths.max().max()),
         }
 
     @report_time
@@ -165,23 +160,23 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        if not isinstance(self._model, torch.nn.Module):
+            return {}
         config = self._model.config
+        emb_length = int(config.max_position_embeddings)
         result = summary(
             self._model,
             input_data={
                 "input_ids": torch.ones(
-                    1,
-                    self._model.config.max_position_embeddings,
-                    dtype=torch.long,
-                    device=self._device,
-                ),
+                    (1,
+                    emb_length),
+                    dtype=torch.long),
                 "attention_mask": torch.ones(
-                    1,
-                    self._model.config.max_position_embeddings,
-                    dtype=torch.long,
-                    device=self._device,
-                ),
+                    (1,
+                    emb_length),
+                    dtype=torch.long)
             },
+            device=self._device
         )
         return {
             "input_shape": {
@@ -222,9 +217,12 @@ class LLMPipeline(AbstractLLMPipeline):
         preds = []
         targets = []
 
-        for s, t in DataLoader(dataset=self._dataset, batch_size=self._batch_size):
-            preds.extend(self._infer_batch(s))
-            targets.extend(t)
+        for el in DataLoader(dataset=self._dataset, batch_size=self._batch_size):
+            ques_cont = list(zip(el[0], el[1]))
+            targ = el[2]
+
+            preds.extend(self._infer_batch(ques_cont))
+            targets.extend(targ)
 
         return pd.DataFrame({"target": targets, "predictions": preds})
 
@@ -239,23 +237,27 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        if self._model is None:
+            return []
         predictions = []
         inputs = list(zip(*sample_batch))
 
         ids = self._tokenizer(
-            inputs[0], inputs[1], padding=True, truncation=True, return_tensors="pt"
+            inputs[0], inputs[1],
+            max_length = self._max_length,
+            padding=True, truncation=True,
+            return_tensors="pt"
         )
         ids = {k: v.to(self._device) for k, v in ids.items()}
-        with torch.no_grad():
-            output = self._model(**ids)
-        start_ids = argmax(output.start_logits, dim=1)
-        end_ids = argmax(output.end_logits, dim=1)
+        output = self._model(**ids)
+        start_ids = torch.argmax(output.start_logits, dim=1)
+        end_ids = torch.argmax(output.end_logits, dim=1)
 
         for i, (s, e) in enumerate(zip(start_ids, end_ids)):
             sample = ids["input_ids"][i]
             answer_ids = sample[s : e + 1]
             decoded_text = self._tokenizer.decode(answer_ids, skip_special_tokens=True)
-            predictions.append(decoded_text)
+            predictions.append(decoded_text.strip())
         return predictions
 
 
@@ -272,6 +274,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
@@ -280,3 +284,18 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        data = pd.read_csv(self._data_path)
+        result = {}
+
+        for metric in self._metrics:
+            metric_evaluate = evaluate.load(str(metric))
+            preds = [
+                {"prediction_text": str(el), "id": str(i)}
+                for i, el in enumerate(data[ColumnNames.PREDICTION.value])
+            ]
+            refs = [
+                {"answers": {"answer_start": [0], "text": [str(el)]}, "id": str(i)}
+                for i, el in enumerate(data[ColumnNames.TARGET.value])
+            ]
+            result[str(metric)] = metric_evaluate.compute(predictions=preds, references=refs)['f1']
+        return result

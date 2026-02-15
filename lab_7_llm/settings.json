@@ -4,5 +4,5 @@
     "dataset": "lionelchg/dolly_closed_qa",
     "metrics": ["squad"]
   },
-  "target_score": 6
+  "target_score": 8
 }
