@@ -165,28 +165,29 @@ class LLMPipeline(AbstractLLMPipeline):
             dict: Properties of a model
         """
         config = self._model.config
-        ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long)
-        tokens = {"input_ids": ids, "attention_mask": ids}
+
+        input_ids = torch.ones(1, config.max_position_embeddings, dtype=torch.long).to(self._device)
+
+        inputs = {
+            'input_ids': input_ids,
+            'attention_mask': input_ids
+        }
 
         model_stats = summary(
             self._model,
-            input_data=tokens,
+            input_data=inputs,
             verbose=0,
             device=self._device
         )
 
-        input_shape = {}
-        for key, value in model_stats.input_size.items():
-            input_shape[key] = list(value)
-
         return {
-            "input_shape": input_shape,
+            "input_shape": {k: list(v.shape) for k, v in inputs.items()},
             "embedding_size": config.max_position_embeddings,
             "output_shape": model_stats.summary_list[-1].output_size,
             "num_trainable_params": model_stats.trainable_params,
             "vocab_size": config.vocab_size,
-            "size": model_stats.total_params,
-            "max_context_length": self._max_length
+            "size": model_stats.total_param_bytes,
+            "max_context_length": config.max_length
         }
 
     @report_time
