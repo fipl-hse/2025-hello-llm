@@ -4,10 +4,8 @@ Laboratory work.
 Working with Large Language Models.
 """
 
-from pathlib import Path
-
-# pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
-from typing import Iterable, Sequence
+# pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called, unused-import
+from typing import Sequence, cast
 
 import evaluate
 import pandas as pd
@@ -210,7 +208,7 @@ class LLMPipeline(AbstractLLMPipeline):
         assert self._model is not None
         config = self._model.config
         stats = summary(
-            self._model,
+            cast(torch.nn.Module, self._model),
             input_size=(self._batch_size, self._max_length),
             device=self._device,
             verbose=0,

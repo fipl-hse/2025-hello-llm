@@ -6,7 +6,7 @@ from pathlib import Path
 
 from core_utils.project.lab_settings import LabSettings
 
-# pylint: disable=too-many-locals, undefined-variable
+# pylint: disable=too-many-locals, undefined-variable, unused-import
 from lab_7_llm.main import (
     LLMPipeline,
     RawDataImporter,
@@ -15,23 +15,6 @@ from lab_7_llm.main import (
     TaskDataset,
     TaskEvaluator,
 )
-
-try:
-    import torch
-except ImportError:
-    print('Library "torch" not installed. Failed to import.')
-try:
-    from torchinfo import summary  # type: ignore
-except ImportError:
-    print('Library "torchinfo" not installed. Failed to import.')
-try:
-    from transformers import (
-        AutoModelForSequenceClassification,
-        AutoTokenizer,
-        XLMRobertaForSequenceClassification,
-    )
-except ImportError:
-    print('Library "transformers" not installed. Failed to import.')
 
 SETTINGS_PATH = Path(__file__).resolve().with_name("settings.json")
 
