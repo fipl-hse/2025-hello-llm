@@ -8,7 +8,13 @@ from core_utils.llm.time_decorator import report_time
 from core_utils.project.lab_settings import LabSettings
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import
-from lab_7_llm.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset, TaskEvaluator
+from lab_7_llm.main import (
+    LLMPipeline,
+    RawDataImporter,
+    RawDataPreprocessor,
+    TaskDataset,
+    TaskEvaluator,
+)
 
 
 @report_time
@@ -55,7 +61,7 @@ def main() -> None:
         "dataset_analysis": analysis_result,
         "model_analysis": model_analysis,
         "sample_prediction": sample_prediction,
-        "metrics": metrics_results
+        "metrics": metrics_results,
     }
     print(metrics_results)
 

@@ -5,16 +5,18 @@ Working with Large Language Models.
 """
 
 from pathlib import Path
+
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
 
+import evaluate
 import pandas as pd
+
 # import pandas import DataFrame
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
-import evaluate
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -236,7 +238,7 @@ class LLMPipeline(AbstractLLMPipeline):
                 return_tensors="pt",
                 padding=True,
                 truncation=True,
-                max_length=self._max_length
+                max_length=self._max_length,
             )
             inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
@@ -247,10 +249,7 @@ class LLMPipeline(AbstractLLMPipeline):
             targets.extend(batch_targets)
             predictions.extend(map(str, preds))
 
-        return pd.DataFrame({
-            "target": targets,
-            "predictions": predictions
-        })
+        return pd.DataFrame({"target": targets, "predictions": predictions})
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -266,11 +265,7 @@ class LLMPipeline(AbstractLLMPipeline):
         texts = [sample[0] for sample in sample_batch]
 
         inputs = self._tokenizer(
-            texts,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=self._max_length
+            texts, return_tensors="pt", padding=True, truncation=True, max_length=self._max_length
         )
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
@@ -307,7 +302,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
         target2pred = {
             ColumnNames.TARGET.value: predictions_df["target"].tolist(),
-            ColumnNames.PREDICTION.value: predictions_df["predictions"].tolist()
+            ColumnNames.PREDICTION.value: predictions_df["predictions"].tolist(),
         }
 
         results = {}
@@ -316,7 +311,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
             result = evaluate.load(str(metric)).compute(
                 predictions=target2pred[ColumnNames.PREDICTION.value],
                 references=target2pred[ColumnNames.TARGET.value],
-                average='weighted'
+                average="weighted",
             )
             results.update(result)
 
