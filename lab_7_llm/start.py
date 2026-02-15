@@ -30,8 +30,10 @@ def main() -> None:
     importer.obtain()
 
     if importer.raw_data is None:
-        raise ValueError('''"RawDataPreprocessor" has incompatible type
-                          "DataFrame | None"; expected "DataFrame"''')
+        raise ValueError(
+            '''"RawDataPreprocessor" has incompatible type
+                          "DataFrame | None"; expected "DataFrame"'''
+        )
 
     preprocessor = RawDataPreprocessor(importer.raw_data)
     preprocessor.transform()
@@ -61,6 +63,8 @@ def main() -> None:
     )
     result = evaluator.run()
     print(result)
+
+    assert result is not None, "Demo does not work correctly"
 
 
 if __name__ == "__main__":

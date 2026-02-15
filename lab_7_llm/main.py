@@ -7,7 +7,7 @@ Working with Large Language Models.
 from pathlib import Path
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
-from typing import Iterable, Sequence
+from typing import cast, Iterable, Sequence
 
 import evaluate
 import pandas as pd
@@ -163,21 +163,9 @@ class LLMPipeline(AbstractLLMPipeline):
         if not isinstance(self._model, torch.nn.Module):
             return {}
         config = self._model.config
-        emb_length = int(config.max_position_embeddings)
-        result = summary(
-            self._model,
-            input_data={
-                "input_ids": torch.ones(
-                    (1,
-                    emb_length),
-                    dtype=torch.long),
-                "attention_mask": torch.ones(
-                    (1,
-                    emb_length),
-                    dtype=torch.long)
-            },
-            device=self._device
-        )
+        input_ids = torch.ones(1, cast(int, config.max_position_embeddings), dtype=torch.long)
+        inputs = {"input_ids": input_ids, "attention_mask": input_ids}
+        result = summary(self._model, input_data=inputs, device=self._device, verbose=0)
         return {
             "input_shape": {
                 "input_ids": [1, config.max_position_embeddings],
@@ -217,13 +205,10 @@ class LLMPipeline(AbstractLLMPipeline):
         preds = []
         targets = []
 
-        for el in DataLoader(dataset=self._dataset, batch_size=self._batch_size):
-            ques_cont = list(zip(el[0], el[1]))
-            targ = el[2]
-
+        for batch in DataLoader(dataset=self._dataset, batch_size=self._batch_size):
+            ques_cont = list(zip(batch[0], batch[1]))
+            targets.extend(batch[2])
             preds.extend(self._infer_batch(ques_cont))
-            targets.extend(targ)
-
         return pd.DataFrame({"target": targets, "predictions": preds})
 
     @torch.no_grad()
@@ -243,10 +228,12 @@ class LLMPipeline(AbstractLLMPipeline):
         inputs = list(zip(*sample_batch))
 
         ids = self._tokenizer(
-            inputs[0], inputs[1],
-            max_length = self._max_length,
-            padding=True, truncation=True,
-            return_tensors="pt"
+            inputs[0],
+            inputs[1],
+            max_length=self._max_length,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
         )
         ids = {k: v.to(self._device) for k, v in ids.items()}
         output = self._model(**ids)
@@ -297,5 +284,5 @@ class TaskEvaluator(AbstractTaskEvaluator):
                 {"answers": {"answer_start": [0], "text": [str(el)]}, "id": str(i)}
                 for i, el in enumerate(data[ColumnNames.TARGET.value])
             ]
-            result[str(metric)] = metric_evaluate.compute(predictions=preds, references=refs)['f1']
+            result[str(metric)] = metric_evaluate.compute(predictions=preds, references=refs)["f1"]
         return result
