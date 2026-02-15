@@ -5,17 +5,16 @@ Working with Large Language Models.
 """
 
 from pathlib import Path
-
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
 
 import pandas as pd
-
 # import pandas import DataFrame
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
-from torch.utils.data import Dataset
+import evaluate
+from torch.utils.data import Dataset, DataLoader
 from torchinfo import summary
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -78,12 +77,13 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         raw_data_df = self._raw_data.rename(
             columns={"toxic": ColumnNames.TARGET.value, "neutral": ColumnNames.SOURCE.value}
-        ).drop_duplicates()
-        raw_data_df[ColumnNames.TARGET.value] = raw_data_df[ColumnNames.SOURCE.value].replace(
-            {False: 0, True: 1}
         )
-        self._data = raw_data_df
-        self._data.reset_index(drop=True)
+
+        cleaned_df = raw_data_df.drop_duplicates()
+        target_col = ColumnNames.TARGET.value
+        cleaned_df[target_col] = cleaned_df[target_col].map({False: 0, True: 1})
+
+        self._data = cleaned_df.reset_index(drop=True)
 
 
 class TaskDataset(Dataset):
@@ -120,9 +120,10 @@ class TaskDataset(Dataset):
             tuple[str, ...]: The item to be received
         """
         row = self._data.iloc[index]
-        source = row[ColumnNames.SOURCE.value]
-        target = row[ColumnNames.TARGET.value]
-        return str(source), str(target)
+        source = str(row[ColumnNames.SOURCE.value])
+        target_val = row[ColumnNames.TARGET.value]
+        target = str(int(float(target_val)))
+        return source, target
 
     @property
     def data(self) -> DataFrame:
@@ -221,6 +222,35 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        dataloader = DataLoader(self._dataset, batch_size=self._batch_size, shuffle=False)
+
+        targets = []
+        predictions = []
+
+        for batch in dataloader:
+            batch_sources, batch_targets = batch
+            batch_texts = list(batch_sources)
+
+            inputs = self._tokenizer(
+                batch_texts,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=self._max_length
+            )
+            inputs = {k: v.to(self._device) for k, v in inputs.items()}
+
+            with torch.no_grad():
+                outputs = self._model(**inputs)
+                preds = torch.argmax(outputs.logits, dim=-1).cpu().numpy()
+
+            targets.extend(batch_targets)
+            predictions.extend(map(str, preds))
+
+        return pd.DataFrame({
+            "target": targets,
+            "predictions": predictions
+        })
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -233,6 +263,21 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        texts = [sample[0] for sample in sample_batch]
+
+        inputs = self._tokenizer(
+            texts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=self._max_length
+        )
+        inputs = {k: v.to(self._device) for k, v in inputs.items()}
+
+        outputs = self._model(**inputs)
+        predictions = torch.argmax(outputs.logits, dim=-1).cpu().numpy()
+
+        return [str(pred) for pred in predictions]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -258,3 +303,21 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        predictions_df = pd.read_csv(self.data_path)
+
+        target2pred = {
+            ColumnNames.TARGET.value: predictions_df["target"].tolist(),
+            ColumnNames.PREDICTION.value: predictions_df["predictions"].tolist()
+        }
+
+        results = {}
+
+        for metric in self.metrics:
+            result = evaluate.load(str(metric)).compute(
+                predictions=target2pred[ColumnNames.PREDICTION.value],
+                references=target2pred[ColumnNames.TARGET.value],
+                average='weighted'
+            )
+            results.update(result)
+
+        return results
