@@ -152,7 +152,6 @@ class LLMPipeline(AbstractLLMPipeline):
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         self._model.to(self._device)
-        self._model.eval()
 
     def analyze_model(self) -> dict:
         """
