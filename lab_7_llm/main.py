@@ -233,12 +233,15 @@ class LLMPipeline(AbstractLLMPipeline):
         references = []
         predictions = []
 
-        for sources, targets in DataLoader(self._dataset, batch_size=self._batch_size, shuffle=False):
+        for sources, targets in DataLoader(
+            self._dataset, batch_size=self._batch_size, shuffle=False
+        ):
             predictions.extend(self._infer_batch(sources))
             references.extend(targets)
 
-        return pd.DataFrame({ColumnNames.TARGET.value: references,
-                             ColumnNames.PREDICTION.value: predictions})
+        return pd.DataFrame(
+            {ColumnNames.TARGET.value: references, ColumnNames.PREDICTION.value: predictions}
+        )
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
