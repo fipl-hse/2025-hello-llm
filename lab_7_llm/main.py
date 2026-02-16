@@ -213,6 +213,9 @@ class LLMPipeline(AbstractLLMPipeline):
         )
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
 
+        if self._model is None:
+            return None
+
         with torch.no_grad():
             outputs = self._model(**inputs)
             prediction = torch.argmax(outputs.logits, dim=-1).item()
@@ -271,6 +274,9 @@ class LLMPipeline(AbstractLLMPipeline):
             texts, return_tensors="pt", padding=True, truncation=True, max_length=self._max_length
         )
         inputs = {k: v.to(self._device) for k, v in inputs.items()}
+
+        if self._model is None:
+            return []
 
         outputs = self._model(**inputs)
         predictions = torch.argmax(outputs.logits, dim=-1).cpu().numpy()
