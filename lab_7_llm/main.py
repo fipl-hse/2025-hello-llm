@@ -178,6 +178,9 @@ class LLMPipeline(AbstractLLMPipeline):
 
         inputs = {"input_ids": input_ids, "attention_mask": input_ids}
 
+        if not isinstance(self._model, torch.nn.Module):
+            raise ValueError("Model must have type torch.nn.Module")
+
         model_stats = summary(self._model, input_data=inputs, verbose=0, device=self._device)
 
         return {
@@ -311,7 +314,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
             result = evaluate.load(str(metric)).compute(
                 predictions=target2pred[ColumnNames.PREDICTION.value],
                 references=target2pred[ColumnNames.TARGET.value],
-                average="weighted",
+                average="micro",
             )
             results.update(result)
 
