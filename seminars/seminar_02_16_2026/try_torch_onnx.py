@@ -2,9 +2,19 @@
 Wraps a HuggingFace GPT-2 model to expose only its Transformer core.
 """
 
-import torch
+try:
+    import torch
+except ImportError:
+    print('Library "torch" not installed. Failed to import.')
+
+try:
+    from transformers import (
+        AutoModelForCausalLM,
+    )
+except ImportError:
+    print('Library "transformers" not installed. Failed to import.')
+
 from seminars.seminar_02_16_2026.try_gpu import GPT2Wrapper
-from transformers import AutoModelForCausalLM
 
 
 def main() -> None:

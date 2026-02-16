@@ -2,6 +2,8 @@
 Inference acceleration with PyTorch (CPU/GPU)
 """
 
+# pylint: disable=too-few-public-methods
+
 import os
 import time
 from typing import cast
