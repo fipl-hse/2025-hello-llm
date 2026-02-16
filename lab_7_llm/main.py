@@ -4,7 +4,7 @@ Laboratory work.
 Working with Large Language Models.
 """
 
-from typing import Sequence
+from typing import cast, Sequence
 
 import evaluate
 import pandas as pd
@@ -187,11 +187,7 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
-        self._model_name = model_name
-        self._dataset = dataset
-        self._batch_size = batch_size
-        self._max_length = max_length
-        self._device = device
+        super().__init__(model_name, dataset, max_length, batch_size, device)
 
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._model = XLMRobertaForSequenceClassification.from_pretrained(
@@ -209,7 +205,7 @@ class LLMPipeline(AbstractLLMPipeline):
         assert self._model is not None
         config = self._model.config
         stats = summary(
-            self._model,
+            cast(torch.nn.Module, self._model),
             input_size=(self._batch_size, self._max_length),
             device=self._device,
             verbose=0,
@@ -297,7 +293,7 @@ class LLMPipeline(AbstractLLMPipeline):
         return [str(p.item()) for p in predictions]
 
 
-class TaskEvaluator(AbstractTaskEvaluator):
+class TaskEvaluator(AbstractTaskEvaluator):  # pylint: disable=too-few-public-methods
     """
     A class that compares prediction quality using the specified metric.
     """
