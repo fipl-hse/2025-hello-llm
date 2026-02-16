@@ -4,8 +4,7 @@ Laboratory work.
 Working with Large Language Models.
 """
 
-# pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called, unused-import
-from typing import Sequence, cast
+from typing import Sequence
 
 import evaluate
 import pandas as pd
@@ -109,11 +108,13 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             else:
                 id2label = config.id2label
                 label2id = {str(v): int(k) for k, v in id2label.items()}
-            self._data[ColumnNames.TARGET.value] = self._data[ColumnNames.TARGET.value].map(label2id)
+            target_col = ColumnNames.TARGET.value
+            self._data[target_col] = self._data[target_col].map(label2id)
         else:
-            unique_labels = sorted(self._data[ColumnNames.TARGET.value].unique())
+            target_col = ColumnNames.TARGET.value
+            unique_labels = sorted(self._data[target_col].unique())
             label_mapping = {label: idx for idx, label in enumerate(unique_labels)}
-            self._data[ColumnNames.TARGET.value] = self._data[ColumnNames.TARGET.value].map(label_mapping)
+            self._data[target_col] = self._data[target_col].map(label_mapping)
 
         self._data = self._data.reset_index(drop=True)
 
@@ -208,7 +209,7 @@ class LLMPipeline(AbstractLLMPipeline):
         assert self._model is not None
         config = self._model.config
         stats = summary(
-            cast(torch.nn.Module, self._model),
+            self._model,
             input_size=(self._batch_size, self._max_length),
             device=self._device,
             verbose=0,

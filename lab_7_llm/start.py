@@ -5,8 +5,6 @@ Starter for demonstration of laboratory work.
 from pathlib import Path
 
 from core_utils.project.lab_settings import LabSettings
-# pylint: disable=too-many-locals, undefined-variable, unused-import
-
 from lab_7_llm.main import (
     LLMPipeline,
     RawDataImporter,
@@ -16,6 +14,7 @@ from lab_7_llm.main import (
     TaskEvaluator,
 )
 
+# pylint: disable=too-many-locals, undefined-variable, unused-import
 SETTINGS_PATH = Path(__file__).resolve().with_name("settings.json")
 
 @report_time
