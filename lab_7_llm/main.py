@@ -4,7 +4,9 @@ Laboratory work.
 Working with Large Language Models.
 """
 
-from typing import cast, Sequence
+# pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
+from pathlib import Path
+from typing import cast, Iterable, Sequence
 
 import evaluate
 import pandas as pd
@@ -293,17 +295,26 @@ class LLMPipeline(AbstractLLMPipeline):
         return [str(p.item()) for p in predictions]
 
 
-class TaskEvaluator(AbstractTaskEvaluator):  # pylint: disable=too-few-public-methods
+class TaskEvaluator(AbstractTaskEvaluator):
     """
     A class that compares prediction quality using the specified metric.
     """
 
-    def run(self) -> dict[str, float]:
+    def __init__(self, data_path: Path, metrics: Iterable[Metrics]) -> None:
+        """
+        Initialize an instance of Evaluator.
+
+        Args:
+            data_path (pathlib.Path): Path to predictions
+            metrics (Iterable[Metrics]): List of metrics to check
+        """
+
+    def run(self) -> dict:
         """
         Evaluate the predictions against the references using the specified metric.
 
         Returns:
-            dict[str, float]: A dictionary containing information about the calculated metric
+            dict: A dictionary containing information about the calculated metric
         """
         data = pd.read_csv(self._data_path)
         references = data[ColumnNames.TARGET.value].tolist()
