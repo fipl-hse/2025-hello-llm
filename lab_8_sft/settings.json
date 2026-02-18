@@ -4,5 +4,5 @@
     "dataset": "Arsive/toxicity_classification_jigsaw",
     "metrics": []
   },
-  "target_score": 4
+  "target_score": 6
 }
