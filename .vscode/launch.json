@@ -17,6 +17,17 @@
             }
         },
         {
+            "name": "[LAB 8] Start",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/lab_8_sft/start.py",
+            "cwd": "${workspaceFolder}/lab_8_sft",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "[SEMINAR 1] Try Datasets",
             "type": "debugpy",
             "request": "launch",
@@ -124,6 +135,39 @@
                 "seminars.seminar_02_02_2026.try_fastapi:app", "--reload"
             ],
             "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 5] Try GPU",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_gpu.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 5] Try convert from torch",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_torch_onnx.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 5] Try convert from ONNX runtime",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_onnx.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
