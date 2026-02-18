@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
+    "model": "Helsinki-NLP/opus-mt-en-fr",
+    "dataset": "enimai/MuST-C-fr",
     "metrics": []
   },
-  "target_score": 0
+  "target_score": 4
 }
