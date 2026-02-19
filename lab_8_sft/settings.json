@@ -2,7 +2,7 @@
   "parameters": {
     "model": "IlyaGusev/rubertconv_toxic_clf",
     "dataset": "Arsive/toxicity_classification_jigsaw",
-    "metrics": []
+    "metrics": ["f1"]
   },
   "target_score": 6
 }

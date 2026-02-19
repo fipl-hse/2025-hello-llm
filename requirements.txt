@@ -9,4 +9,4 @@ torchinfo==1.8.0
 transformers==4.50.3
 peft==0.18.1
 fastapi==0.128.0
-
+scikit-learn==1.8.0

@@ -11,11 +11,14 @@ import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
+from docutils.nodes import row
+from evaluate import load
 from pandas import DataFrame
+from sklearn.metrics import f1_score
 from torch.nn import Module
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -62,7 +65,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
 
         dataset = self._raw_data.dropna()
 
-        dict_dataset = {
+        return {
             "dataset_number_of_samples": len(self._raw_data),
             "dataset_columns": len(self._raw_data.columns),
             "dataset_duplicates": int(self._raw_data.duplicated().sum()),
@@ -70,7 +73,6 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             "dataset_sample_min_len": dataset['comment_text'].astype(str).str.len().min(),
             "dataset_sample_max_len": dataset['comment_text'].astype(str).str.len().max(),
         }
-        print(dict_dataset)
 
     @report_time
     def transform(self) -> None:
@@ -212,7 +214,7 @@ class LLMPipeline(AbstractLLMPipeline):
         """
 
         self._model_name = model_name
-        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._dataset = dataset
         self._max_length = max_length
@@ -226,33 +228,28 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        max_context_length = self._model.config.max_length
 
-        input_ids = torch.ones(1, max_context_length, dtype=torch.long)
-        attention_mask = torch.ones(1, max_context_length, dtype=torch.long)
+        input_ids = torch.ones((1, self._model.config.max_position_embeddings), dtype=torch.long)
 
-        decoder_input_ids = torch.ones(1, max_context_length, dtype=torch.long)
-
-        tokens = {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "decoder_input_ids": decoder_input_ids,
-            "use_cache": False
-        }
+        tokens = {"input_ids": input_ids, "attention_mask": input_ids}
 
         if not isinstance(self._model, Module):
             raise ValueError("The model has incompatible type")
 
         stats = summary(self._model, input_data=tokens, device=self._device, verbose=0)
 
+        input_shape_dict = {}
+        for key, value in stats.input_size.items():
+            input_shape_dict[key] = list(value)
+
         return {
-            "input_shape": [1, self._model.config.hidden_size],
-            "embedding_size": self._model.config.hidden_size,
-            "output_shape": [1, self._model.config.hidden_size, self._model.config.vocab_size],
-            "num_trainable_params": int(stats.trainable_params),
+            "input_shape": input_shape_dict,
+            "embedding_size": self._model.config.max_position_embeddings,
+            "output_shape": stats.summary_list[-1].output_size,
+            "num_trainable_params": stats.trainable_params,
             "vocab_size": self._model.config.vocab_size,
-            "size": int(stats.total_param_bytes),
-            "max_context_length": max_context_length
+            "size": stats.total_param_bytes,
+            "max_context_length": self._model.config.max_length
         }
 
     @report_time
@@ -280,24 +277,17 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             return pd.DataFrame()
 
-        dataloader = DataLoader(
-            self._dataset,
-            batch_size=self._batch_size,
-            shuffle=False,
-            collate_fn=lambda batch: list(zip(*batch))
-        )
+        dataloader = DataLoader(batch_size=self._batch_size, dataset=self._dataset)
 
-        all_predictions = []
+        predictions = []
+        targets = []
 
         for batch in dataloader:
-            sources = batch[0]
-            batch_predictions = self._infer_batch(list(zip(sources)))
-            all_predictions.extend(batch_predictions)
+            preds = self._infer_batch(batch[0])
+            targets.extend(batch[1])
+            predictions.extend(preds)
 
-        return pd.DataFrame({
-            'target': self._dataset.data['target'].tolist(),
-            'predictions': all_predictions
-        })
+        return pd.DataFrame({"target": targets, "predictions": predictions})
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -313,29 +303,24 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             raise ValueError("The model is not initialized")
 
-        source_texts = [sample[0] for sample in sample_batch]
+        samples = [sample[0] for sample in sample_batch]
+        print(sample_batch)
 
         tokens = self._tokenizer(
-            source_texts,
-            return_tensors="pt",
-            padding=True,
+            samples,
+            return_tensors='pt',
             truncation=True,
+            padding="max_length",
             max_length=self._max_length
-        )
+        ).to(self._device)
 
-        tokens = {key: value.to(self._device) for key, value in tokens.items()}
+        self._model.eval()
 
-        output_ids = self._model.generate(
-            **tokens,
-            max_length=self._max_length,
-        )
+        with torch.no_grad():
+            output = self._model(**tokens)
+            predictions = torch.argmax(output.logits, dim=-1)
 
-        predictions = self._tokenizer.batch_decode(
-            output_ids,
-            skip_special_tokens=True
-        )
-
-        return cast(list[str], predictions)
+        return [str(int(p.item())) for p in predictions]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -364,40 +349,56 @@ class TaskEvaluator(AbstractTaskEvaluator):
         if not self._data_path.exists():
             raise FileNotFoundError(f"No data found at {self._data_path}")
 
-        data = pd.read_csv(self._data_path)
+        predictions_df = pd.read_csv(self._data_path)
 
-        if 'predictions' not in data.columns or 'target' not in data.columns:
-            raise ValueError("Data must contain 'predictions' and 'target' columns")
+        predictions = predictions_df['predictions'].tolist()
+        references = predictions_df['target'].tolist()
 
-        predictions = data['predictions'].astype(str).tolist()
-        references = data['target'].astype(str).tolist()
+        print(predictions)
+        print(references)
 
-        results = {}
+        predictions = [int(p) for p in predictions]
 
-        if Metrics.BLEU in self._metrics:
-            bleu_metric = evaluate.load("bleu")
+        # Clean references - extract numbers from 'tensor(x)'
+        cleaned_references = []
+        for ref in references:
+            ref_str = str(ref)
+            if 'tensor(' in ref_str:
+                # Extract number between parentheses
+                start = ref_str.find('(') + 1
+                end = ref_str.find(')')
+                if start > 0 and end > start:
+                    cleaned_references.append(int(ref_str[start:end]))
+                else:
+                    cleaned_references.append(int(ref_str.replace('tensor(', '').replace(')', '')))
+            else:
+                cleaned_references.append(int(ref_str))
 
-            references_for_bleu = [[ref] for ref in references]
+        print(predictions)
+        print(cleaned_references)
 
-            bleu_result = bleu_metric.compute(
-                predictions=predictions,
-                references=references_for_bleu
-            )
-            results["bleu"] = float(bleu_result["bleu"])
+        print(f"Type of predictions: {type(predictions)}")
+        print(f"Type of references: {type(cleaned_references)}")
+        print(f"First few predictions: {predictions[:5]}")
+        print(f"First few references: {references[:5]}")
 
-        if Metrics.ROUGE in self._metrics:
-            rouge_metric = evaluate.load("rouge", seed=77)
+        result = {}
 
-            rouge_result = rouge_metric.compute(
-                predictions=predictions,
-                references=references,
-                use_stemmer=True,
-                use_aggregator=True
-            )
-
-            results["rouge"] = float(rouge_result["rougeL"])
-
-        return results
+        for metric in self._metrics:
+            if str(metric) == "f1":
+                # Calculate F1 score directly with sklearn
+                f1 = f1_score(cleaned_references, predictions, average="micro")
+                result["f1"] = float(f1)
+            else:
+                # For other metrics, use evaluate library
+                metric_evaluate = load(str(metric))
+                score = metric_evaluate.compute(
+                    predictions=predictions,
+                    references=cleaned_references
+                )
+                result.update(score)
+        print(result)
+        return result
 
 
 class SFTPipeline(AbstractSFTPipeline):
