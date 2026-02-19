@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
-    "metrics": []
+    "model": "tatiana-merz/turkic-cyrillic-classifier",
+    "dataset": "tatiana-merz/cyrillic_turkic_langs",
+    "metrics": ["f1"]
   },
-  "target_score": 0
+  "target_score": 8
 }
