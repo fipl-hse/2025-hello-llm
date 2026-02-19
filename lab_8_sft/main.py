@@ -13,6 +13,7 @@ import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
+from peft import LoraConfig
 from torch.nn import Module
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
@@ -22,6 +23,7 @@ from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.sft_pipeline import AbstractSFTPipeline
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
@@ -212,18 +214,18 @@ class LLMPipeline(AbstractLLMPipeline):
         if not isinstance(self._model, Module):
             raise ValueError("The model has incompatible type")
         config = self._model.config
-        embeddings_length = getattr(config, 'max_position_embeddings')
+        embeddings_length = getattr(config, 'd_model')
         ids = torch.ones((1, embeddings_length), dtype=torch.long)
         result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids},
                           device="cpu", verbose=0)
 
         analysis = {'input_shape': {k: list(v) for k, v in result.input_size.items()},
-                    'embedding_size': config.max_position_embeddings,
+                    'embedding_size': config.d_model,
                     'output_shape': result.summary_list[-1].output_size,
                     'num_trainable_params': result.trainable_params,
                     'vocab_size': config.vocab_size,
                     'size': result.total_param_bytes,
-                    'max_context_length': 20}
+                    'max_context_length': config.max_length}
         return analysis
 
     @report_time
