@@ -11,6 +11,7 @@ from typing import Iterable, Sequence
 import pandas as pd
 import torch
 from datasets import load_dataset
+from evaluate import load
 from pandas import DataFrame
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
@@ -237,6 +238,24 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        data_loader = DataLoader(
+            self._dataset,
+            batch_size=self._batch_size,
+            collate_fn=lambda x: x
+        )
+
+        predictions = []
+
+        for batch in data_loader:
+            batch_predictions = self._infer_batch(batch)
+            predictions.extend(batch_predictions)
+
+        df_predictions = pd.DataFrame({
+            ColumnNames.TARGET.value: self._dataset.data[ColumnNames.TARGET.value],
+            ColumnNames.PREDICTION.value: predictions
+        })
+
+        return df_predictions
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -249,6 +268,27 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        source_texts = [sample[0] for sample in sample_batch]
+
+        tokens = self._tokenizer(
+            source_texts,
+            return_tensors='pt',
+            padding=True,
+            truncation=True,
+            max_length=self._max_length
+        ).to(self._device)
+
+        output_tokens = self._model.generate(
+            **tokens,
+            max_length=self._max_length
+        )
+
+        decoded_outputs = self._tokenizer.batch_decode(
+            output_tokens,
+            skip_special_tokens=True
+        )
+
+        return decoded_outputs
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -264,6 +304,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        super().__init__(data_path, metrics)
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
@@ -272,3 +314,21 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        predictions_df = pd.read_csv(self._data_path)
+
+        references = predictions_df[ColumnNames.TARGET.value].tolist()
+        predictions = predictions_df[ColumnNames.PREDICTION.value].tolist()
+
+        results = {}
+
+        for metric_name in self._metrics:
+            metric = load(metric_name.value)
+
+            score = metric.compute(
+                predictions=predictions,
+                references=references
+            )
+
+            results.update(score)
+
+        return results
