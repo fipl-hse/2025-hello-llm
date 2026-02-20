@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
-    "metrics": []
+    "model": "nandakishormpai/t5-small-machine-articles-tag-generation",
+    "dataset": "cnn_dailymail",
+    "metrics": ["bleu", "rouge"]
   },
-  "target_score": 0
+  "target_score": 6
 }
