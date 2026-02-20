@@ -8,6 +8,7 @@ from core_utils.llm.metrics import Metrics
 from core_utils.llm.time_decorator import report_time
 from core_utils.project.lab_settings import LabSettings
 from lab_8_sft.main import (
+    LLMPipeline,
     RawDataImporter,
     RawDataPreprocessor,
     TaskDataset
@@ -36,6 +37,17 @@ def main() -> None:
 
     dataset = TaskDataset(dataset_processor.data.head(100))
     print(dataset)
+
+    pipeline = LLMPipeline(
+        model_name=settings.parameters.model,
+        dataset=dataset,
+        max_length=120,
+        batch_size=1,
+        device='cpu'
+    )
+
+    for key, value in pipeline.analyze_model().items():
+        print(f'{key}: {value}')
 
     result = dataset
     assert result is not None, "Fine-tuning does not work correctly"
