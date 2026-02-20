@@ -166,11 +166,12 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        batch_size = self._batch_size
+        batch_size = 1
+        seq_len = self._model.config.d_model
 
         tensor_data = torch.ones(
             batch_size,
-            self._model.config.d_model,
+            seq_len,
             dtype=torch.long
         ).to(self._device)
 
@@ -192,7 +193,7 @@ class LLMPipeline(AbstractLLMPipeline):
             "num_trainable_params": model_summary.trainable_params,
             "vocab_size": self._model.config.vocab_size,
             "size": model_summary.total_param_bytes,
-            "max_context_length": self._model.config.max_length
+            "max_context_length": self._model.config.d_kv
         }
 
     @report_time
