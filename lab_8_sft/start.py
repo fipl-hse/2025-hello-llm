@@ -90,16 +90,25 @@ def main() -> None:
     finetuned_pipeline = LLMPipeline(str(sft_params.finetuned_model_path),
                                      dataset, 120, 64, 'cpu')
 
+    print('\nFine-tuned model analysis:')
+    for key, value in finetuned_pipeline.analyze_model().items():
+        print(f'{key}: {value}')
+
+    print('\nFine-tuned model inference:')
+    print(f'Text: {text}')
+    print(f'Label: {label}')
+    print(f'Predicted: {finetuned_pipeline.infer_sample((text,))}')
+
     finetuned_preds = finetuned_pipeline.infer_dataset()
     finetuned_preds.to_csv(BASE_PATH / 'dist' / 'predictions.csv')
 
-    finetuned_eval = TaskEvaluator(BASE_PATH / 'dist' / 'predictions.csv', metrics)
+    result = TaskEvaluator(BASE_PATH / 'dist' / 'predictions.csv', metrics)
 
     print('\nFine-tuned model evaluation:')
-    for key, value in finetuned_eval.run().items():
+    for key, value in result.run().items():
         print(f'{key}: {value}')
 
-    assert dataset is not None, "Demo does not work correctly"
+    assert result is not None, "Demo does not work correctly"
 
 
 if __name__ == "__main__":
