@@ -1,7 +1,6 @@
 """
 Web service for model inference.
 """
-
 # pylint: disable=too-few-public-methods
 
 

@@ -3,9 +3,22 @@ Laboratory work.
 
 Working with Large Language Models.
 """
-
+from pathlib import Path
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
+
+import pandas as pd
+import torch
+from pandas import DataFrame
+from torch.utils.data import DataLoader, Dataset
+from datasets import load_dataset, splits
+
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -21,6 +34,9 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        from datasets import load_dataset
+
+        self._raw_data = load_dataset("Babelscape/wikineural", split="val_en").to_pandas()
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -35,6 +51,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        pass
 
     @report_time
     def transform(self) -> None:
@@ -42,6 +59,10 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
 
+        self._data = self._raw_data.rename(columns={
+    'tokens': 'source',
+    'ner_tags': 'target'
+})
 
 class TaskDataset(Dataset):
     """
@@ -55,6 +76,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data
 
     def __len__(self) -> int:
         """
@@ -63,6 +85,7 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -74,6 +97,8 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        # 1. Load dataset
+        return (str(self._data["neutral"].iloc[index]),)
 
     @property
     def data(self) -> DataFrame:
