@@ -12,7 +12,7 @@ import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
-from peft import get_peft_model, LoraConfig
+from peft import get_peft_model, LoraConfig, PeftConfig
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import (
@@ -79,8 +79,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         self._data = self._raw_data.copy().rename(columns={'content': ColumnNames.SOURCE.value,
                                                            'grade3': ColumnNames.TARGET.value})
         self._data = self._data.dropna()
-        self._data[ColumnNames.TARGET.value] = self._data[ColumnNames.TARGET.value].map({'Neutral': 2,
-                                                                                         'Good': 1, 'Bad': 0})
+        self._data[ColumnNames.TARGET.value] = self._data[ColumnNames.TARGET.value].map(
+                                                    {'Neutral': 2, 'Good': 1, 'Bad': 0})
         self._data = self._data.reset_index(drop=True)
 
 
@@ -230,7 +230,8 @@ class LLMPipeline(AbstractLLMPipeline):
 
         config = self._model.config
 
-        ids = torch.ones((1, getattr(config, 'max_position_embeddings')), dtype=torch.long, device=self._device)
+        ids = torch.ones((1, getattr(config, 'max_position_embeddings')),
+                         dtype=torch.long, device=self._device)
         tokens = {'input_ids': ids, 'attention_mask': ids}
 
         result = summary(self._model, input_data=tokens, device=self._device, verbose=0)
@@ -288,11 +289,14 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: model predictions as strings
         """
-        input = self._tokenizer(sample_batch[0], return_tensors='pt', padding=True,
-                                truncation=True, max_length=self._max_length).to(self._device)
+        if self._model is None:
+            return []
+
+        inputs = self._tokenizer(sample_batch[0], return_tensors='pt', padding=True,
+                                 truncation=True, max_length=self._max_length).to(self._device)
 
         with torch.no_grad():
-            output = self._model(**input)
+            output = self._model(**inputs)
 
         predictions = [str(torch.argmax(prediction).item()) for prediction in output.logits]
 
@@ -312,8 +316,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
-        self._data_path = data_path
-        self._metrics = metrics
+        super().__init__(data_path, metrics)
 
     def run(self) -> dict:
         """
@@ -358,14 +361,14 @@ class SFTPipeline(AbstractSFTPipeline):
         self._sft_params = sft_params
         self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self._lora_config = LoraConfig(r=sft_params.rank, lora_alpha=sft_params.alpha, lora_dropout=0.1,
-                                       target_modules=sft_params.target_modules)
+        self._lora_config = LoraConfig(r=sft_params.rank, lora_alpha=sft_params.alpha,
+                                       lora_dropout=0.1, target_modules=sft_params.target_modules)
 
     def run(self) -> None:
         """
         Fine-tune model.
         """
-        model = get_peft_model(self._model, self._lora_config)
+        model = get_peft_model(self._model, PeftConfig.from_dict(self._lora_config.to_dict()))
 
         finetuned_model_path = str(self._sft_params.finetuned_model_path)
 

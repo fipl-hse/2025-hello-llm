@@ -62,7 +62,8 @@ def main() -> None:
     for key, value in evaluator.run().items():
         print(f'{key}: {value}')
 
-    sft_params = SFTParams(batch_size=3, max_length=120, max_fine_tuning_steps=50, learning_rate=1e-3,
+    sft_params = SFTParams(batch_size=3, max_length=120, max_fine_tuning_steps=50,
+                           learning_rate=1e-3,
                            finetuned_model_path=BASE_PATH / 'dist' / settings.parameters.model,
                            device='cpu', rank=8, alpha=8)
 
