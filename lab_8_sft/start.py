@@ -10,7 +10,7 @@ from lab_8_sft.main import (
     RawDataPreprocessor,
     report_time,
     TaskDataset,
-    TaskEvaluator
+    TaskEvaluator,
 )
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import, too-many-branches, too-many-statements
