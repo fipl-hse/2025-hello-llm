@@ -59,7 +59,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             dict: dataset key properties.
         """
         df = self._raw_data.dropna()[["comment_text"]]
-        lengths = df.apply(lambda x: x.str.len())
+        lengths = df["comment_text"].astype(str).apply(len)
 
         return {
             "dataset_number_of_samples": len(self._raw_data),
@@ -338,11 +338,11 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
         for metric in self._metrics:
             metric_evaluate = evaluate.load(str(metric))
-            result[str(metric)] = metric_evaluate.compute(
-                predictions=data[ColumnNames.PREDICTION.value].tolist(),
-                references=data[ColumnNames.TARGET.value].tolist(),
-                average="micro",
+            computed_metrics = metric_evaluate.compute(
+                predictions=data[ColumnNames.PREDICTION].tolist(),
+                references=data[ColumnNames.TARGET].tolist(),
             )
+            result[str(metric)] = list(computed_metrics.values()[0])
         return result
 
 
