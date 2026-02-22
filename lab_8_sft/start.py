@@ -57,10 +57,10 @@ def main() -> None:
 
     predictions_df.to_csv(predictions_file, index=False)
 
-    # metrics = settings['parameters']['metrics']
-    # evaluator = TaskEvaluator(predictions_file, metrics)
-    # result = evaluator.run()
-    # print("Evaluation results:", result)
+    metrics = settings['parameters']['metrics']
+    evaluator = TaskEvaluator(predictions_file, metrics)
+    result = evaluator.run()
+    print("Evaluation results:", result)
 
     assert result is not None, "Fine-tuning does not work correctly"
 

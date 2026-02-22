@@ -85,6 +85,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
             "toxic": ColumnNames.TARGET.value
         })
 
+        processed_dataset[ColumnNames.TARGET.value] = processed_dataset[ColumnNames.TARGET.value].astype(int)
+
         self._data = processed_dataset.reset_index(drop=True)
 
 class TaskDataset(Dataset):
@@ -357,6 +359,44 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        if not self._data_path.exists():
+            raise FileNotFoundError(f"No data found at {self._data_path}")
+
+        predictions_df = pd.read_csv(self._data_path)
+
+        predictions = predictions_df['predictions'].tolist()
+        targets = predictions_df['target'].tolist()
+        print(predictions)
+        print(targets)
+
+        predictions = [int(p) for p in predictions]
+
+        cleaned_targets = []
+        for ref in targets:
+            ref_str = str(ref)
+            if 'tensor(' in ref_str:
+                start = ref_str.find('(') + 1
+                end = ref_str.find(')')
+                if start > 0 and end > start:
+                    cleaned_targets.append(int(ref_str[start:end]))
+                else:
+                    cleaned_targets.append(int(ref_str.replace('tensor(', '').replace(')', '')))
+            else:
+                cleaned_targets.append(int(ref_str))
+
+        result = {}
+
+        for metric in self._metrics:
+            metric_evaluate = load(str(metric))
+            score = metric_evaluate.compute(
+                predictions=predictions,
+                references=cleaned_targets,
+                average="micro"
+            )
+
+            result.update(score)
+        print(result)
+        return result
 
 
 class SFTPipeline(AbstractSFTPipeline):
