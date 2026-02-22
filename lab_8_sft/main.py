@@ -342,7 +342,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
                 predictions=data[ColumnNames.PREDICTION.value].tolist(),
                 references=data[ColumnNames.TARGET.value].tolist(),
             )
-            result[str(metric)] = list(computed_metrics.values()[0])
+            result[str(metric)] = float(computed_metrics[str(metric)])
         return result
 
 
