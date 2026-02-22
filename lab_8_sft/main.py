@@ -341,6 +341,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
             computed_metrics = metric_evaluate.compute(
                 predictions=data[ColumnNames.PREDICTION.value].tolist(),
                 references=data[ColumnNames.TARGET.value].tolist(),
+                average="micro",
             )
             result[str(metric)] = float(computed_metrics[str(metric)])
         return result
