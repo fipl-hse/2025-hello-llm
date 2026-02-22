@@ -277,7 +277,7 @@ class LLMPipeline(AbstractLLMPipeline):
         targets = []
 
         for batch in DataLoader(dataset=self._dataset, batch_size=self._batch_size):
-            targets.extend(batch[1])
+            targets.extend(batch[1].tolist())
             predictions.extend(self._infer_batch(batch[0]))
         return pd.DataFrame({"target": targets, "predictions": predictions})
 
@@ -299,10 +299,10 @@ class LLMPipeline(AbstractLLMPipeline):
 
         ids = self._tokenizer(
             samples,
-            return_tensors="pt",
-            truncation=True,
-            padding="max_length",
             max_length=self._max_length,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
         )
         ids = {k: v.to(self._device) for k, v in ids.items()}
         output = self._model(**ids).logits
