@@ -71,6 +71,8 @@ def main() -> None:
     #         num_samples : num_samples + fine_tune_samples
     #     ])
 
+    # pipeline = SFTPipeline(settings.parameters.model, dataset, sft_params)
+
     assert result is not None, "Demo does not work correctly"
 
 

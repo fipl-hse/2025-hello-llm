@@ -16,7 +16,8 @@ from pandas import DataFrame
 from peft import get_peft_model, LoraConfig, PeftConfig
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
-from transformers import AutoTokenizer, BertForSequenceClassification
+from transformers import (AutoTokenizer, BertForSequenceClassification, 
+                          Trainer, TrainingArguments)
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -143,10 +144,10 @@ def tokenize_sample(
         dict[str, torch.Tensor]: Tokenized sample
     """
     tokens = tokenizer(
-        sample[ColumnNames.SOURCE],
+        sample[ColumnNames.SOURCE.value],
         padding="max_length",
         truncation=True,
-        max_length=120
+        max_length=max_length
     )
 
     return {
@@ -369,8 +370,33 @@ class SFTPipeline(AbstractSFTPipeline):
             data_collator (Callable[[AutoTokenizer], torch.Tensor] | None, optional): processing
                                                                     batch. Defaults to None.
         """
+        super().__init__(model_name, dataset, data_collator)
+        self._sft_params = sft_params
+        self._model = BertForSequenceClassification.from_pretrained(model_name)
+        self._lora_config = LoraConfig(r=sft_params.rank, lora_alpha=sft_params.alpha,
+                                       lora_dropout=0.1, target_modules=sft_params.target_modules)
 
     def run(self) -> None:
         """
         Fine-tune model.
         """
+        ft_model_path = str(self._sft_params.finetuned_model_path)
+        training_params = TrainingArguments(
+            output_dir=ft_model_path,
+            max_steps=self._sft_params.max_fine_tuning_steps,
+            per_device_train_batch_size=self._sft_params.batch_size,
+            learning_rate=self._sft_params.learning_rate,
+            save_strategy='no',
+            use_cpu=True,
+            load_best_model_at_end=False,
+        )
+        model = get_peft_model(self._model, self._lora_config)
+
+        trainer = Trainer(model=model, args=training_params, 
+                          train_dataset=self._dataset,)
+        trainer.train()
+
+        ft_model = model.merge_and_unload()
+        ft_model.save_pretrained(ft_model_path)
+        ft_tokenizer = AutoTokenizer.from_pretrained(self._model_name)
+        ft_tokenizer.save_pretrained(ft_model_path)
