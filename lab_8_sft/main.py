@@ -6,7 +6,7 @@ Fine-tuning Large Language Models for a downstream task.
 
 # pylint: disable=too-few-public-methods, undefined-variable, duplicate-code, unused-argument, too-many-arguments
 from pathlib import Path
-from typing import cast, Callable, Iterable, Sequence
+from typing import Callable, cast, Iterable, Sequence
 
 import evaluate
 import pandas as pd
@@ -194,7 +194,7 @@ class TokenizedTaskDataset(Dataset):
         Returns:
             dict[str, torch.Tensor]: An element from the dataset
         """
-        return self._data[index]
+        return dict(self._data[index])
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -319,7 +319,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
-        super().__init__(data_path, metrics)
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
