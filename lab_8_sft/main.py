@@ -311,16 +311,16 @@ class TaskEvaluator(AbstractTaskEvaluator):
     A class that compares prediction quality using the specified metric.
     """
 
-    def __init__(self, data_path: Path, metrics: Iterable[Metrics]) -> None:
-        """
-        Initialize an instance of Evaluator.
+    # def __init__(self, data_path: Path, metrics: Iterable[Metrics]) -> None:
+    #     """
+    #     Initialize an instance of Evaluator.
 
-        Args:
-            data_path (pathlib.Path): Path to predictions
-            metrics (Iterable[Metrics]): List of metrics to check
-        """
-        self._data_path = data_path
-        self._metrics = metrics
+    #     Args:
+    #         data_path (pathlib.Path): Path to predictions
+    #         metrics (Iterable[Metrics]): List of metrics to check
+    #     """
+    #     self._data_path = data_path
+    #     self._metrics = metrics
 
     def run(self) -> dict:
         """
