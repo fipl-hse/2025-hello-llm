@@ -5,16 +5,13 @@ Fine-tuning Large Language Models for a downstream task.
 """
 # pylint: disable=too-few-public-methods, undefined-variable, duplicate-code, unused-argument, too-many-arguments
 from pathlib import Path
-from typing import Callable, cast, Iterable, Sequence
+from typing import Callable, Iterable, Sequence
 
-import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
-from docutils.nodes import row
 from evaluate import load
 from pandas import DataFrame
-from sklearn.metrics import f1_score
 from torch.nn import Module
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
@@ -65,13 +62,15 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
 
         dataset = self._raw_data.dropna()
 
+        comment_text_len = dataset['comment_text'].astype(str).str.len()
+
         return {
             "dataset_number_of_samples": len(self._raw_data),
             "dataset_columns": len(self._raw_data.columns),
             "dataset_duplicates": int(self._raw_data.duplicated().sum()),
             "dataset_empty_rows": self._raw_data.isna().any(axis=1).sum(),
-            "dataset_sample_min_len": dataset['comment_text'].astype(str).str.len().min(),
-            "dataset_sample_max_len": dataset['comment_text'].astype(str).str.len().max(),
+            "dataset_sample_min_len": comment_text_len.min(),
+            "dataset_sample_max_len": comment_text_len.max(),
         }
 
     @report_time
@@ -341,6 +340,8 @@ class LLMPipeline(AbstractLLMPipeline):
             raise ValueError("The model is not initialized")
 
         samples = [sample[0] for sample in sample_batch]
+
+        self._model = self._model.to(self._device)
 
         tokens = self._tokenizer(
             samples,
