@@ -22,6 +22,7 @@ from admin_utils.constants import (
     GLOBAL_MAX_LENGTH,
     GLOBAL_NUM_SAMPLES,
     GLOBAL_SEED,
+    QUANTIZATION_EXP,
 )
 from admin_utils.references.get_model_analytics import get_references, save_reference
 from admin_utils.references.helpers import (
@@ -74,18 +75,19 @@ def get_target_modules(  # pylint: disable=too-many-return-statements)
         "cointegrated/rubert-tiny2-cedr-emotion-detection",
     ):
         return ["query", "key", "value", "dense"]
+    if model_name in ("tatiana-merz/turkic-cyrillic-classifier",):
+        return ["key"]
     if model_name in ("cointegrated/rubert-base-cased-nli-threeway"):
-        return ["query", "key", "value"]
+        return ["query"]
     if model_name in (
         "Helsinki-NLP/opus-mt-ru-en",
         "Helsinki-NLP/opus-mt-ru-es",
         "Helsinki-NLP/opus-mt-en-fr",
     ):
         return ["q_proj", "k_proj"]
-    if model_name in (
-        "stevhliu/my_awesome_billsum_model",
-        "google-t5/t5-small",
-    ):
+    if model_name in ("stevhliu/my_awesome_billsum_model",):
+        return ["q"]
+    if model_name in ("google-t5/t5-small",):
         return ["q", "k", "v"]
     if model_name in ("UrukHan/t5-russian-summarization",):
         return ["q", "k", "wi", "wo"]
@@ -112,9 +114,6 @@ def get_task(
     Returns:
         Any: Metric for a specific task
     """
-    if "test_" in model:
-        model = model.replace("test_", "")
-
     classification_models = get_classification_models()
     summarization_models = get_summurization_models()
     nli_models = get_nli_models()
@@ -175,25 +174,23 @@ def main() -> None:
     )
 
     specific_fine_tuning_steps = {
+        "cointegrated/rubert-base-cased-nli-threeway": 100,
         "Helsinki-NLP/opus-mt-en-fr": 60,
         "Helsinki-NLP/opus-mt-ru-es": 100,
-        "stevhliu/my_awesome_billsum_model": 60,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 150,
+        "tatiana-merz/turkic-cyrillic-classifier": 150,
     }
-    specific_lr = {
-        "stevhliu/my_awesome_billsum_model": 1e-4,
-    }
+
     specific_rank = {
         "Helsinki-NLP/opus-mt-en-fr": 8,
         "cointegrated/rubert-tiny2-cedr-emotion-detection": 16,
-        "stevhliu/my_awesome_billsum_model": 24,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 24,
         "google-t5/t5-small": 24,
     }
     specific_alpha = {
         "Helsinki-NLP/opus-mt-en-fr": 8,
         "cointegrated/rubert-tiny2-cedr-emotion-detection": 24,
-        "stevhliu/my_awesome_billsum_model": 36,
+        "stevhliu/my_awesome_billsum_model": 48,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 36,
         "google-t5/t5-small": 36,
     }
@@ -201,36 +198,32 @@ def main() -> None:
     result = {}
     for model_name, dataset_name, metrics in tqdm(sorted(combinations)):
         print(model_name, dataset_name, metrics, flush=True)
-
-        if (model_name, dataset_name) in (
-            (
-                "cointegrated/rubert-base-cased-nli-threeway",
-                "cointegrated/nli-rus-translated-v2021",
-            ),
-            (
-                "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization",
-                "cnn_dailymail",
-            ),
-            ("stevhliu/my_awesome_billsum_model", "CarlBrendt/Summ_Dialog_News"),
-            ("stevhliu/my_awesome_billsum_model", "d0rj/curation-corpus-ru"),
-            ("tatiana-merz/turkic-cyrillic-classifier", "tatiana-merz/cyrillic_turkic_langs"),
-        ):
-            print(f"Skipping for {model_name} {dataset_name}")
-            continue
         prepare_result_section(result, model_name, dataset_name, metrics)
 
         sft_params.finetuned_model_path = dist_dir / model_name
-        sft_params.learning_rate = specific_lr.get(model_name, 1e-3)
         sft_params.max_fine_tuning_steps = specific_fine_tuning_steps.get(model_name, 50)
         sft_params.rank = specific_rank.get(model_name, 16)
+
         sft_params.alpha = specific_alpha.get(model_name, 16)
+        if (
+            model_name == "stevhliu/my_awesome_billsum_model"
+            and dataset_name == "CarlBrendt/Summ_Dialog_News"
+        ):
+            sft_params.alpha = 36
+        if (
+            model_name == "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization"
+            and dataset_name == "cnn_dailymail"
+        ):
+            sft_params.alpha = sft_params.rank * 2
+            sft_params.learning_rate = 1e-5
+
         sft_params.target_modules = get_target_modules(model_name)
 
         main_params = MainParams(model_name, dataset_name, [Metrics(metric) for metric in metrics])
 
         sft_result = get_task(model_name, main_params, inference_params, sft_params)
         for metric in metrics:
-            score = Decimal(sft_result[metric]).quantize(Decimal("1.00000"), ROUND_FLOOR)
+            score = Decimal(sft_result[metric]).quantize(QUANTIZATION_EXP, ROUND_FLOOR)
             result[model_name][dataset_name][metric] = score
     save_reference(references_path, result)
 

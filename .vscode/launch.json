@@ -17,6 +17,17 @@
             }
         },
         {
+            "name": "[LAB 8] Start",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/lab_8_sft/start.py",
+            "cwd": "${workspaceFolder}/lab_8_sft",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "[SEMINAR 1] Try Datasets",
             "type": "debugpy",
             "request": "launch",
@@ -130,10 +141,65 @@
             }
         },
         {
+            "name": "[SEMINAR 5] Try LoRA fine-tuning",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_09_2026/try_sft.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_09_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 6] Try GPU",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_gpu.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 6] Try from PyTorch to ONNX",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_torch_to_onnx.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[SEMINAR 6] Try run with ONNX runtime",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/seminars/seminar_02_16_2026/try_onnx.py",
+            "cwd": "${workspaceFolder}/seminars/seminar_02_16_2026",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "[CHECK] UML Diagrams",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/admin_utils/uml/check_diagrams.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "[REFERENCES] Eval",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/admin_utils/references/get_references.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "env": {

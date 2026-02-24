@@ -106,9 +106,6 @@ def get_task(model: str, inference_params: InferenceParams, samples: list) -> di
     Returns:
         dict: Results with model predictions
     """
-    if "test_" in model:
-        model = model.replace("test_", "")
-
     nmt_model = get_nmt_models()
 
     generation_model = get_generation_models()

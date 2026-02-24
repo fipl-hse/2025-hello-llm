@@ -17,6 +17,7 @@ markers = [
     "reference_lab_generation: tests for generation task",
     "reference_lab_open_qa: tests for open generative Q&A task",
     "lab_7_llm: tests for lab 7",
+    "lab_8_sft: tests for lab 8",
 ]
 norecursedirs = [
     "venv*"
@@ -83,6 +84,7 @@ src_paths = [
     "admin_utils",
     "core_utils",
     "lab_7_llm",
+    "lab_8_sft",
     "reference_lab_classification",
     "reference_lab_classification_sft",
     "reference_lab_summarization",
@@ -123,6 +125,7 @@ disable_error_code = [
 [[tool.mypy.overrides]]
 module = [
     'evaluate',
+    'numpy',
     'peft',
     'torch.*',
 ]
@@ -147,6 +150,7 @@ disable_error_code = [
 [[tool.mypy.overrides]]
 module = [
     'lab_7_llm.service',
+    'lab_8_sft.service',
 ]
 disable_error_code = [
     'no-any-unimported',
@@ -157,6 +161,7 @@ disable_error_code = [
 [[tool.mypy.overrides]]
 module = [
     'lab_7_llm.main',
+    'lab_8_sft.main',
 ]
 disable_error_code = [
     'no-any-unimported',
@@ -190,6 +195,10 @@ module = [
     'lab_7_llm.start',
     'lab_7_llm.start_stub',
     'lab_7_llm.service_stub',
+    'lab_8_sft.main_stub',
+    'lab_8_sft.start',
+    'lab_8_sft.start_stub',
+    'lab_8_sft.service_stub',
 ]
 disable_error_code = [
     'empty-body',
@@ -200,6 +209,7 @@ disable_error_code = [
 module = [
     'admin_utils.constants',
     'lab_7_llm.tests.web_service_test',
+    'lab_8_sft.tests.web_service_test',
 ]
 disable_error_code = [
     'no-redef',
@@ -209,6 +219,7 @@ disable_error_code = [
 [[tool.mypy.overrides]]
 module = [
     'seminars.seminar_02_02_2026.try_fastapi',
+    'seminars.seminar_02_16_2026.try_gpu',
 ]
 disable_error_code = [
     'import-not-found',
