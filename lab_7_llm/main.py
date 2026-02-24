@@ -1,7 +1,7 @@
 """
 Laboratory work.
 
-Working with Large Language Models.
+Fine-tuning Large Language Models for a downstream task.
 """
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
@@ -32,7 +32,7 @@ class RawDataImporter(AbstractRawDataImporter):
     @report_time
     def obtain(self) -> None:
         """
-        Download a dataset.
+        Import dataset.
 
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
@@ -46,14 +46,14 @@ class RawDataImporter(AbstractRawDataImporter):
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
     """
-    A class that analyzes and preprocesses a dataset.
+    Custom implementation of data preprocessor.
     """
     def analyze(self) -> dict:
         """
-        Analyze a dataset.
+        Analyze preprocessed dataset.
 
         Returns:
-            dict: Dataset key properties
+            dict: dataset key properties.
         """
         # 1. Number of samples
         num_samples = len(self._raw_data)
@@ -152,11 +152,11 @@ class LLMPipeline(AbstractLLMPipeline):
         Initialize an instance.
 
         Args:
-            model_name (str): The name of the pre-trained model
-            dataset (TaskDataset): The dataset used
-            max_length (int): The maximum length of generated sequence
-            batch_size (int): The size of the batch inside DataLoader
-            device (str): The device for inference
+            model_name (str): The name of the pre-trained model.
+            dataset (TaskDataset): The dataset to be used for translation.
+            max_length (int): The maximum length of generated sequence.
+            batch_size (int): The size of the batch inside DataLoader.
+            device (str): The device for inference.
         """
         self._model_name = model_name
         self._dataset = dataset
@@ -235,13 +235,13 @@ class LLMPipeline(AbstractLLMPipeline):
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
         """
-        Infer model on a single batch.
+        Infer single batch.
 
         Args:
-            sample_batch (Sequence[tuple[str, ...]]): Batch to infer the model
+            sample_batch (Sequence[tuple[str, ...]]): batch to infer the model
 
         Returns:
-            list[str]: Model predictions as strings
+            list[str]: model predictions as strings
         """
         if self._model is None:
             raise RuntimeError("Model is not initialized")
