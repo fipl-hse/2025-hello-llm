@@ -170,8 +170,6 @@ class TokenizedTaskDataset(Dataset):
             max_length (int): max length of a sequence
         """
 
-
-
     def __len__(self) -> int:
         """
         Return the number of items in the dataset.
