@@ -11,7 +11,8 @@ from lab_8_sft.main import (
     LLMPipeline,
     RawDataImporter,
     RawDataPreprocessor,
-    TaskDataset
+    TaskDataset,
+    TaskEvaluator,
 )
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import, too-many-branches, too-many-statements
@@ -49,7 +50,14 @@ def main() -> None:
     for key, value in pipeline.analyze_model().items():
         print(f'{key}: {value}')
 
-    result = dataset
+    predictions_path = Path(__file__).parent / 'dist' / 'predictions.csv'
+    predictions_path.parent.mkdir(exist_ok=True)
+    pipeline.infer_dataset().to_csv(predictions_path)
+
+    evaluator = TaskEvaluator(predictions_path,
+                              [Metrics(metric) for metric in settings.parameters.metrics])
+
+    result = evaluator.run()
     assert result is not None, "Fine-tuning does not work correctly"
 
 

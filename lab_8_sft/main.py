@@ -3,11 +3,13 @@ Laboratory work.
 
 Fine-tuning Large Language Models for a downstream task.
 """
-from pathlib import Path
 
 # pylint: disable=too-few-public-methods, undefined-variable, duplicate-code, unused-argument, too-many-arguments
+from pathlib import Path
+
 from typing import Callable, Iterable, Sequence, cast
 
+import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
@@ -62,14 +64,15 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         dataset_columns = len(self._raw_data.columns)
         dataset_duplicates = int(self._raw_data.duplicated().sum())
         dataset_empty_rows = int(self._raw_data.isna().any(axis=1).sum())
+        dataset_sample = self._raw_data['text'].dropna().apply(len)
 
         return {
             'dataset_number_of_samples': dataset_number_of_samples,
             'dataset_columns': dataset_columns,
             'dataset_duplicates': dataset_duplicates,
             'dataset_empty_rows': dataset_empty_rows,
-            'dataset_sample_min_len': min(self._raw_data['text'].dropna().apply(len)),
-            'dataset_sample_max_len': max(self._raw_data['text'].dropna().apply(len)),
+            'dataset_sample_min_len': min(dataset_sample),
+            'dataset_sample_max_len': max(dataset_sample),
         }
 
     @report_time
@@ -282,7 +285,7 @@ class LLMPipeline(AbstractLLMPipeline):
         for _, texts, labels in dataloader:
 
             texts = [str(x) for x in texts]
-            labels = [int(x.item()) for x in labels]
+            labels = [str(x) for x in labels]
 
             batch_predictions = self._infer_batch([(t,) for t in texts])
 
@@ -322,7 +325,7 @@ class LLMPipeline(AbstractLLMPipeline):
             skip_special_tokens=True
         )
 
-        return cast(list[str], predictions)
+        return predictions
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -338,6 +341,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
@@ -346,6 +351,37 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        data = pd.read_csv(self._data_path)
+
+        predictions = data['predictions'].astype(str).tolist()
+        references = data['target'].astype(str).tolist()
+
+        results = {}
+
+        if Metrics.BLEU in self._metrics:
+            bleu_metric = evaluate.load("bleu")
+
+            references_for_bleu = [[ref] for ref in references]
+
+            bleu_result = bleu_metric.compute(
+                predictions=predictions,
+                references=references_for_bleu
+            )
+            results["bleu"] = float(bleu_result["bleu"])
+
+        if Metrics.ROUGE in self._metrics:
+            rouge_metric = evaluate.load("rouge", seed=77)
+
+            rouge_result = rouge_metric.compute(
+                predictions=predictions,
+                references=references,
+                use_stemmer=True,
+                use_aggregator=True
+            )
+
+            results["rouge"] = float(rouge_result["rougeL"])
+
+        return results
 
 
 class SFTPipeline(AbstractSFTPipeline):
