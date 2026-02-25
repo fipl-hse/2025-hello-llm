@@ -253,38 +253,6 @@
             "f1": 0.99009
         }
     },
-    "test_Helsinki-NLP/opus-mt-en-fr": {
-        "enimai/MuST-C-fr": {
-            "bleu": 0.44996
-        }
-    },
-    "test_JackFram/llama-68m": {
-        "tatsu-lab/alpaca": {
-            "bleu": 0.00000,
-            "rouge": 0.09348
-        }
-    },
-    "test_VMware/electra-small-mrqa": {
-        "starmpcc/Asclepius-Synthetic-Clinical-Notes": {
-            "squad": 1.53431
-        }
-    },
-    "test_aiknowyou/it-emotion-analyzer": {
-        "dair-ai/emotion": {
-            "f1": 0.27272
-        }
-    },
-    "test_cointegrated/rubert-base-cased-nli-threeway": {
-        "cointegrated/nli-rus-translated-v2021": {
-            "accuracy": 0.72727
-        }
-    },
-    "test_mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": {
-        "cnn_dailymail": {
-            "bleu": 0.04416,
-            "rouge": 0.23887
-        }
-    },
     "timpal0l/mdeberta-v3-base-squad2": {
         "HuggingFaceH4/no_robots": {
             "squad": 14.64439

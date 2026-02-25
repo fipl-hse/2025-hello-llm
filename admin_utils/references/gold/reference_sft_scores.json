@@ -153,7 +153,7 @@
     },
     "tatiana-merz/turkic-cyrillic-classifier": {
         "tatiana-merz/cyrillic_turkic_langs": {
-            "f1": 0.98999
+            "f1": 1.00000
         }
     }
 }
