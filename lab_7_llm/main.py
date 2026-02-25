@@ -259,6 +259,6 @@ class TaskEvaluator(AbstractTaskEvaluator):
         return {
             metric.value: evaluate.load(metric.value).compute(
                 predictions=data[ColumnNames.PREDICTION.value],
-                references=data[ColumnNames.TARGET.value])[metric.value] + 0.001
+                references=data[ColumnNames.TARGET.value])[metric.value]
             for metric in self._metrics
         }
