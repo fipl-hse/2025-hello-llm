@@ -6,8 +6,7 @@ Fine-tuning Large Language Models for a downstream task.
 
 # pylint: disable=too-few-public-methods, undefined-variable, duplicate-code, unused-argument, too-many-arguments
 from pathlib import Path
-
-from typing import Callable, Iterable, Sequence, cast
+from typing import Callable, cast, Iterable, Sequence
 
 import evaluate
 import pandas as pd
@@ -15,9 +14,9 @@ import torch
 from datasets import load_dataset
 from pandas import DataFrame
 from torch.nn import Module
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
