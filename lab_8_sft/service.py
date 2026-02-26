@@ -18,13 +18,16 @@ from lab_8_sft.main import LLMPipeline, TaskDataset
 current_path = Path(__file__).parent
 ASSETS_FOLDER = current_path / "assets"
 
+
 @dataclass
 class Query:
     """
     Abstraction class to contain text of the query.
     """
+
     question: str
     use_base_model: bool = True
+
 
 def init_application() -> tuple:
     """
@@ -36,29 +39,34 @@ def init_application() -> tuple:
     sft_app = FastAPI()
 
     settings = LabSettings(current_path / "settings.json")
-    dataset = TaskDataset(pd.DataFrame())  
+    dataset = TaskDataset(pd.DataFrame())
     base_pipeline = LLMPipeline(
         model_name=settings.parameters.model,
         dataset=dataset,
         max_length=120,
         batch_size=1,
-        device="cpu"
+        device="cpu",
     )
-    
+
     finetuned_path = current_path / "dist" / f"{settings.parameters.model}_finetuned"
-    finetuned_pipeline = LLMPipeline(
-        model_name=str(finetuned_path), 
-        dataset=dataset,
-        max_length=120,
-        batch_size=1,
-        device="cpu"
-    )
-    
+    if finetuned_path.exists():
+        finetuned_pipeline = LLMPipeline(
+            model_name=str(finetuned_path),
+            dataset=dataset,
+            max_length=120,
+            batch_size=1,
+            device="cpu",
+        )
+    else:
+        finetuned_pipeline = base_pipeline
+
     return sft_app, base_pipeline, finetuned_pipeline
+
 
 app, base, sft = init_application()
 app.mount("/assets", StaticFiles(directory=ASSETS_FOLDER), name="assets")
 templates = Jinja2Templates(directory=ASSETS_FOLDER)
+
 
 @app.get("/")
 async def root(request: Request) -> HTMLResponse:
@@ -67,8 +75,9 @@ async def root(request: Request) -> HTMLResponse:
     """
     return templates.TemplateResponse("index.html", {"request": request})
 
+
 @app.post("/infer")
-async def infer(query:Query) -> dict:
+async def infer(query: Query) -> dict:
     """
     Inference model with input query.
     """
@@ -79,6 +88,5 @@ async def infer(query:Query) -> dict:
 
     sample = (query.question,)
     result = pipeline.infer_sample(sample)
-    
+
     return {"infer": result}
-    
