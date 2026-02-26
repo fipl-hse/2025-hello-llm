@@ -194,7 +194,7 @@ class TokenizedTaskDataset(Dataset):
         Returns:
             dict[str, torch.Tensor]: An element from the dataset
         """
-        return self._data[index]
+        return dict(self._data[index])
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -319,6 +319,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        super().__init__(data_path, metrics)
         self._data_path = data_path
         self._metrics = metrics
 

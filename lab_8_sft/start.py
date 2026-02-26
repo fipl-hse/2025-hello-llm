@@ -82,12 +82,12 @@ def main() -> None:
 
     num_samples = 100
     fine_tune_samples = sft_params.batch_size * sft_params.max_fine_tuning_steps
-    dataset = TokenizedTaskDataset(
+    sft_dataset = TokenizedTaskDataset(
         preprocessor.data.loc[num_samples : num_samples + fine_tune_samples], tokenizer, 120
     )
 
-    pipeline = SFTPipeline(settings.parameters.model, dataset, sft_params)
-    pipeline.run()
+    sft_pipeline = SFTPipeline(settings.parameters.model, sft_dataset, sft_params)
+    sft_pipeline.run()
 
     assert result is not None, "Demo does not work correctly"
 
