@@ -227,17 +227,17 @@ class LLMPipeline(AbstractLLMPipeline):
 
         Returns:
             dict: Properties of a model
-        """
-        if not isinstance(self._model, torch.nn.Module):
-            raise ValueError("The model has incompatible type")
-
+        """        
         emb_length  = self._model.config.encoder.max_position_embeddings
 
-        ids = torch.ones(1, emb_length, dtype=torch.long, device=self._device)
+        ids = torch.ones((1, emb_length),
+                         dtype=torch.long, device=self._device)
 
         input_data = {"input_ids": ids,
                       "attention_mask": ids,
                       "decoder_input_ids": ids}
+        if not isinstance(self._model, torch.nn.Module):
+            raise ValueError("The model has incompatible type")
 
         model_summary = summary(self._model, input_data=input_data, verbose=0)
 
