@@ -22,6 +22,7 @@ from admin_utils.constants import (
     GLOBAL_MAX_LENGTH,
     GLOBAL_NUM_SAMPLES,
     GLOBAL_SEED,
+    QUANTIZATION_EXP,
 )
 from admin_utils.references.get_model_analytics import get_references, save_reference
 from admin_utils.references.helpers import (
@@ -75,7 +76,7 @@ def get_target_modules(  # pylint: disable=too-many-return-statements)
     ):
         return ["query", "key", "value", "dense"]
     if model_name in ("tatiana-merz/turkic-cyrillic-classifier",):
-        return ["query"]
+        return ["key"]
     if model_name in ("cointegrated/rubert-base-cased-nli-threeway"):
         return ["query"]
     if model_name in (
@@ -113,9 +114,6 @@ def get_task(
     Returns:
         Any: Metric for a specific task
     """
-    if "test_" in model:
-        model = model.replace("test_", "")
-
     classification_models = get_classification_models()
     summarization_models = get_summurization_models()
     nli_models = get_nli_models()
@@ -180,6 +178,7 @@ def main() -> None:
         "Helsinki-NLP/opus-mt-en-fr": 60,
         "Helsinki-NLP/opus-mt-ru-es": 100,
         "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": 150,
+        "tatiana-merz/turkic-cyrillic-classifier": 150,
     }
 
     specific_rank = {
@@ -224,7 +223,7 @@ def main() -> None:
 
         sft_result = get_task(model_name, main_params, inference_params, sft_params)
         for metric in metrics:
-            score = Decimal(sft_result[metric]).quantize(Decimal("1.00000"), ROUND_FLOOR)
+            score = Decimal(sft_result[metric]).quantize(QUANTIZATION_EXP, ROUND_FLOOR)
             result[model_name][dataset_name][metric] = score
     save_reference(references_path, result)
 
