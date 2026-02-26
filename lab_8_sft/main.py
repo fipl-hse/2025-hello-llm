@@ -302,12 +302,36 @@ class TaskEvaluator(AbstractTaskEvaluator):
             dict: A dictionary containing information about the calculated metric
         """
         data = pd.read_csv(self._data_path)
-        return {
-            metric.value: load(metric.value).compute(references=data[ColumnNames.TARGET.value],
-                                                     predictions=data[ColumnNames.PREDICTION.value]
-                                                     )[metric.value]
-            for metric in self._metrics
-        }
+
+        predictions = data['predictions'].astype(str).tolist()
+        references = data['target'].astype(str).tolist()
+
+        results = {}
+
+        if Metrics.BLEU in self._metrics:
+            bleu_metric = load("bleu")
+
+            references_for_bleu = [[ref] for ref in references]
+
+            bleu_result = bleu_metric.compute(
+                predictions=predictions,
+                references=references_for_bleu
+            )
+            results["bleu"] = round(float(bleu_result["bleu"]), 6)
+
+        if Metrics.ROUGE in self._metrics:
+            rouge_metric = load("rouge", seed=77)
+
+            rouge_result = rouge_metric.compute(
+                predictions=predictions,
+                references=references,
+                use_stemmer=True,
+                use_aggregator=True
+            )
+
+            results["rouge"] = round(float(rouge_result["rougeL"]), 6)
+
+        return results
 
 
 class SFTPipeline(AbstractSFTPipeline):
