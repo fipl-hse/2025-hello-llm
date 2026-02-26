@@ -5,7 +5,7 @@ Fine-tuning Large Language Models for a downstream task.
 """
 # pylint: disable=too-few-public-methods, undefined-variable, duplicate-code, unused-argument, too-many-arguments
 from pathlib import Path
-from typing import Any, cast, Callable, Iterable, Sequence
+from typing import Any, Callable, cast, Iterable, Sequence
 
 import pandas as pd
 import torch
@@ -17,7 +17,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, Trainer, TrainingArguments
 
-from core_utils.project.lab_settings import SFTParams
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
@@ -25,6 +24,7 @@ from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, Co
 from core_utils.llm.sft_pipeline import AbstractSFTPipeline
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
+from core_utils.project.lab_settings import SFTParams
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -37,7 +37,8 @@ class RawDataImporter(AbstractRawDataImporter):
         """
         Import dataset.
         """
-        self._raw_data: pd.DataFrame  = load_dataset(self._hf_name, '1.0.0', split="test").to_pandas()
+        self._raw_data: pd.DataFrame = load_dataset(self._hf_name, '1.0.0', split="test")
+        self._raw_data = self._raw_data.to_pandas()
 
         if not isinstance(self._raw_data, pd.DataFrame):
             raise TypeError("Downloaded dataset is not a pd.DataFrame.")
@@ -148,7 +149,7 @@ def tokenize_sample(
         max_length=max_length
     )
     labels = torch.tensor(target_encodings["input_ids"], dtype=torch.long)
-    labels[labels == tokenizer.pad_token_id] = -100 
+    labels[labels == tokenizer.pad_token_id] = -100
 
     return {
         "input_ids": torch.tensor(source_encodings["input_ids"], dtype=torch.long),
@@ -229,9 +230,9 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         if not isinstance(self._model, torch.nn.Module):
             raise ValueError("The model has incompatible type")
-        
+
         emb_length = self._model.config.encoder.max_position_embeddings
-        
+
         ids = torch.ones((1, emb_length), dtype=torch.long)
 
         input_data = {"input_ids": ids,
@@ -249,7 +250,7 @@ class LLMPipeline(AbstractLLMPipeline):
             'size': model_summary.total_param_bytes,
             'max_context_length': self._model.config.max_length
         }
-    
+
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
         """
@@ -281,7 +282,8 @@ class LLMPipeline(AbstractLLMPipeline):
             predictions = self._infer_batch(batch)
             all_predictions.extend(predictions)
 
-        return pd.DataFrame({'target': self._dataset.data[ColumnNames.TARGET.value], 'predictions': all_predictions})
+        return pd.DataFrame({'target': self._dataset.data[ColumnNames.TARGET.value], 
+                             'predictions': all_predictions})
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -296,7 +298,7 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         if self._model is None:
             raise ValueError("The model is not initialized")
-    
+
         self._model.eval()
 
         tokens = self._tokenizer(
@@ -323,6 +325,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        super().__init__(data_path, metrics)
         self._metrics = metrics
         self._data_path = data_path
 
@@ -373,6 +376,8 @@ class SFTPipeline(AbstractSFTPipeline):
         """
         super().__init__(model_name, dataset, data_collator)
 
+        self._sft_params = sft_params
+
         self._lora_config = LoraConfig(
             r=sft_params.rank,
             lora_alpha=sft_params.alpha,
@@ -382,15 +387,7 @@ class SFTPipeline(AbstractSFTPipeline):
         )
 
         self._model = AutoModelForSeq2SeqLM.from_pretrained(self._model_name)
-        self._tokenizer = AutoTokenizer.from_pretrained(self._model_name) 
-
-        self._batch_size = sft_params.batch_size
-        self._max_length = sft_params.max_length
-        self._max_sft_steps = sft_params.max_fine_tuning_steps
-        self._finetuned_model_path = sft_params.finetuned_model_path
-        self._learning_rate = sft_params.learning_rate
-
-        self._device = sft_params.device
+        self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
 
 
     def run(self) -> None:
@@ -400,10 +397,10 @@ class SFTPipeline(AbstractSFTPipeline):
         model = get_peft_model(self._model, cast(PeftConfig, self._lora_config))
 
         training_args = TrainingArguments(
-            output_dir=str(self._finetuned_model_path),
-            per_device_train_batch_size=self._batch_size,
-            max_steps=self._max_sft_steps,
-            learning_rate=self._learning_rate,
+            output_dir=str(self._sft_params.finetuned_model_path),
+            per_device_train_batch_size=self._sft_params.batch_size,
+            max_steps=self._sft_params.max_fine_tuning_steps,
+            learning_rate=self._sft_params.learning_rate,
             use_cpu=True,
             save_strategy="no",
             load_best_model_at_end=False,
@@ -418,4 +415,4 @@ class SFTPipeline(AbstractSFTPipeline):
         trainer.train()
 
         merged_model = model.merge_and_unload()
-        merged_model.save_pretrained(self._finetuned_model_path)
+        merged_model.save_pretrained(self._sft_params.finetuned_model_path)

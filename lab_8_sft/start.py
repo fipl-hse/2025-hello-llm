@@ -98,7 +98,7 @@ def main() -> None:
     tokenized_dataset = TokenizedTaskDataset(
         train_df, tokenizer, sft_params.max_length
     )
-    
+
     sft_pipeline = SFTPipeline(
         model_name=model_name,
         dataset=tokenized_dataset,
@@ -106,9 +106,9 @@ def main() -> None:
         data_collator=None,
     )
     sft_pipeline.run()
-    
+
     tokenizer.save_pretrained(finetuned_model_path)
-    
+
     pipeline_for_sft = LLMPipeline(
         model_name=str(finetuned_model_path),
         dataset=dataset,
@@ -116,7 +116,7 @@ def main() -> None:
         batch_size=64,
         device="cpu"
     )
-    
+
     tuned_model_stats = pipeline_for_sft.analyze_model()
     print("Model analysis after sft:", tuned_model_stats)
 
@@ -126,11 +126,11 @@ def main() -> None:
 
     # Dataset inference
     finetuned_predictions = pipeline_for_sft.infer_dataset()
-    
+
     finetuned_predictions_file = Path(__file__).parent / 'dist' / 'prediction.csv'
     finetuned_predictions_file.parent.mkdir(parents=True, exist_ok=True)
     finetuned_predictions.to_csv(finetuned_predictions_file)
-    
+
     evaluator = TaskEvaluator(finetuned_predictions_file, settings.parameters.metrics)
     result = evaluator.run()
     print("after:", result)
