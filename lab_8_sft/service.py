@@ -32,14 +32,14 @@ def init_application() -> tuple:
     Returns:
         tuple: tuple of three objects, instance of FastAPI server, LLMPipeline and SFTPipeline.
     """
-    app = FastAPI()
+    fast_app = FastAPI()
 
     settings = LabSettings(Path(__file__).parent / "settings.json")
     model_name = settings.parameters.model
     dataset = TaskDataset(pd.DataFrame())
-    basic_pipeline = LLMPipeline(model_name, dataset,
+    pipeline = LLMPipeline(model_name, dataset,
                            batch_size=1, max_length=120, device='cpu')
-    
+
     finetuned_model_path = Path(__file__).parent / 'dist' / f'{model_name}_finetuned'
     if finetuned_model_path.exists():
         sft_pipeline = LLMPipeline(
@@ -50,10 +50,10 @@ def init_application() -> tuple:
             device="cpu"
         )
     else:
-        sft_pipeline = basic_pipeline
-    return app, basic_pipeline, sft_pipeline
+        sft_pipeline = pipeline
+    return fast_app, pipeline, sft_pipeline
 
-app, basic_pipeline, sft_pipeline,  = init_application()
+app, base_pipeline, ft_pipeline,  = init_application()
 app.mount("/assets", StaticFiles(directory=f"{MAIN_PATH}/assets"), name="assets")
 
 @app.get("/", response_class=HTMLResponse)
@@ -72,11 +72,12 @@ def infer(query: Query) -> dict[str, str]:
 
     """
     if query.use_base_model:
-        result = basic_pipeline.infer_sample(query.question)
-        return {"infer": f'base result: {result}'}
+        result = base_pipeline.infer_sample(query.question)
+        output = f'base result: {result}'
     else:
-        result = sft_pipeline.infer_sample(query.question)
-        return {"infer": f'sft result: {result}'}
+        result = ft_pipeline.infer_sample(query.question)
+        output = f'sft result: {result}'
+
+    return {"infer": output }
 
 #  uvicorn lab_8_sft.service:app --reload
-

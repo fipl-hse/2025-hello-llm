@@ -231,9 +231,9 @@ class LLMPipeline(AbstractLLMPipeline):
         if not isinstance(self._model, torch.nn.Module):
             raise ValueError("The model has incompatible type")
 
-        emb_length = self._model.config.encoder.max_position_embeddings
+        emb_length  = self._model.config.encoder.max_position_embeddings
 
-        ids = torch.ones(1, int(emb_length), dtype=torch.long)
+        ids = torch.ones(1, emb_length, dtype=torch.long, device=self._device)
 
         input_data = {"input_ids": ids,
                       "attention_mask": ids,
