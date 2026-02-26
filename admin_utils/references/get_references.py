@@ -15,7 +15,7 @@ try:
 except ImportError:
     print('Library "transformers" not installed. Failed to import.')
 
-from admin_utils.constants import DEVICE, GLOBAL_SEED
+from admin_utils.constants import DEVICE, GLOBAL_SEED, QUANTIZATION_EXP
 from admin_utils.references.get_model_analytics import get_references, save_reference
 from admin_utils.references.helpers import (
     collect_combinations,
@@ -63,9 +63,6 @@ def get_task(model: str, main_params: MainParams, inference_params: InferencePar
     Returns:
         Any: Metric for a specific task
     """
-    if "test_" in model:
-        model = model.replace("test_", "")
-
     nmt_model = get_nmt_models()
     generation_model = get_generation_models()
     classification_models = get_classification_models()
@@ -124,13 +121,10 @@ def main() -> None:
 
         prepare_result_section(result, model_name, dataset_name, metrics)
 
-        if "test_" in model_name:
-            inference_params.num_samples = 10
-
         main_params = MainParams(model_name, dataset_name, [Metrics(metric) for metric in metrics])
         inference_result = get_task(model_name, main_params, inference_params)
         for metric in metrics:
-            score = Decimal(inference_result[metric]).quantize(Decimal("1.00000"), ROUND_FLOOR)
+            score = Decimal(inference_result[metric]).quantize(QUANTIZATION_EXP, ROUND_FLOOR)
             result[model_name][dataset_name][metric] = score
     save_reference(references_path, result)
 
