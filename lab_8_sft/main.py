@@ -233,7 +233,7 @@ class LLMPipeline(AbstractLLMPipeline):
 
         emb_length = self._model.config.encoder.max_position_embeddings
 
-        ids = torch.ones((1, emb_length), dtype=torch.long)
+        ids = torch.ones(1, int(emb_length), dtype=torch.long)
 
         input_data = {"input_ids": ids,
                       "attention_mask": ids,
@@ -282,7 +282,7 @@ class LLMPipeline(AbstractLLMPipeline):
             predictions = self._infer_batch(batch)
             all_predictions.extend(predictions)
 
-        return pd.DataFrame({'target': self._dataset.data[ColumnNames.TARGET.value], 
+        return pd.DataFrame({'target': self._dataset.data[ColumnNames.TARGET.value],
                              'predictions': all_predictions})
 
     @torch.no_grad()
