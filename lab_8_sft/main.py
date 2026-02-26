@@ -77,7 +77,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         """
         self._data = self._raw_data[["comment_text", "label"]]
         self._data = self._data.rename(
-            columns={"comment_text": ColumnNames.SOURCE, "label": ColumnNames.TARGET}
+            columns={"comment_text": ColumnNames.SOURCE.value, "label": ColumnNames.TARGET.value}
         ).reset_index(drop=True)
 
 
@@ -152,7 +152,7 @@ def tokenize_sample(
     return {
         "input_ids": tokens["input_ids"],
         "attention_mask": tokens["attention_mask"],
-        "labels": sample[ColumnNames.TARGET.value],
+        "labels": int(sample[ColumnNames.TARGET.value]),
     }
 
 
@@ -171,9 +171,9 @@ class TokenizedTaskDataset(Dataset):
                 tokenize the dataset
             max_length (int): max length of a sequence
         """
-        self._data = data.apply(
+        self._data = list(data.apply(
             lambda sample: tokenize_sample(sample, tokenizer, max_length), axis=1
-        )
+        ))
 
     def __len__(self) -> int:
         """
@@ -194,7 +194,7 @@ class TokenizedTaskDataset(Dataset):
         Returns:
             dict[str, torch.Tensor]: An element from the dataset
         """
-        return dict(self._data[index])
+        return self._data[index]
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -311,16 +311,16 @@ class TaskEvaluator(AbstractTaskEvaluator):
     A class that compares prediction quality using the specified metric.
     """
 
-    # def __init__(self, data_path: Path, metrics: Iterable[Metrics]) -> None:
-    #     """
-    #     Initialize an instance of Evaluator.
+    def __init__(self, data_path: Path, metrics: Iterable[Metrics]) -> None:
+        """
+        Initialize an instance of Evaluator.
 
-    #     Args:
-    #         data_path (pathlib.Path): Path to predictions
-    #         metrics (Iterable[Metrics]): List of metrics to check
-    #     """
-    #     self._data_path = data_path
-    #     self._metrics = metrics
+        Args:
+            data_path (pathlib.Path): Path to predictions
+            metrics (Iterable[Metrics]): List of metrics to check
+        """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
@@ -367,7 +367,8 @@ class SFTPipeline(AbstractSFTPipeline):
         """
         super().__init__(model_name, dataset, data_collator)
         self._sft_params = sft_params
-        self._model = BertForSequenceClassification.from_pretrained(model_name)
+        self._model = BertForSequenceClassification.from_pretrained(model_name, 
+                            problem_type="single_label_classification", num_labels=5)
         self._lora_config = LoraConfig(
             r=sft_params.rank,
             lora_alpha=sft_params.alpha,
