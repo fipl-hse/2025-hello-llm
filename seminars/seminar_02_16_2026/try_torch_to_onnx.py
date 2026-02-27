@@ -1,6 +1,8 @@
 """
-Wraps a HuggingFace GPT-2 model to expose only its Transformer core.
+Save Transformers model in ONNX format.
 """
+
+# pylint: disable=duplicate-code
 
 try:
     import torch

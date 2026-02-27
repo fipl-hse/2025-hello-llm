@@ -263,7 +263,8 @@ Supervised Fine-Tuning (SFT) Parameters
      for the `XSY/albert-base-v2-imdb-calssification <https://hugging
      face.co/XSY/albert-base-v2-imdb-calssification>`__ model as SFT parameter.
 
-   - Set the parameter ``problem_type="single_label_classification"``
+   - Set the parameter ``problem_type="single_label_classification"``,
+     ``num_labels=6``
      for the `cointegrated/rubert-tiny2-cedr-emotion-detection <https://hugging
      face.co/cointegrated/rubert-tiny2-cedr-emotion-detection>`__ when
      initializing model instance. Set the parameters
@@ -271,7 +272,7 @@ Supervised Fine-Tuning (SFT) Parameters
      as its SFT parameters.
 
    - Set the parameters ``problem_type="single_label_classification"``,
-     ``num_labels=2``, ``ignore_mismatched_sizes=True``
+     ``num_labels=5``
      for the `OxAISH-AL-LLM/wiki_toxic dataset <https://hugging
      face.co/datasets/OxAISH-AL-LLM/wiki_toxic/viewer/default/validation>`__ when
      initializing `cointegrated/rubert-tiny-toxicity

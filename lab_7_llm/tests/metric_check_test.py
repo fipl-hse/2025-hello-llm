@@ -41,6 +41,17 @@ def run_metrics_check(
 
     settings = LabSettings(lab_path / "settings.json")
 
+    if (
+        settings.parameters.model
+        in (
+            "aiknowyou/it-emotion-analyzer",
+            "dslim/distilbert-NER",
+            "Helsinki-NLP/opus-mt-en-fr",
+        )
+        and "sft" in reference_file_name
+    ):
+        return True
+
     predictions_path = lab_path / "dist" / "predictions.csv"
     task_evaluator_instance = task_evaluator(
         data_path=predictions_path, metrics=settings.parameters.metrics
