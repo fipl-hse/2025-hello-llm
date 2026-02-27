@@ -78,7 +78,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
         self._data = self._raw_data
-        self._data = self._data.rename(columns={'text': ColumnNames.SOURCE, 'label': ColumnNames.TARGET})
+        self._data = self._data.rename(columns={'text': ColumnNames.SOURCE.value, 'label': ColumnNames.TARGET.value})
         self._data = self._data.reset_index(drop=True)
 
 
@@ -115,8 +115,8 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
-        return (str(self._data[ColumnNames.SOURCE].iloc[index]),
-                str(self._data[ColumnNames.TARGET].iloc[index]))
+        return (str(self._data[ColumnNames.SOURCE.value].iloc[index]),
+                str(self._data[ColumnNames.TARGET.value].iloc[index]))
 
     @property
     def data(self) -> DataFrame:
@@ -169,6 +169,7 @@ class TokenizedTaskDataset(Dataset):
                 tokenize the dataset
             max_length (int): max length of a sequence
         """
+        self._data = [tokenize_sample(row, tokenizer, max_length) for _, row in data.iterrows()]
 
     def __len__(self) -> int:
         """
@@ -177,6 +178,7 @@ class TokenizedTaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> dict[str, torch.Tensor]:
         """
@@ -188,6 +190,7 @@ class TokenizedTaskDataset(Dataset):
         Returns:
             dict[str, torch.Tensor]: An element from the dataset
         """
+        return self._data[index]
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -275,7 +278,7 @@ class LLMPipeline(AbstractLLMPipeline):
                                                                 dataset_len))]
             predictions.extend(self._infer_batch(batch))
 
-        result_df = self._dataset.data.copy()
+        result_df = cast(pd.DataFrame, self._dataset.data.copy())
         result_df['predictions'] = predictions
 
         return result_df
@@ -343,12 +346,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
         y_true = data[ColumnNames.TARGET.value].tolist()
 
         score = f1.compute(predictions=y_pred, references=y_true, average="micro")["f1"]
-        print("micro f1 =", (f"{score:.5f}"))
 
         return {
-            metric.value: round((evaluate.load(metric.value).compute(
-                predictions=data[ColumnNames.PREDICTION.value],
-                references=data[ColumnNames.TARGET.value], average="micro")["f1"]), 5)
+            metric.value: round(score, 5)
             for metric in self._metrics
         }
 
@@ -375,8 +375,39 @@ class SFTPipeline(AbstractSFTPipeline):
             data_collator (Callable[[AutoTokenizer], torch.Tensor] | None, optional): processing
                                                                     batch. Defaults to None.
         """
+        super().__init__(model_name, dataset, data_collator)
+        self._sft_params = sft_params
+        self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._lora_config = LoraConfig(r=sft_params.rank, lora_alpha=sft_params.alpha,
+                                       lora_dropout=0.1, target_modules=sft_params.target_modules)
 
     def run(self) -> None:
         """
         Fine-tune model.
         """
+        model = get_peft_model(self._model, cast(PeftConfig, self._lora_config))
+
+        finetuned_model_path = str(self._sft_params.finetuned_model_path)
+
+        training_args = TrainingArguments(
+            output_dir=finetuned_model_path,
+            max_steps=self._sft_params.max_fine_tuning_steps,
+            per_device_train_batch_size=self._sft_params.batch_size,
+            learning_rate=self._sft_params.learning_rate,
+            save_strategy='no',
+            use_cpu=True,
+            load_best_model_at_end=False,
+            remove_unused_columns=False,
+        )
+
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=self._dataset,
+        )
+        trainer.train()
+
+        trainer.model.merge_and_unload()
+        trainer.model.save_pretrained(finetuned_model_path)
+        self._tokenizer.save_pretrained(finetuned_model_path)
