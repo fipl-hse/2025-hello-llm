@@ -14,7 +14,7 @@ import torch
 from datasets import load_dataset
 from pandas import DataFrame
 from peft import get_peft_model, LoraConfig, PeftConfig
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import (
     AutoModelForSequenceClassification,
@@ -273,15 +273,18 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         predictions = []
 
-        dataset_len = len(self._dataset.data)
-        for i in range(0, dataset_len, self._batch_size):
-            batch = [self._dataset[idx] for idx in range(i, min(i + self._batch_size,
-                                                                dataset_len))]
+        loader = DataLoader(
+            self._dataset,
+            batch_size=self._batch_size,
+            shuffle=False,
+            collate_fn=list,
+        )
+
+        for batch in loader:
             predictions.extend(self._infer_batch(batch))
 
-        result_df = cast(pd.DataFrame, self._dataset.data.copy())
-        result_df['predictions'] = predictions
-
+        result_df = cast(DataFrame, self._dataset.data.copy())
+        result_df["predictions"] = predictions
         return result_df
 
     @torch.no_grad()
