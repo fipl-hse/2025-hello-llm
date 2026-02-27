@@ -14,7 +14,7 @@ import torch
 from datasets import load_dataset
 from pandas import DataFrame
 from peft import get_peft_model, LoraConfig, PeftConfig
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 from torchinfo import summary
 from transformers import (
     AutoModelForSequenceClassification,
@@ -78,7 +78,8 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
         self._data = self._raw_data
-        self._data = self._data.rename(columns={'text': ColumnNames.SOURCE.value, 'label': ColumnNames.TARGET.value})
+        self._data = self._data.rename(columns={'text': ColumnNames.SOURCE.value,
+                                                'label': ColumnNames.TARGET.value})
         self._data = self._data.reset_index(drop=True)
 
 
@@ -328,6 +329,7 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        super().__init__(data_path, metrics)
         self._data_path = data_path
         self._metrics = metrics
 

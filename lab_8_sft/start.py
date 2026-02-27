@@ -67,13 +67,14 @@ def main() -> None:
 
     sft_params = SFTParams(batch_size=3, max_length=120, max_fine_tuning_steps=50,
                            learning_rate=1e-3,
-                           finetuned_model_path=Path(__file__).parent / 'dist' / settings.parameters.model,
+                           finetuned_model_path=Path(__file__).parent / 'dist' /
+                                                settings.parameters.model,
                            device='cpu', rank=8, alpha=8)
 
     fine_tune_samples = sft_params.batch_size * sft_params.max_fine_tuning_steps
-    tokenized_dataset = TokenizedTaskDataset(preprocessor.data.loc[
-                                       num_samples: num_samples + fine_tune_samples
-                                   ], tokenizer=AutoTokenizer.from_pretrained(settings.parameters.model),
+    tokenized_dataset = TokenizedTaskDataset(preprocessor.data.loc[num_samples:
+                        num_samples + fine_tune_samples],
+                        tokenizer=AutoTokenizer.from_pretrained(settings.parameters.model),
         max_length=sft_params.max_length)
 
     sft_pipeline = SFTPipeline(settings.parameters.model, tokenized_dataset, sft_params)
