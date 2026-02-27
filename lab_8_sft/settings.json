@@ -4,5 +4,5 @@
     "dataset": "cnn_dailymail",
     "metrics": ["bleu", "rouge"]
   },
-  "target_score": 8
+  "target_score": 10
 }
