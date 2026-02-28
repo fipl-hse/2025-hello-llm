@@ -2,9 +2,9 @@ name: "Check PR"
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 concurrency:
   group: ${{ github.repository }}-${{ github.ref }}-public
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     timeout-minutes: 5
-    needs: [ install-dependencies ]
+    needs: [install-dependencies]
     env:
       PR_NAME: ${{ github.event.pull_request.title }}
       PR_AUTHOR: ${{ github.actor }}
@@ -51,7 +51,7 @@ jobs:
     name: Code Style
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [ install-dependencies ]
+    needs: [install-dependencies]
     env:
       PR_NAME: ${{ github.event.pull_request.title }}
       PR_AUTHOR: ${{ github.actor }}
@@ -70,7 +70,7 @@ jobs:
     name: Mypy checks
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [ install-dependencies ]
+    needs: [install-dependencies]
 
     steps:
       - uses: actions/checkout@v6
@@ -86,7 +86,7 @@ jobs:
     name: Unittests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [ install-dependencies ]
+    needs: [install-dependencies]
     env:
       PR_NAME: ${{ github.event.pull_request.title }}
       PR_AUTHOR: ${{ github.actor }}
@@ -96,7 +96,6 @@ jobs:
       - name: Setup FIPL environment
         uses: fipl-hse/setup-env-action@v0.13.2
       - name: Run tests
-        if: ${{ env.REPOSITORY_TYPE == 'public' }}
         run: |
           source venv/bin/activate
           export PYTHONPATH=$(pwd)
@@ -106,7 +105,7 @@ jobs:
     name: Check start.py
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    needs: [ install-dependencies ]
+    needs: [install-dependencies]
     env:
       PR_NAME: ${{ github.event.pull_request.title }}
 
@@ -124,7 +123,7 @@ jobs:
     name: Import style checks
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [ install-dependencies ]
+    needs: [install-dependencies]
 
     steps:
       - uses: actions/checkout@v6
@@ -140,7 +139,7 @@ jobs:
     name: Requirements check
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [ install-dependencies ]
+    needs: [install-dependencies]
 
     steps:
       - uses: actions/checkout@v6
