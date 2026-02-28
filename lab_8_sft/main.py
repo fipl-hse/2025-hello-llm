@@ -274,8 +274,6 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
-        if self._model is None:
-            return pd.DataFrame()
 
         dataloader = DataLoader(self._dataset, self._batch_size)
         predictions = []
@@ -313,6 +311,9 @@ class LLMPipeline(AbstractLLMPipeline):
                                  padding=True, truncation=True, max_length=self._max_length)
 
         tokens = {k: v.to(self._device) for k, v in tokens.items()}
+        self._model.to(self._device)
+
+        self._model.eval()
 
         output_ids = self._model.generate(
             **tokens,

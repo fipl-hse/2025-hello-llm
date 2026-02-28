@@ -58,6 +58,7 @@ def main() -> None:
                               [Metrics(metric) for metric in settings.parameters.metrics])
 
     result = evaluator.run()
+    print(result)
     assert result is not None, "Fine-tuning does not work correctly"
 
 
