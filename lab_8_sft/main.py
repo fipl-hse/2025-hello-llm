@@ -229,7 +229,7 @@ class LLMPipeline(AbstractLLMPipeline):
 
         config = self._model.config
 
-        input_ids = torch.ones((1, config.max_position_embeddings), dtype=torch.long)
+        input_ids = torch.ones((1, cast(int, config.max_position_embeddings)), dtype=torch.long)
         attention_mask = torch.ones_like(input_ids)
 
         stats = summary(self._model,

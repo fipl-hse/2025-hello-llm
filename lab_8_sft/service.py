@@ -10,7 +10,6 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
 
 from core_utils.project.lab_settings import LabSettings
@@ -39,14 +38,14 @@ def init_application() -> tuple:
     sft_path = BASE_PATH / 'dist' / model_name
 
     llm = LLMPipeline(model_name, dataset, 120, 1, 'cpu')
-    app = FastAPI()
+    fastapi_app = FastAPI()
 
     if sft_path.exists():
         sft = LLMPipeline(str(sft_path), dataset, 120, 1, 'cpu')
     else:
         sft = llm
 
-    return app, llm, sft
+    return fastapi_app, llm, sft
 
 
 app, pre_trained_pipeline, fine_tuned_pipeline = init_application()
