@@ -227,7 +227,7 @@ class LLMPipeline(AbstractLLMPipeline):
 
         Returns:
             dict: Properties of a model
-        """        
+        """
         emb_length  = self._model.config.encoder.max_position_embeddings
 
         ids = torch.ones((1, emb_length),
