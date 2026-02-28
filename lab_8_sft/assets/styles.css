@@ -1,0 +1,98 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: system-ui;
+  color: #0b1220;
+  background:
+    radial-gradient(1200px 600px at 10% 0%, rgba(56,189,248,.35), transparent 55%),
+    radial-gradient(1000px 500px at 90% 20%, rgba(168,85,247,.25), transparent 50%),
+    radial-gradient(900px 500px at 40% 90%, rgba(34,197,94,.20), transparent 55%),
+    #f2f5ff;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 16px;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 40px;
+  letter-spacing: -0.03em;
+}
+
+.card {
+  width: min(920px, 92vw);
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.60);
+  border: 1px solid rgba(255,255,255,0.70);
+  box-shadow: 0 20px 60px rgba(2,6,23,0.15);
+  backdrop-filter: blur(14px);
+}
+
+label {
+  display: block;
+  margin: 12px 0 8px;
+  font-weight: 700;
+}
+
+textarea {
+  width: 100%;
+  height: 110px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(2,6,23,0.12);
+  background: rgba(255,255,255,0.70);
+  outline: none;
+  font-size: 15px;
+}
+
+textarea:focus {
+  box-shadow: 0 0 0 5px rgba(56,189,248,0.25);
+  border-color: rgba(56,189,248,0.6);
+}
+
+button {
+  padding: 5px 13px;
+  font-size: 15px;
+  font-weight: 800;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(2,6,23,0.9);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+pre {
+  margin: 10px 0 0;
+  height: 90px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(2,6,23,0.12);
+  background: rgba(255,255,255,0.70);
+  white-space: pre-wrap;
+  overflow: auto;
+}
+
+.status {
+  margin-top: 8px;
+  font-size: 14px;
+  opacity: 0.8;
+}

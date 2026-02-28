@@ -47,7 +47,7 @@ def main() -> None:
         device="cpu"
     )
 
-    predictions_path = Path(__file__).parent / "dist" / "predictions.csv"
+    predictions_path = current_path / "dist" / "predictions.csv"
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not predictions_path.exists():
@@ -67,7 +67,7 @@ def main() -> None:
 
     sft_params = SFTParams(batch_size=3, max_length=120, max_fine_tuning_steps=50,
                            learning_rate=1e-3,
-                           finetuned_model_path=Path(__file__).parent / 'dist' /
+                           finetuned_model_path=current_path / 'dist' /
                                                 settings.parameters.model,
                            device='cpu', rank=8, alpha=8)
 
@@ -97,9 +97,9 @@ def main() -> None:
     print(f"Predicted label: {finetuned_pipeline.infer_sample(sample)}")
 
     finetuned_preds = finetuned_pipeline.infer_dataset()
-    finetuned_preds.to_csv(Path(__file__).parent / 'dist' / 'predictions.csv')
+    finetuned_preds.to_csv(current_path / 'dist' / 'predictions.csv')
 
-    result = TaskEvaluator(Path(__file__).parent / 'dist' / 'predictions.csv', metrics)
+    result = TaskEvaluator(current_path / 'dist' / 'predictions.csv', metrics)
 
     print('\nEvaluation of the quality of the fine-tuned model:')
     for key, value in result.run().items():
