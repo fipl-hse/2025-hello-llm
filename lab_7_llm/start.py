@@ -31,6 +31,9 @@ def main() -> None:
     importer = RawDataImporter(settings['parameters']['dataset'])
     importer.obtain()
 
+    if importer.raw_data is None:
+        raise ValueError("Raw data is None")
+
     # 3. Препроцессинг
     preprocessor = RawDataPreprocessor(importer.raw_data)
     preprocessor.transform()

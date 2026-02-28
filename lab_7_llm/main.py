@@ -14,6 +14,7 @@ from datasets import load_dataset
 from evaluate import load
 from pandas import DataFrame
 from torch.utils.data import DataLoader, Dataset
+from torch.nn import Module
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
@@ -181,6 +182,9 @@ class LLMPipeline(AbstractLLMPipeline):
             "decoder_input_ids": tensor_data
         }
 
+        if self._model is None:
+            return {}
+
         model_summary = summary(
             self._model,
             input_data=input_data,
@@ -288,7 +292,7 @@ class LLMPipeline(AbstractLLMPipeline):
             skip_special_tokens=True
         )
 
-        return decoded_outputs
+        return list(decoded_outputs)
 
 
 class TaskEvaluator(AbstractTaskEvaluator):

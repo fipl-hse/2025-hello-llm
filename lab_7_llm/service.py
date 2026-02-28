@@ -45,7 +45,8 @@ def init_application() -> tuple:
 
     return server, llm_pipeline
 
-app, pipeline = (None, None)
+
+app, pipeline = init_application()
 
 
 class Query(BaseModel):
@@ -67,7 +68,6 @@ async def infer(query: Query) -> dict:
         dict: The prediction
     """
     text = query.question
-
     prediction = pipeline.infer_sample((text,))
 
     return {"infer": prediction}
