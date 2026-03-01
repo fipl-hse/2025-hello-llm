@@ -135,39 +135,39 @@ class TaskDataset(Dataset):
         return self._data
 
 
-    def tokenize_sample(
-        sample: pd.Series, tokenizer: AutoTokenizer, max_length: int
-        ) -> dict[str, torch.Tensor]:
-        """
-        Tokenize sample.
+def tokenize_sample(
+    sample: pd.Series, tokenizer: AutoTokenizer, max_length: int
+    ) -> dict[str, torch.Tensor]:
+    """
+    Tokenize sample.
 
-        Args:
-            sample (pandas.Series): sample from a dataset
-            tokenizer (transformers.models.auto.tokenization_auto.AutoTokenizer): Tokenizer to tokenize
-                original data
-            max_length (int): max length of sequence
+    Args:
+        sample (pandas.Series): sample from a dataset
+        tokenizer (transformers.models.auto.tokenization_auto.AutoTokenizer): Tokenizer to tokenize
+            original data
+        max_length (int): max length of sequence
 
-        Returns:
-            dict[str, torch.Tensor]: Tokenized sample
-        """
-        source_tokens = tokenizer(
-            sample[ColumnNames.SOURCE.value],
-            padding="max_length",
-            truncation=True,
-            max_length=120
-        )
+    Returns:
+        dict[str, torch.Tensor]: Tokenized sample
+    """
+    source_tokens = tokenizer(
+        sample[ColumnNames.SOURCE.value],
+        padding="max_length",
+        truncation=True,
+        max_length=120
+    )
 
-        target_tokens = tokenizer(
-            sample[ColumnNames.TARGET.value],
-            padding="max_length",
-            truncation=True,
-            max_length=120
-        )
-        return {
-            "input_ids": source_tokens["input_ids"],
-            "attention_mask": source_tokens["attention_mask"],
-            "labels": target_tokens["input_ids"]
-        }
+    target_tokens = tokenizer(
+        sample[ColumnNames.TARGET.value],
+        padding="max_length",
+        truncation=True,
+        max_length=120
+    )
+    return {
+        "input_ids": source_tokens["input_ids"],
+        "attention_mask": source_tokens["attention_mask"],
+        "labels": target_tokens["input_ids"]
+    }
 
 
 class TokenizedTaskDataset(Dataset):
