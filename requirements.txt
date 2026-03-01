@@ -1,0 +1,16 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+absl-py==2.4.0
+datasets==4.5.0
+evaluate==0.4.6
+fastapi==0.128.0
+hf_xet==1.2.0
+nltk==3.9.2
+pandas==3.0.0
+peft==0.17.1
+rouge_score==0.1.2
+scikit-learn==1.8.0
+torch==2.9.1 
+torchinfo==1.8.0
+transformers==4.50.3
+uvicorn==0.40.0
+
