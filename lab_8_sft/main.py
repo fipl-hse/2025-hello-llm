@@ -8,23 +8,15 @@ Fine-tuning Large Language Models for a downstream task.
 from typing import Callable, Iterable, Sequence
 import logging
 from pathlib import Path
-from typing import Callable, Iterable, Optional, Sequence, Union
+from typing import Callable, Iterable, Sequence
 
 import pandas as pd
 import torch
-import torch.nn.functional as F
 from datasets import load_dataset
 from pandas import DataFrame
-from peft import LoraConfig, TaskType, get_peft_model
-from sklearn.metrics import accuracy_score, f1_score
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 from transformers import (
-    AutoModelForSequenceClassification,
     AutoTokenizer,
-    DataCollatorWithPadding,
-    PreTrainedTokenizerBase,
-    Trainer,
-    TrainingArguments,
 )
 
 from core_utils.decorators import report_time
@@ -67,7 +59,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: dataset key properties.
         """
-        f = self._data
+        self._data
         source_empty = (df['source'].isna() | (df['source'].astype(str).str.strip() == '')).sum()
         target_dist = df['target'].value_counts().sort_index().to_dict()
 

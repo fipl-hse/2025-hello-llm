@@ -2,16 +2,17 @@
 Web service for model inference.
 """
 
+from pathlib import Path
+
 # pylint: disable=too-few-public-methods
 import pandas as pd
 from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from pathlib import Path
 
-from lab_7_llm.main import LLMPipeline, TaskDataset, ColumnNames
 from core_utils.project.lab_settings import LabSettings
+from lab_7_llm.main import ColumnNames, LLMPipeline, TaskDataset
 
 
 class Query(BaseModel):

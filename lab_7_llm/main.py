@@ -4,21 +4,22 @@ Laboratory work.
 Working with Large Language Models.
 """
 
+from pathlib import Path
+
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
+
+import evaluate
 import pandas as pd
+import torch
 from datasets import load_dataset
 from pandas import DataFrame
+from torch.utils.data import DataLoader, Dataset
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
-from core_utils.llm.time_decorator import report_time
-import torch
-from torch.utils.data import Dataset, DataLoader
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import evaluate
-from pathlib import Path
-from typing import Optional
-from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator, Metrics
 from core_utils.llm.time_decorator import report_time
 
