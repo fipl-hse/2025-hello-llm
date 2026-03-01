@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Text summarization</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+    <script src="/assets/main.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Summarization</h2>
+        <textarea id="input" rows="4" placeholder="Enter the text..."></textarea>
+        <br>
+        <label>
+            <input type="checkbox" id="useBaseModel"> Use base model (without fine-tuning)
+        </label>
+        <br>
+        <button id="btn">Get the result</button>
+        <div id="loading" style="display:none">Processing...</div>
+        <pre id="output">The result will be here</pre>
+    </div>
+</body>
+</html>
