@@ -218,7 +218,6 @@ class LLMPipeline(AbstractLLMPipeline):
         # для классификации используем SequenceClassification
         self._model = AutoModelForSequenceClassification.from_pretrained(
             self._model_name,
-            num_labels=2
         )
         self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
 
@@ -242,14 +241,9 @@ class LLMPipeline(AbstractLLMPipeline):
             dtype=torch.long
         ).to(self._device)
 
-        input_data = {
-            "input_ids": tensor_data,
-            "attention_mask": tensor_data
-        }
-
         model_summary = summary(
             self._model,
-            input_data=input_data,
+            input_data=(tensor_data,),
             verbose=0
         )
 
