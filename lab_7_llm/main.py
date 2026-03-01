@@ -14,7 +14,6 @@ from datasets import load_dataset
 from evaluate import load
 from pandas import DataFrame
 from torch.utils.data import DataLoader, Dataset
-from torch.nn import Module
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
