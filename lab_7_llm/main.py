@@ -332,9 +332,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
                 references=references
             )
 
-            if score:
-                score = {k: float(v) for k, v in score.items()}
-
-            results.update(score)
+            if metric_name.value == 'rouge':
+                results[metric_name.value] = float(score['rougeL'])
+            else:
+                results[metric_name.value] = float(score[metric_name.value])
 
         return results
