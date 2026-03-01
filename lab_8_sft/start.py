@@ -1,17 +1,14 @@
 """
 Fine-tuning starter.
 """
+
 import pathlib
 
 from core_utils.llm.time_decorator import report_time
 from core_utils.project.lab_settings import LabSettings
+
 # pylint: disable=too-many-locals, undefined-variable, unused-import, too-many-branches, too-many-statements
-from lab_8_sft.main import (
-    LLMPipeline,
-    RawDataImporter,
-    RawDataPreprocessor,
-    TaskDataset
-)
+from lab_8_sft.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
 
 
 @report_time
