@@ -373,7 +373,7 @@ See the intended instantiation:
 
 .. code:: py
 
-    dataset = TaskDataset(preprocessor.data.head(100))
+    dataset = TaskDataset(preprocessor.data.iloc[: 100])
 
 where ``preprocessor.data`` is the property of the ``RawDataPreprocessor`` class.
 
