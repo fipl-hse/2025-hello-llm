@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
-    "metrics": []
+    "model": "Helsinki-NLP/opus-mt-ru-en",
+    "dataset": "shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2",
+    "metrics": ["bleu"]
   },
-  "target_score": 0
+  "target_score": 6
 }
