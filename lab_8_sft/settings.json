@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
-    "metrics": []
+    "model": "s-nlp/russian_toxicity_classifier",
+    "dataset": "d0rj/rudetoxifier_data",
+    "metrics": ["f1"]
   },
-  "target_score": 0
+  "target_score": 6
 }
