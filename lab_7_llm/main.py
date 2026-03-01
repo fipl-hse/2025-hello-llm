@@ -231,7 +231,7 @@ class LLMPipeline(AbstractLLMPipeline):
             )
 
         decoded_output = self._tokenizer.decode(output_tokens[0], skip_special_tokens=True)
-        return decoded_output
+        return str(decoded_output)
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -331,6 +331,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
                 predictions=predictions,
                 references=references
             )
+
+            if score:
+                score = {k: float(v) for k, v in score.items()}
 
             results.update(score)
 
