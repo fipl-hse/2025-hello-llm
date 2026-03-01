@@ -1,4 +1,3 @@
-absl-py==1.0.0
 datasets==4.5.0
 evaluate==0.4.0
 fastapi==0.128.0

@@ -293,7 +293,6 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         return self._infer_batch([sample])[0]
 
-
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
         """
@@ -393,18 +392,9 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
         predictions = [int(p) for p in predictions]
 
-        cleaned_targets = []
-        for ref in targets:
-            ref_str = str(ref)
-            if 'tensor(' in ref_str:
-                start = ref_str.find('(') + 1
-                end = ref_str.find(')')
-                if start > 0 and end > start:
-                    cleaned_targets.append(int(ref_str[start:end]))
-                else:
-                    cleaned_targets.append(int(ref_str.replace('tensor(', '').replace(')', '')))
-            else:
-                cleaned_targets.append(int(ref_str))
+        cleaned_targets = [
+            int(str(ref).replace('tensor(', '').replace(')', '')) for ref in targets
+        ]
 
         result = {}
 
