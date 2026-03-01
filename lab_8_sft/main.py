@@ -252,14 +252,19 @@ class LLMPipeline(AbstractLLMPipeline):
             verbose=0
         )
 
+        # Безопасное извлечение output_shape в виде плоского списка
+        out_shape = model_summary.summary_list[-1].output_size
+        if isinstance(out_shape, list) and len(out_shape) > 0 and isinstance(out_shape[0], list):
+            out_shape = out_shape[0]
+
         return {
-            "input_shape": list(tensor_data.shape),
-            "embedding_size": self._model.config.hidden_size,
-            "output_shape": model_summary.summary_list[-1].output_size,
-            "num_trainable_params": model_summary.trainable_params,
-            "vocab_size": self._model.config.vocab_size,
-            "size": model_summary.total_param_bytes,
-            "max_context_length": self._model.config.max_position_embeddings
+            "input_shape": [int(dim) for dim in tensor_data.shape],
+            "embedding_size": int(self._model.config.hidden_size),
+            "output_shape": [int(dim) for dim in out_shape],
+            "num_trainable_params": int(model_summary.trainable_params),
+            "vocab_size": int(self._model.config.vocab_size),
+            "size": int(model_summary.total_param_bytes),
+            "max_context_length": int(self._model.config.max_position_embeddings)
         }
 
     @report_time
