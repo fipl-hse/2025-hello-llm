@@ -76,7 +76,7 @@ def main() -> None:
 
     print("Evaluation Results:", evaluation_results)
 
-    assert evaluation_results is not None, "Inference does not work correctly"
+    assert evaluation_results is not None, "Demo does not work correctly"
 
 
 if __name__ == "__main__":

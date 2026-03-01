@@ -241,9 +241,14 @@ class LLMPipeline(AbstractLLMPipeline):
             dtype=torch.long
         ).to(self._device)
 
+        input_data = {
+            "input_ids": tensor_data,
+            "attention_mask": tensor_data
+        }
+
         model_summary = summary(
             self._model,
-            input_data=(tensor_data,),
+            input_data=input_data,
             verbose=0
         )
 
