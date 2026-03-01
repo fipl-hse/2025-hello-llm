@@ -8,7 +8,13 @@ from core_utils.llm.time_decorator import report_time
 from core_utils.project.lab_settings import LabSettings
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import, too-many-branches, too-many-statements
-from lab_8_sft.main import LLMPipeline, RawDataImporter, RawDataPreprocessor, TaskDataset
+from lab_8_sft.main import (
+    LLMPipeline,
+    RawDataImporter,
+    RawDataPreprocessor,
+    TaskDataset,
+    TaskEvaluator,
+)
 
 
 @report_time
@@ -29,7 +35,7 @@ def main() -> None:
     preprocessor.transform()
     analysis_result = preprocessor.analyze()
 
-    dataset = TaskDataset(preprocessor.data.iloc[:100])
+    dataset = TaskDataset(preprocessor.data.iloc[:101])
 
     pipeline = LLMPipeline(
         model_name=settings.parameters.model,
@@ -44,20 +50,21 @@ def main() -> None:
     sample = dataset[0]
     sample_prediction = pipeline.infer_sample(sample)
 
-    # dataset_predictions = pipeline.infer_dataset()
-    #
-    # dist_dir = pathlib.Path(__file__).parent / "dist"
-    # dist_dir.mkdir(exist_ok=True)
-    # predictions_path = dist_dir / "predictions.csv"
-    # dataset_predictions.to_csv(predictions_path, index=False)
-    #
-    # evaluator = TaskEvaluator(predictions_path, settings.parameters.metrics)
-    # metrics_results = evaluator.run()
+    dataset_predictions = pipeline.infer_dataset()
+
+    dist_dir = pathlib.Path(__file__).parent / "dist"
+    dist_dir.mkdir(exist_ok=True)
+    predictions_path = dist_dir / "predictions.csv"
+    dataset_predictions.to_csv(predictions_path, index=False)
+
+    evaluator = TaskEvaluator(predictions_path, settings.parameters.metrics)
+    metrics_results = evaluator.run()
 
     result = {
         "dataset_analysis": analysis_result,
         "model_analysis": model_analysis,
         "sample_prediction": sample_prediction,
+        "metrics_results": metrics_results,
     }
     print(result)
 

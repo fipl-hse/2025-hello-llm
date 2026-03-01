@@ -9,12 +9,13 @@ from pathlib import Path
 # pylint: disable=too-few-public-methods, undefined-variable, duplicate-code, unused-argument, too-many-arguments
 from typing import Callable, Iterable, Sequence
 
+import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
 from peft import LoraConfig
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
@@ -217,7 +218,7 @@ class LLMPipeline(AbstractLLMPipeline):
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
         self._model.to(self._device)
-        # self._model.eval()
+        self._model.eval()
 
     def analyze_model(self) -> dict:
         """
@@ -258,22 +259,9 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        if self._model is None:
+        if not self._model:
             return None
-
-        text = sample[0]
-
-        inputs = self._tokenizer(
-            text, return_tensors="pt", padding=True, truncation=True, max_length=self._max_length
-        ).to(self._device)
-        inputs = {k: v.to(self._device) for k, v in inputs.items()}
-
-        with torch.no_grad():
-            generated_ids = self._model.generate(**inputs, max_length=self._max_length)
-
-        decoded = self._tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-
-        return decoded
+        return self._infer_batch([sample])[0]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -283,6 +271,20 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        predictions = []
+        references = []
+
+        dataloader = DataLoader(dataset=self._dataset, batch_size=self._batch_size, shuffle=False)
+
+        for batch in dataloader:
+            batch_predictions = self._infer_batch(batch)
+
+            predictions.extend(batch_predictions)
+            references.extend(batch[1])
+
+        return pd.DataFrame(
+            {ColumnNames.PREDICTION.value: predictions, ColumnNames.TARGET.value: references}
+        )
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -295,6 +297,20 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: model predictions as strings
         """
+
+        sources = sample_batch[0]
+
+        inputs = self._tokenizer(
+            sources, return_tensors="pt", padding=True, truncation=True, max_length=self._max_length
+        )
+
+        inputs = {k: v.to(self._device) for k, v in inputs.items()}
+
+        generated_ids = self._model.generate(**inputs)
+
+        outputs = self._tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+
+        return outputs
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -320,6 +336,21 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        predictions_df = pd.read_csv(self._data_path)
+
+        predictions = predictions_df[ColumnNames.PREDICTION.value].tolist()
+        references = [[ref] for ref in predictions_df[ColumnNames.TARGET.value].tolist()]
+
+        results = {}
+
+        for metric in self._metrics:
+            metric_obj = evaluate.load(metric.value)
+
+            result = metric_obj.compute(predictions=predictions, references=references, smooth=True)
+
+            results.update(result)
+
+        return results
 
 
 class SFTPipeline(AbstractSFTPipeline):

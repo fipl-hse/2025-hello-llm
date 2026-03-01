@@ -4,5 +4,5 @@
     "dataset": "shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2",
     "metrics": ["bleu"]
   },
-  "target_score": 4
+  "target_score": 6
 }
