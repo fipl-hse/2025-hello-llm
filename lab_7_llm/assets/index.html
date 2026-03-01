@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LLM translation service</title>
+        <link href="/static/styles.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Translation service</h1>
+                <p>Model: "Helsinki-NLP/opus-mt-en-fr"</p>
+            </header>
+            <main>
+                <div class="input-section">
+                    <label for="text-input">Enter English text</label>
+                    <textarea id="text-input" placeholder="Text to translate" rows="4"></textarea>
+                </div>
+                <button id="translate-button">Translate to French</button>
+                <div class="output-section">
+                    <label for="text-output">French translation</label>
+                    <textarea id="text-output" readonly rows="4"></textarea>
+                </div>
+            </main>
+        </div>
+    </body>
+    <script src="/static/main.js"></script>
+</html>

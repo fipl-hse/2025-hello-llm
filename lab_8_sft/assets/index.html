@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LLM Service</title>
+        <link href="/static/styles.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Text classification service</h1>
+                <p>Sentiment analysis: neutral, good, bad</p>
+            </header>
+            <main>
+                <div class="input-section">
+                    <label for="text-input">Enter text</label>
+                    <textarea id="text-input" placeholder="Text to analyze" rows="4"></textarea>
+                </div>
+                <div class="checkbox-section">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="use-base-model" checked>
+                        Use base model (pre-trained)
+                    </label>
+                    <span class="model-hint">Uncheck to use fine-tuned model</span>
+                </div>
+                <button id="analyze-button">Analyze sentiment</button>
+                <div class="output-section">
+                    <label for="text-output">Predicted class</label>
+                    <textarea id="text-output" readonly rows="4" placeholder="Result will appear here..."></textarea>
+                </div>
+            </main>
+        </div>
+    </body>
+    <script src="/static/main.js"></script>
+</html>
