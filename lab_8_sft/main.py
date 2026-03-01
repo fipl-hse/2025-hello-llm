@@ -237,7 +237,7 @@ class LLMPipeline(AbstractLLMPipeline):
         batch_size = 1
         tensor_data = torch.ones(
             batch_size,
-            self._model.config.max_position_embeddings,
+            self._max_length,
             dtype=torch.long
         ).to(self._device)
 
@@ -252,7 +252,6 @@ class LLMPipeline(AbstractLLMPipeline):
             verbose=0
         )
 
-        # Безопасное извлечение output_shape в виде плоского списка
         out_shape = model_summary.summary_list[-1].output_size
         if isinstance(out_shape, list) and len(out_shape) > 0 and isinstance(out_shape[0], list):
             out_shape = out_shape[0]
