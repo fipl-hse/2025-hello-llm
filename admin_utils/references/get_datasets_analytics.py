@@ -31,8 +31,6 @@ from reference_lab_classification.main import (  # isort:skip
     CyrillicTurkicPreprocessor,
     DairAiEmotionDataImporter,
     DairAiEmotionPreprocessor,
-    GoEmotionsDataImporter,
-    GoEmotionsRawDataPreprocessor,
     HealthcareDataImporter,
     HealthcarePreprocessor,
     ImdbDataImporter,
@@ -144,8 +142,6 @@ def main() -> None:
             importer = LanguageIdentificationDataImporter(dataset_name)
         elif dataset_name == "OxAISH-AL-LLM/wiki_toxic":
             importer = WikiToxicDataImporter(dataset_name)
-        elif dataset_name == "go_emotions":
-            importer = GoEmotionsDataImporter(dataset_name)
         elif dataset_name == "lionelchg/dolly_closed_qa":
             importer = DollyClosedRawDataImporter(dataset_name)
         elif dataset_name == "starmpcc/Asclepius-Synthetic-Clinical-Notes":
@@ -219,8 +215,6 @@ def main() -> None:
         preprocessor: AbstractRawDataPreprocessor
         if dataset_name == "OxAISH-AL-LLM/wiki_toxic":
             preprocessor = WikiToxicRawDataPreprocessor(importer.raw_data)
-        elif dataset_name == "go_emotions":
-            preprocessor = GoEmotionsRawDataPreprocessor(importer.raw_data)
         elif dataset_name == "seara/ru_go_emotions":
             preprocessor = RuGoEmotionsRawDataPreprocessor(importer.raw_data)
         elif dataset_name == "imdb":

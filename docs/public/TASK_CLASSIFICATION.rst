@@ -258,6 +258,10 @@ Supervised Fine-Tuning (SFT) Parameters
 ---------------------------------------
 
 .. note::
+   - Set the parameters ``fine_tuning_steps=150``, ``target_modules=["key"]`` for the
+     `tatiana-merz/turkic-cyrillic-classifier
+     <https://huggingface.co/tatiana-merz/turkic-cyrillic-classifier>`__
+     model as SFT parameters.
 
    - Set the parameter ``target_modules=["query", "key", "value", "dense"]``
      for the `XSY/albert-base-v2-imdb-calssification <https://hugging
