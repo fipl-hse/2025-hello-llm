@@ -58,7 +58,7 @@ def main() -> None:
     predictions_df = pipeline.infer_dataset()
 
     # Сохраняем результаты в CSV
-    predictions_path = root_path / 'assets' / 'predictions.csv'
+    predictions_path = root_path / 'dist' / 'predictions.csv'
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
 
     predictions_df.to_csv(predictions_path, index=False)

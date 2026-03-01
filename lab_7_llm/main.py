@@ -4,7 +4,7 @@ Laboratory work.
 Working with Large Language Models.
 """
 
-# pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
+# pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called, duplicate-code
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -185,7 +185,7 @@ class LLMPipeline(AbstractLLMPipeline):
             return {}
 
         model_summary = summary(
-            self._model,
+            self._model, # type: ignore
             input_data=input_data,
             verbose=0
         )
