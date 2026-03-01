@@ -37,11 +37,12 @@ def init_application() -> tuple:
     model_name = LabSettings(BASE_PATH / 'settings.json').parameters.model
 
     base_pipeline = LLMPipeline(model_name, dataset, 120, 1, 'cpu')
-    ft_pipeline = base_pipeline
 
     ft_path = BASE_PATH / 'dist' / model_name
     if ft_path.exists():
         ft_pipeline = LLMPipeline(str(ft_path), dataset, 120, 1, 'cpu')
+    else:
+        ft_pipeline = base_pipeline
 
     return FastAPI(), base_pipeline, ft_pipeline
 
