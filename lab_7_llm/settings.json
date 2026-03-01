@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
-    "metrics": []
+    "model": "Babelscape/wikineural-multilingual-ner",
+    "dataset": "Babelscape/wikineural",
+    "metrics": ["accuracy"]
   },
-  "target_score": 0
+  "target_score": 10
 }
