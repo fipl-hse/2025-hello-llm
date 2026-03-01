@@ -32,35 +32,51 @@ def main() -> None:
     if importer.raw_data is None:
         raise ValueError("Raw data is None")
 
-    # Выведем колонки, чтобы понять структуру датасета
     print("Dataset Columns:", importer.raw_data.columns)
 
     preprocessor = RawDataPreprocessor(importer.raw_data)
     preprocessor.transform()
 
-    # Берем 10 примеров для теста
-    dataset = TaskDataset(preprocessor.data.head(10))
+    # берем 100 примеров для инференса
+    dataset = TaskDataset(preprocessor.data.head(100))
 
+    # инициализируем пайплайн с нужными параметрами
     pipeline = LLMPipeline(
         model_name=settings['parameters']['model'],
         dataset=dataset,
         max_length=120,
-        batch_size=1,
+        batch_size=64,
         device='cpu'
     )
 
     model_analysis = pipeline.analyze_model()
     print("Model Analysis:", model_analysis)
 
+    # демонстрация работы на одном сэмпле
     sample = dataset[0]
     print(f"Text: {sample[0]}")
     print(f"True Label: {sample[1]}")
-
     prediction = pipeline.infer_sample(sample)
     print(f"Prediction (Class ID): {prediction}")
 
-    result = prediction
-    assert result is not None, "Fine-tuning does not work correctly"
+    # инференс всего датасета
+    predictions_df = pipeline.infer_dataset()
+
+    # сохраняем предсказания в файл
+    dist_dir = root_path / 'dist'
+    dist_dir.mkdir(exist_ok=True)
+    predictions_path = dist_dir / 'predictions.csv'
+    predictions_df.to_csv(predictions_path, index=False)
+    print(f"Predictions saved to {predictions_path}")
+
+    # оценка качества
+    metrics = [Metrics[metric.upper()] for metric in settings['parameters']['metrics']]
+    evaluator = TaskEvaluator(data_path=predictions_path, metrics=metrics)
+    evaluation_results = evaluator.run()
+
+    print("Evaluation Results:", evaluation_results)
+
+    assert evaluation_results is not None, "Inference does not work correctly"
 
 
 if __name__ == "__main__":
