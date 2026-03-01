@@ -10,8 +10,7 @@ from lab_8_sft.main import (
     LLMPipeline,
     RawDataImporter,
     RawDataPreprocessor,
-    TaskDataset,
-    TaskEvaluator,
+    TaskDataset
 )
 
 
@@ -62,9 +61,8 @@ def main() -> None:
         "dataset_analysis": analysis_result,
         "model_analysis": model_analysis,
         "sample_prediction": sample_prediction,
-        "metrics": metrics_results,
     }
-    print(metrics_results)
+    print(result)
 
     assert result is not None, "Fine-tuning does not work correctly"
 
