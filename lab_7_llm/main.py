@@ -281,22 +281,28 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        
         df = pd.read_csv(self._data_path)
-
-        predictions = [int(p) for p in df["prediction"].tolist()]
-        references = [int(r) for r in df["target"].tolist()]
+        references = df['target'].tolist()
+        predictions = df['prediction'].tolist()
 
         results = {}
-
         for metric_enum in self._metrics:
-            metric = evaluate.load(metric_enum.value)
+            metric_name = metric_enum.value
+            metric = evaluate.load(metric_name)
 
-            score_dict = metric.compute(
-                predictions=predictions,
-                references=references,
-            )
+            if metric_name == 'f1':
+                score_dict = metric.compute(
+                    predictions=predictions,
+                    references=references,
+                    average='macro'
+                )
+            else:
+                score_dict = metric.compute(
+                    predictions=predictions,
+                    references=references
+                )
 
-            results[metric_enum.value] = score_dict[metric_enum.value]
+            results[metric_name] = score_dict[metric_name]
 
         return results
-

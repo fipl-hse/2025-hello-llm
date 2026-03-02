@@ -58,7 +58,6 @@ def run_metrics_check(
     )
     result = task_evaluator_instance.run()
     references = ReferenceScores(reference_file_name)
-
     res: dict[Metrics, bool] = {}
     for metric in settings.parameters.metrics:
         student_result = result.get(str(metric))
