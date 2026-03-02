@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toxicity Detection Service</title>
+    <link href="{{ url_for('assets', path='/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Toxicity Detection</h1>       
+        <textarea id="question" placeholder="Enter text to classify..."></textarea>
+        
+        <div class="actions">
+            <button type="button">Get Toxicity</button> 
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="base-model-checkbox">
+                <label for="base-model-checkbox">Use Base Model</label>
+            </div>                  
+    </div>
+
+    <p id="result">Your result:</p>
+</body>    
+    <script src="{{ url_for('assets', path='/main.js') }}"></script>
+</html>

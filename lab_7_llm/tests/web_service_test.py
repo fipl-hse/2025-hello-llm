@@ -37,8 +37,11 @@ class WebServiceTest(unittest.TestCase):
         """
         url = "/infer"
         input_text = "What is the capital of France?"
+        input_context = ("Everybody knows that Paris is the "
+                         "biggest and the most popular place in France, "
+                         "it is obvious that it is the capital")
 
-        payload = {"question": input_text}
+        payload = {"question": input_text, "context": input_context}
         response = self._client.post(url, json=payload)
 
         self.assertEqual(200, response.status_code)

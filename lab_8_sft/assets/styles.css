@@ -1,0 +1,44 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    gap: 10px;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+body {
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+textarea, button {
+    padding: 10px;
+    font-size: 13px;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center; 
+    gap: 5px;
+}
+
+.checkbox-wrapper label {
+    font-size: 10px; 
+}
+
+button {
+    cursor: pointer;
+    background-color: #ddd;
+}
