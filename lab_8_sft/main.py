@@ -1,7 +1,7 @@
 """
 Laboratory work.
 
-Working with Large Language Models.
+Fine-tuning Large Language Models for a downstream task.
 """
 
 from pathlib import Path
@@ -25,19 +25,15 @@ from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, Co
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
 
-
 class RawDataImporter(AbstractRawDataImporter):
     """
-    A class that imports the HuggingFace dataset.
+    Custom implementation of data importer.
     """
 
     @report_time
     def obtain(self) -> None:
         """
-        Download a dataset.
-
-        Raises:
-            TypeError: In case of downloaded dataset is not pd.DataFrame
+        Import dataset.
         """
         self._raw_data = load_dataset(self._hf_name, split='test').to_pandas()
 
@@ -47,15 +43,15 @@ class RawDataImporter(AbstractRawDataImporter):
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
     """
-    A class that analyzes and preprocesses a dataset.
+    Custom implementation of data preprocessor.
     """
 
     def analyze(self) -> dict:
         """
-        Analyze a dataset.
+        Analyze preprocessed dataset.
 
         Returns:
-            dict: Dataset key properties
+            dict: dataset key properties.
         """
         raw_data_copy = self._raw_data["EN"].dropna()
 
@@ -126,60 +122,7 @@ class TaskDataset(Dataset):
             pandas.DataFrame: Preprocessed DataFrame
         """
         return self._data
-#
-#
-# def tokenize_sample(
-#     sample: pd.Series, tokenizer: AutoTokenizer, max_length: int
-# ) -> dict[str, torch.Tensor]:
-#     """
-#     Tokenize sample.
-#
-#     Args:
-#         sample (pandas.Series): sample from a dataset
-#         tokenizer (transformers.models.auto.tokenization_auto.AutoTokenizer): Tokenizer to tokenize
-#             original data
-#         max_length (int): max length of sequence
-#
-#     Returns:
-#         dict[str, torch.Tensor]: Tokenized sample
-#     """
-#
-#
-# class TokenizedTaskDataset(Dataset):
-#     """
-#     A class that converts pd.DataFrame to Dataset and works with it.
-#     """
-#
-#     def __init__(self, data: pd.DataFrame, tokenizer: AutoTokenizer, max_length: int) -> None:
-#         """
-#         Initialize an instance of TaskDataset.
-#
-#         Args:
-#             data (pandas.DataFrame): Original data
-#             tokenizer (transformers.models.auto.tokenization_auto.AutoTokenizer): Tokenizer to
-#                 tokenize the dataset
-#             max_length (int): max length of a sequence
-#         """
-#
-#     def __len__(self) -> int:
-#         """
-#         Return the number of items in the dataset.
-#
-#         Returns:
-#             int: The number of items in the dataset
-#         """
-#
-#     def __getitem__(self, index: int) -> dict[str, torch.Tensor]:
-#         """
-#         Retrieve an item from the dataset by index.
-#
-#         Args:
-#             index (int): Index of sample in dataset
-#
-#         Returns:
-#             dict[str, torch.Tensor]: An element from the dataset
-#         """
-#
+
 
 class LLMPipeline(AbstractLLMPipeline):
     """
@@ -193,11 +136,11 @@ class LLMPipeline(AbstractLLMPipeline):
         Initialize an instance.
 
         Args:
-            model_name (str): The name of the pre-trained model
-            dataset (TaskDataset): The dataset used
-            max_length (int): The maximum length of generated sequence
-            batch_size (int): The size of the batch inside DataLoader
-            device (str): The device for inference
+            model_name (str): The name of the pre-trained model.
+            dataset (TaskDataset): The dataset to be used for translation.
+            max_length (int): The maximum length of generated sequence.
+            batch_size (int): The size of the batch inside DataLoader.
+            device (str): The device for inference.
         """
         self._model = model_name
         self._dataset = dataset
@@ -294,13 +237,13 @@ class LLMPipeline(AbstractLLMPipeline):
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
         """
-        Infer model on a single batch.
+        Infer single batch.
 
         Args:
-            sample_batch (Sequence[tuple[str, ...]]): Batch to infer the model
+            sample_batch (Sequence[tuple[str, ...]]): batch to infer the model
 
         Returns:
-            list[str]: Model predictions as strings
+            list[str]: model predictions as strings
         """
         model = self._model
         if model is None:
@@ -367,31 +310,3 @@ class TaskEvaluator(AbstractTaskEvaluator):
             for metric in self._metrics
         }
 
-
-# class SFTPipeline(AbstractSFTPipeline):
-#     """
-#     A class that initializes a model, fine-tuning.
-#     """
-#
-#     def __init__(
-#         self,
-#         model_name: str,
-#         dataset: Dataset,
-#         sft_params: SFTParams,
-#         data_collator: Callable[[AutoTokenizer], torch.Tensor] | None = None,
-#     ) -> None:
-#         """
-#         Initialize an instance of ClassificationSFTPipeline.
-#
-#         Args:
-#             model_name (str): The name of the pre-trained model.
-#             dataset (torch.utils.data.dataset.Dataset): The dataset used.
-#             sft_params (SFTParams): Fine-Tuning parameters.
-#             data_collator (Callable[[AutoTokenizer], torch.Tensor] | None, optional): processing
-#                                                                     batch. Defaults to None.
-#         """
-#
-#     def run(self) -> None:
-#         """
-#         Fine-tune model.
-#         """

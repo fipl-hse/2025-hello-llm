@@ -3,7 +3,6 @@ Fine-tuning starter.
 """
 
 # pylint: disable=too-many-locals, undefined-variable, unused-import, too-many-branches, too-many-statements
-import json
 from pathlib import Path
 
 from core_utils.llm.metrics import Metrics
