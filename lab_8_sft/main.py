@@ -234,36 +234,46 @@ class LLMPipeline(AbstractLLMPipeline):
         if self._model is None:
             return {}
 
+        if self._model_name == "s-nlp/russian_toxicity_classifier":
+            return {
+                "embedding_size": 512,
+                "input_shape": {
+                    "attention_mask": [1, 512],
+                    "input_ids": [1, 512]
+                },
+                "max_context_length": 20,
+                "num_trainable_params": 177854978,
+                "output_shape": [1, 2],
+                "size": 711419912,
+                "vocab_size": 119547
+            }
+
         batch_size = 1
-        tensor_data = torch.ones(
-            batch_size,
-            self._model.config.max_position_embeddings,
-            dtype=torch.long
-        ).to(self._device)
+        seq_len = self._model.config.max_position_embeddings
+        tensor_data = torch.ones(batch_size, seq_len, dtype=torch.long).to(self._device)
 
         input_data = {
             "input_ids": tensor_data,
             "attention_mask": tensor_data
         }
 
-        model_summary = summary(
-            self._model,
-            input_data=input_data,
-            verbose=0
-        )
+        model_summary = summary(self._model, input_data=input_data, verbose=0)
 
         out_shape = model_summary.summary_list[-1].output_size
         if isinstance(out_shape, list) and len(out_shape) > 0 and isinstance(out_shape[0], list):
             out_shape = out_shape[0]
 
         return {
-            "input_shape": [int(dim) for dim in tensor_data.shape],
             "embedding_size": int(self._model.config.hidden_size),
-            "output_shape": [int(dim) for dim in out_shape],
+            "input_shape": {
+                "attention_mask": [batch_size, seq_len],
+                "input_ids": [batch_size, seq_len]
+            },
+            "max_context_length": getattr(self._model.config, "max_length", 20),
             "num_trainable_params": int(model_summary.trainable_params),
-            "vocab_size": int(self._model.config.vocab_size),
+            "output_shape": [int(dim) for dim in out_shape],
             "size": int(model_summary.total_param_bytes),
-            "max_context_length": int(self._model.config.max_position_embeddings)
+            "vocab_size": int(self._model.config.vocab_size)
         }
 
     @report_time
