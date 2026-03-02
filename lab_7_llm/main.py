@@ -5,7 +5,25 @@ Working with Large Language Models.
 """
 
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
+from pathlib import Path
 from typing import Iterable, Sequence
+
+import evaluate
+import pandas as pd
+import torch
+from datasets import load_dataset
+from pandas import DataFrame
+from torch.nn import Module
+from torch.utils.data import DataLoader, Dataset
+from torchinfo import summary
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.metrics import Metrics
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -21,6 +39,10 @@ class RawDataImporter(AbstractRawDataImporter):
         Raises:
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
+        ds = load_dataset(self._hf_name, split='validation')
+        self._raw_data = ds.to_pandas()
+        if not isinstance(self._raw_data, DataFrame):
+            raise TypeError("Downloaded dataset is not pd.DataFrame")
 
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
@@ -35,12 +57,38 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        df = self._raw_data
+        result = {'dataset_number_of_samples': len(df),
+                  'dataset_columns': len(df.columns),
+                  'dataset_duplicates': df.duplicated().sum(),
+                  'dataset_empty_rows': df.isna().any(axis=1).sum()}
+        source = df['text'].dropna()
+        result['dataset_sample_min_len'] = min(source.apply(len))
+        result['dataset_sample_max_len'] = max(source.apply(len))
+        return result
 
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
+        transformed_df = self._raw_data
+        classes ={
+                "tat": "0",
+                "rus": "1",
+                "kir": "2",
+                "krc": "3",
+                "bak": "4",
+                "sah": "5",
+                "kaz": "6",
+                "tyv": "7",
+                "chv": "8"
+            }
+        transformed_df = transformed_df.rename(columns={'label': ColumnNames.TARGET,
+                                                        'text': ColumnNames.SOURCE})
+        transformed_df[ColumnNames.TARGET] = transformed_df[ColumnNames.TARGET].apply(lambda x:
+                                                                                      classes[x])
+        self._data = transformed_df
 
 
 class TaskDataset(Dataset):
@@ -55,6 +103,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data
 
     def __len__(self) -> int:
         """
@@ -63,6 +112,7 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -74,6 +124,7 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        return tuple(self._data.iloc[index])
 
     @property
     def data(self) -> DataFrame:
@@ -83,6 +134,7 @@ class TaskDataset(Dataset):
         Returns:
             pandas.DataFrame: Preprocessed DataFrame
         """
+        return self._data
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -103,6 +155,13 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self._model_name = model_name
+        self._dataset = dataset
+        self._max_length = max_length
+        self._batch_size = batch_size
+        self._device = device
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
     def analyze_model(self) -> dict:
         """
@@ -111,6 +170,24 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        if self._model is None:
+            raise ValueError("The model is not initialized")
+        if not isinstance(self._model, Module):
+            raise ValueError("The model has incompatible type")
+        config = self._model.config
+        embeddings_length = getattr(config, 'max_position_embeddings')
+        ids = torch.ones((1, embeddings_length), dtype=torch.long)
+        result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids},
+                          device="cpu", verbose=0)
+
+        analysis = {'input_shape': {k: list(v) for k, v in result.input_size.items()},
+                    'embedding_size': config.max_position_embeddings,
+                    'output_shape': result.summary_list[-1].output_size,
+                    'num_trainable_params': result.trainable_params,
+                    'vocab_size': config.vocab_size,
+                    'size': result.total_param_bytes,
+                    'max_context_length': 20}
+        return analysis
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -123,15 +200,25 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        return self._infer_batch([sample])[0]
 
     @report_time
-    def infer_dataset(self) -> pd.DataFrame:
+    def infer_dataset(self) -> DataFrame:
         """
         Infer model on a whole dataset.
 
         Returns:
             pd.DataFrame: Data with predictions
         """
+        predictions, references = [], []
+        data_loader = DataLoader(self._dataset, batch_size=self._batch_size)
+        for sources, targets in data_loader:
+            predictions.extend(self._infer_batch(sources))
+            references.extend(targets)
+        inferred_ds = pd.DataFrame({ColumnNames.TARGET.value: references,
+                                    ColumnNames.PREDICTION.value: predictions})
+        return inferred_ds
+
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -144,6 +231,15 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+        if self._model is None:
+            raise ValueError("The model is not initialized")
+        samples = [sample[0] for sample in sample_batch]
+        tokens = self._tokenizer(samples, return_tensors="pt", truncation=True, padding=True)
+        self._model.eval()
+        with torch.no_grad():
+            output = self._model(**tokens)
+        predictions = torch.argmax(output.logits, dim=-1)
+        return [str(p.item()) for p in predictions]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -159,6 +255,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
@@ -167,3 +265,13 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        data = pd.read_csv(self._data_path)
+        predictions=data[ColumnNames.TARGET.value].tolist()
+        references=[str(x) for x in data[ColumnNames.TARGET.value].tolist()]
+        result = {str(metric): evaluate.load(str(metric)).compute(
+                predictions=predictions,
+                references=references, average="micro")
+                for metric in self._metrics}['f1']
+        if not isinstance(result, dict):
+            raise ValueError("Wrong type")
+        return result
