@@ -3,6 +3,7 @@ Laboratory work.
 
 Fine-tuning Large Language Models for a downstream task.
 """
+
 # pylint: disable=too-few-public-methods, undefined-variable, duplicate-code, unused-argument, too-many-arguments
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
@@ -127,7 +128,7 @@ class TaskDataset(Dataset):
         """
         row = self._data.iloc[index]
         text = row[ColumnNames.SOURCE.value]
-        label = int(row[ColumnNames.TARGET.value])  # Оставляем как int, не преобразуем в строку!
+        label = int(row[ColumnNames.TARGET.value])
         return (text, label)
 
 
@@ -141,9 +142,7 @@ class TaskDataset(Dataset):
         """
         return self._data
 
-
-
-    def tokenize_sample(
+def tokenize_sample(
         sample: pd.Series, tokenizer: AutoTokenizer, max_length: int
     ) -> dict[str, torch.Tensor]:
         """
@@ -158,26 +157,6 @@ class TaskDataset(Dataset):
         Returns:
             dict[str, torch.Tensor]: Tokenized sample
         """
-        source_tokens = tokenizer(
-            sample[ColumnNames.SOURCE.value],
-            padding="max_length",
-            truncation=True,
-            max_length=120
-        )
-
-        target_tokens = tokenizer(
-            sample[ColumnNames.TARGET.value],
-            padding="max_length",
-            truncation=True,
-            max_length=120
-        )
-        return {
-            "input_ids": source_tokens["input_ids"],
-            "attention_mask": source_tokens["attention_mask"],
-            "labels": target_tokens["input_ids"]
-        }
-
-
 
 
 class TokenizedTaskDataset(Dataset):

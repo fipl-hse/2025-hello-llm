@@ -65,6 +65,7 @@ def main() -> None:
 
     evaluator = TaskEvaluator(predictions_file, metrics)
     result = evaluator.run()
+    print(result)
 
     assert result is not None, "Fine-tuning does not work correctly"
 
