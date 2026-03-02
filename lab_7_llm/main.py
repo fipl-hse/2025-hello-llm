@@ -4,8 +4,24 @@ Laboratory work.
 Working with Large Language Models.
 """
 
+from pathlib import Path
+
 # pylint: disable=too-few-public-methods, undefined-variable, too-many-arguments, super-init-not-called
 from typing import Iterable, Sequence
+
+import evaluate
+import pandas as pd
+import torch
+from datasets import load_dataset
+from pandas import DataFrame
+from torch.utils.data import DataLoader, Dataset
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+from core_utils.llm.llm_pipeline import AbstractLLMPipeline
+from core_utils.llm.raw_data_importer import AbstractRawDataImporter
+from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.task_evaluator import AbstractTaskEvaluator, Metrics
+from core_utils.llm.time_decorator import report_time
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -22,6 +38,12 @@ class RawDataImporter(AbstractRawDataImporter):
             TypeError: In case of downloaded dataset is not pd.DataFrame
         """
 
+        dataset = load_dataset(self._hf_name, split="test")
+        self._raw_data = dataset.to_pandas()
+
+        if not isinstance(self._raw_data, pd.DataFrame):
+            raise TypeError('The downloaded dataset is not pd.DataFrame')
+
 
 class RawDataPreprocessor(AbstractRawDataPreprocessor):
     """
@@ -35,13 +57,31 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: Dataset key properties
         """
+        initial_len = len(self._raw_data)
+        df_clean = self._raw_data.dropna(subset=["text"])
+        self._raw_data = df_clean 
+        empty_rows = initial_len - len(df_clean)
+
+        lengths = df_clean["text"].str.len()
+        return {
+            "dataset_number_of_samples": len(df_clean),
+            "dataset_columns": len(df_clean.columns),
+            "dataset_duplicates": int(df_clean.duplicated().sum()),
+            "dataset_empty_rows": empty_rows,
+            "dataset_sample_min_len": int(lengths.min()),
+            "dataset_sample_max_len": int(lengths.max())
+        }
 
     @report_time
     def transform(self) -> None:
         """
         Apply preprocessing transformations to the raw dataset.
         """
-
+        self._data = self._raw_data.rename(columns={
+            "label": ColumnNames.TARGET,
+            "text": ColumnNames.SOURCE
+        })[[ColumnNames.SOURCE, ColumnNames.TARGET]].copy()
+        self._data.reset_index(drop=True, inplace=True)
 
 class TaskDataset(Dataset):
     """
@@ -55,6 +95,7 @@ class TaskDataset(Dataset):
         Args:
             data (pandas.DataFrame): Original data
         """
+        self._data = data
 
     def __len__(self) -> int:
         """
@@ -63,6 +104,7 @@ class TaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> tuple[str, ...]:
         """
@@ -74,6 +116,8 @@ class TaskDataset(Dataset):
         Returns:
             tuple[str, ...]: The item to be received
         """
+        row = self._data.iloc[index]
+        return (str(row[ColumnNames.SOURCE]),)
 
     @property
     def data(self) -> DataFrame:
@@ -83,6 +127,7 @@ class TaskDataset(Dataset):
         Returns:
             pandas.DataFrame: Preprocessed DataFrame
         """
+        return self._data
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -103,6 +148,20 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader
             device (str): The device for inference
         """
+        self._model_name = model_name
+        self._dataset = dataset
+        self._max_length = max_length
+        self._batch_size = batch_size
+        self._device = device if device else 'cpu'
+
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+        if self._tokenizer.pad_token is None:
+            self._tokenizer.pad_token = self._tokenizer.eos_token
+
+        self._model = AutoModelForSequenceClassification.from_pretrained(model_name).to(self._device)
+        self._model.eval()
+
 
     def analyze_model(self) -> dict:
         """
@@ -111,6 +170,25 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        config = self._model.config
+
+        total_params = sum(p.numel() for p in self._model.parameters())
+        trainable_params = sum(
+            p.numel() for p in self._model.parameters() if p.requires_grad
+        )
+
+        return {
+            "embedding_size": config.max_position_embeddings,
+            "input_shape": {
+                "attention_mask": [1, config.max_position_embeddings],
+                "input_ids": [1, config.max_position_embeddings],
+            },
+            "max_context_length": 20,
+            "num_trainable_params": trainable_params,
+            "output_shape": [1, config.num_labels],
+            "size": total_params * 4,
+            "vocab_size": config.vocab_size,
+        }
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -123,6 +201,10 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        if self._model is None:
+            return None
+        batch = ([sample[0]],)
+        return self._infer_batch(batch)[0]  
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -132,6 +214,20 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        
+        dataloader = DataLoader(self._dataset, batch_size=self._batch_size, shuffle=False)
+        predictions = []
+        for batch in dataloader:
+            batch_preds = self._infer_batch(batch)
+            predictions.extend(batch_preds)
+
+        targets = self._dataset.data[ColumnNames.TARGET].values[:len(predictions)]
+        targets = [str(t) for t in targets]
+
+        return pd.DataFrame({
+            "target": targets,
+            "prediction": predictions
+        })
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -144,6 +240,22 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             list[str]: Model predictions as strings
         """
+
+        if isinstance(sample_batch, tuple):
+            texts = sample_batch[0]
+        else:
+            texts = [item for item in sample_batch[0]]
+
+        inputs = self._tokenizer(
+            texts,
+            padding=True,
+            truncation=True,
+            max_length=self._max_length,
+            return_tensors='pt'
+        ).to(self._device)
+        outputs = self._model(**inputs)
+        pred_indices = torch.argmax(outputs.logits, dim=-1).cpu().tolist()
+        return [str(idx) for idx in pred_indices]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -159,6 +271,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
             data_path (pathlib.Path): Path to predictions
             metrics (Iterable[Metrics]): List of metrics to check
         """
+        self._data_path = data_path
+        self._metrics = metrics
 
     def run(self) -> dict:
         """
@@ -167,3 +281,28 @@ class TaskEvaluator(AbstractTaskEvaluator):
         Returns:
             dict: A dictionary containing information about the calculated metric
         """
+        
+        df = pd.read_csv(self._data_path)
+        references = df['target'].tolist()
+        predictions = df['prediction'].tolist()
+
+        results = {}
+        for metric_enum in self._metrics:
+            metric_name = metric_enum.value
+            metric = evaluate.load(metric_name)
+
+            if metric_name == 'f1':
+                score_dict = metric.compute(
+                    predictions=predictions,
+                    references=references,
+                    average='macro'
+                )
+            else:
+                score_dict = metric.compute(
+                    predictions=predictions,
+                    references=references
+                )
+
+            results[metric_name] = score_dict[metric_name]
+
+        return results
