@@ -17,7 +17,7 @@ from peft import LoraConfig
 from torch.nn import Module
 from torch.utils.data import DataLoader, Dataset
 from torchinfo import summary
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -26,6 +26,7 @@ from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, Co
 from core_utils.llm.sft_pipeline import AbstractSFTPipeline
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
+from core_utils.project.lab_settings import SFTParams
 
 
 class RawDataImporter(AbstractRawDataImporter):
@@ -61,7 +62,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
                   'dataset_columns': len(df.columns),
                   'dataset_duplicates': df.duplicated().sum(),
                   'dataset_empty_rows': df.isna().any(axis=1).sum()}
-        source = df['text'].dropna()
+        source = df['info'].dropna()
         result['dataset_sample_min_len'] = min(source.apply(len))
         result['dataset_sample_max_len'] = max(source.apply(len))
         return result
@@ -138,6 +139,14 @@ def tokenize_sample(
     Returns:
         dict[str, torch.Tensor]: Tokenized sample
     """
+    tokens = tokenizer(sample[ColumnNames.SOURCE.value], return_tensors='pt', padding='max_length',
+                       truncation=True, max_length=max_length)
+
+    return {
+        'input_ids': tokens['input_ids'][0],
+        'attention_mask': tokens['attention_mask'][0],
+        'labels': sample[ColumnNames.TARGET.value]
+    }
 
 
 class TokenizedTaskDataset(Dataset):
@@ -194,13 +203,9 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader.
             device (str): The device for inference.
         """
-        self._model_name = model_name
-        self._dataset = dataset
-        self._max_length = max_length
-        self._batch_size = batch_size
-        self._device = device
+        super().__init__(model_name, dataset, max_length, batch_size, device)
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
     def analyze_model(self) -> dict:
         """
@@ -209,22 +214,18 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
-        if self._model is None:
-            raise ValueError("The model is not initialized")
-        if not isinstance(self._model, Module):
-            raise ValueError("The model has incompatible type")
         config = self._model.config
-        embeddings_length = getattr(config, 'd_model')
-        ids = torch.ones((1, embeddings_length), dtype=torch.long)
-        result = summary(self._model, input_data={"input_ids": ids, "attention_mask": ids},
-                          device="cpu", verbose=0)
+        embeddings_length = config.d_model
 
-        analysis = {'input_shape': {k: list(v) for k, v in result.input_size.items()},
-                    'embedding_size': config.d_model,
-                    'output_shape': result.summary_list[-1].output_size,
-                    'num_trainable_params': result.trainable_params,
+        ids = torch.ones(1, embeddings_length, dtype=torch.long, device=self._device)
+        stats = summary(self._model, input_data={"input_ids": ids, "decoder_input_ids": ids},
+                        device=self._device, verbose=0)
+        analysis = {'input_shape': torch.Size(stats.input_size["input_ids"]),
+                    'embedding_size': embeddings_length,
+                    'output_shape': stats.summary_list[-1].output_size,
+                    'num_trainable_params': stats.trainable_params,
                     'vocab_size': config.vocab_size,
-                    'size': result.total_param_bytes,
+                    'size': stats.total_param_bytes,
                     'max_context_length': config.max_length}
         return analysis
 
@@ -249,14 +250,19 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        loader = DataLoader(self._dataset, self._batch_size)
         predictions, references = [], []
-        data_loader = DataLoader(self._dataset, batch_size=self._batch_size)
-        for sources, targets in data_loader:
-            predictions.extend(self._infer_batch(sources))
-            references.extend(targets)
-        inferred_ds = pd.DataFrame({ColumnNames.TARGET.value: references,
-                                    ColumnNames.PREDICTION.value: predictions})
-        return inferred_ds
+
+        for texts, labels in loader:
+
+            texts = [str(x) for x in texts]
+            labels = [str(x) for x in labels]
+
+            batch_predictions = self._infer_batch([(t,) for t in texts])
+
+            predictions.extend(batch_predictions)
+            references.extend(labels)
+        return pd.DataFrame({ColumnNames.TARGET: references, ColumnNames.PREDICTION: predictions})
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
@@ -271,13 +277,16 @@ class LLMPipeline(AbstractLLMPipeline):
         """
         if self._model is None:
             raise ValueError("The model is not initialized")
-        samples = [sample[0] for sample in sample_batch]
-        tokens = self._tokenizer(samples, return_tensors="pt", truncation=True, padding=True)
+        source_texts = [str(sample[0]) for sample in sample_batch]
+
+        tokens = self._tokenizer(source_texts, return_tensors="pt",
+                                 padding=True, truncation=True, max_length=self._max_length)
+
+        tokens = {k: v.to(self._device) for k, v in tokens.items()}
+        self._model.to(self._device)
         self._model.eval()
-        with torch.no_grad():
-            output = self._model(**tokens)
-        predictions = torch.argmax(output.logits, dim=-1)
-        return [str(p.item()) for p in predictions]
+        output = self._model.generate(**tokens, max_length=self._max_length)
+        return self._tokenizer.batch_decode(output, skip_special_tokens=True)
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
@@ -337,8 +346,12 @@ class SFTPipeline(AbstractSFTPipeline):
             data_collator (Callable[[AutoTokenizer], torch.Tensor] | None, optional): processing
                                                                     batch. Defaults to None.
         """
+        self._model_name = model_name
+    #     self._dataset = dataset
+    #     self._sft_params = sft_params
+    #     self._data_collator = data_collator
 
-    def run(self) -> None:
-        """
-        Fine-tune model.
-        """
+    # def run(self) -> None:
+    #     """
+    #     Fine-tune model.
+    #     """

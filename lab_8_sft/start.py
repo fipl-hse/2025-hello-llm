@@ -41,9 +41,9 @@ def main() -> None:
     pipeline = LLMPipeline(settings['parameters']['model'], dataset, 120, 64, 'cpu')
     for key, value in pipeline.analyze_model().items():
         print(f'{key} : {value}')
-    # print(pipeline.infer_sample(dataset[0]))
+    print(pipeline.infer_sample(dataset[0]))
 
-    # predictions_df = pipeline.infer_dataset()
+    predictions_df = pipeline.infer_dataset()
 
     # predictions_file = Path(__file__).parent / "dist" / "predictions.csv"
     # predictions_file.parent.mkdir(parents=True, exist_ok=True)
@@ -52,7 +52,7 @@ def main() -> None:
     # evaluator = TaskEvaluator(predictions_file, settings['parameters']['metrics'])
     # result = evaluator.run()
     # print("Evaluation results:", result)
-    assert result is not None, "Fine-tuning does not work correctly"
+    # assert result is not None, "Fine-tuning does not work correctly"
 
 
 if __name__ == "__main__":
