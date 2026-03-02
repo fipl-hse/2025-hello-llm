@@ -298,7 +298,7 @@ class LLMPipeline(AbstractLLMPipeline):
 
         for batch in dataloader:
             preds = self._infer_batch(batch[0])
-            targets.extend(batch[1])
+            targets.extend(batch[1].tolist())
             predictions.extend(preds)
 
         return pd.DataFrame({"target": targets, "predictions": predictions})
@@ -366,23 +366,8 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
         predictions = predictions_df['predictions'].tolist()
         targets = predictions_df['target'].tolist()
-        print(predictions)
-        print(targets)
 
         predictions = [int(p) for p in predictions]
-
-        cleaned_targets = []
-        for ref in targets:
-            ref_str = str(ref)
-            if 'tensor(' in ref_str:
-                start = ref_str.find('(') + 1
-                end = ref_str.find(')')
-                if start > 0 and end > start:
-                    cleaned_targets.append(int(ref_str[start:end]))
-                else:
-                    cleaned_targets.append(int(ref_str.replace('tensor(', '').replace(')', '')))
-            else:
-                cleaned_targets.append(int(ref_str))
 
         result = {}
 
@@ -390,12 +375,12 @@ class TaskEvaluator(AbstractTaskEvaluator):
             metric_evaluate = load(str(metric))
             score = metric_evaluate.compute(
                 predictions=predictions,
-                references=cleaned_targets,
+                references=targets,
                 average="micro"
             )
 
             result.update(score)
-        print(result)
+            
         return result
 
 
@@ -426,4 +411,3 @@ class SFTPipeline(AbstractSFTPipeline):
         """
         Fine-tune model.
         """
-
