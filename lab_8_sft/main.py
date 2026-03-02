@@ -358,11 +358,11 @@ class SFTPipeline(AbstractSFTPipeline):
                                                                     batch. Defaults to None.
         """
         self._model_name = model_name
-    #     self._dataset = dataset
-    #     self._sft_params = sft_params
-    #     self._data_collator = data_collator
+        self._dataset = dataset
+        self._sft_params = sft_params
+        self._data_collator = data_collator
 
-    # def run(self) -> None:
-    #     """
-    #     Fine-tune model.
-    #     """
+    def run(self) -> None:
+        """
+        Fine-tune model.
+        """
