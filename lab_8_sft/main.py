@@ -14,7 +14,6 @@ import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
-from peft import get_peft_model, LoraConfig
 from torch.utils.data import Dataset
 from transformers import (
     AutoModelForSequenceClassification,
@@ -23,7 +22,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from core_utils.decorators import report_time
+from core_utils.llm.time_decorator import report_time
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
@@ -225,6 +224,12 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader.
             device (str): The device for inference.
         """
+        super().__init__(model_name, dataset, max_length, batch_size, device)
+
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        self._model.to(device)
+        self._model.eval()
 
     def analyze_model(self) -> dict:
         """
@@ -233,6 +238,11 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        return {
+            "num_trainable_params": sum(p.numel() for p in self._model.parameters()),
+            "vocab_size": self._model.config.vocab_size,
+            "max_context_length": self._model.config.max_position_embeddings,
+        }
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -245,6 +255,21 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        text, _ = sample
+
+        encoding = self._tokenizer(
+            text,
+            return_tensors="pt",
+            truncation=True,
+            padding=True,
+            max_length=self._max_length,
+        ).to(self._device)
+
+        with torch.no_grad():
+            outputs = self._model(**encoding)
+
+        pred = torch.argmax(outputs.logits, dim=1).item()
+        return str(pred)
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
@@ -254,6 +279,16 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             pd.DataFrame: Data with predictions
         """
+        predictions = []
+
+        for text, label in self._dataset:
+            pred = self.infer_sample((text, label))
+            predictions.append(
+                {"source": text, "target": label, "prediction": int(pred)}
+            )
+
+        return pd.DataFrame(predictions)
+
 
     @torch.no_grad()
     def _infer_batch(self, sample_batch: Sequence[tuple[str, ...]]) -> list[str]:
