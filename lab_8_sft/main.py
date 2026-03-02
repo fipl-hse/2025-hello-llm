@@ -237,7 +237,7 @@ class LLMPipeline(AbstractLLMPipeline):
         batch_size = 1
         tensor_data = torch.ones(
             batch_size,
-            self._max_length,
+            self._model.config.max_position_embeddings,
             dtype=torch.long
         ).to(self._device)
 
