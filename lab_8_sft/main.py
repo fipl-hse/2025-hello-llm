@@ -8,10 +8,10 @@ Fine-tuning Large Language Models for a downstream task.
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
 
-import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
+from evaluate import load
 from pandas import DataFrame
 from peft import LoraConfig
 from torch.nn import Module
@@ -139,14 +139,6 @@ def tokenize_sample(
     Returns:
         dict[str, torch.Tensor]: Tokenized sample
     """
-    tokens = tokenizer(sample[ColumnNames.SOURCE.value], return_tensors='pt', padding='max_length',
-                       truncation=True, max_length=max_length)
-
-    return {
-        'input_ids': tokens['input_ids'][0],
-        'attention_mask': tokens['attention_mask'][0],
-        'labels': sample[ColumnNames.TARGET.value]
-    }
 
 
 class TokenizedTaskDataset(Dataset):
@@ -313,15 +305,34 @@ class TaskEvaluator(AbstractTaskEvaluator):
             dict: A dictionary containing information about the calculated metric
         """
         data = pd.read_csv(self._data_path)
-        predictions=data[ColumnNames.TARGET.value].tolist()
-        references=[str(x) for x in data[ColumnNames.TARGET.value].tolist()]
-        result = {str(metric): evaluate.load(str(metric)).compute(
+
+        predictions = data['predictions'].astype(str).tolist()
+        references = data['target'].astype(str).tolist()
+
+        results = {}
+
+        if Metrics.BLEU in self._metrics:
+            bleu_metric = load("bleu")
+
+            bleu_result = bleu_metric.compute(
+            predictions=predictions,
+            references=[[ref] for ref in references]
+            )
+            results["bleu"] = round(float(bleu_result["bleu"]), 6)
+
+        if Metrics.ROUGE in self._metrics:
+            rouge_metric = load("rouge", seed=77)
+
+            rouge_result = rouge_metric.compute(
                 predictions=predictions,
-                references=references, average="micro")
-                for metric in self._metrics}['f1']
-        if not isinstance(result, dict):
-            raise ValueError("Wrong type")
-        return result
+                references=references,
+                use_stemmer=True,
+                use_aggregator=True
+            )
+
+            results["rouge"] = round(float(rouge_result["rougeL"]), 6)
+
+        return results
 
 
 class SFTPipeline(AbstractSFTPipeline):

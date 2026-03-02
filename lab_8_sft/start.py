@@ -6,6 +6,7 @@ Fine-tuning starter.
 import json
 from pathlib import Path
 
+from core_utils.llm.metrics import Metrics
 from core_utils.llm.time_decorator import report_time
 from lab_8_sft.main import (
     LLMPipeline,
@@ -45,14 +46,14 @@ def main() -> None:
 
     predictions_df = pipeline.infer_dataset()
 
-    # predictions_file = Path(__file__).parent / "dist" / "predictions.csv"
-    # predictions_file.parent.mkdir(parents=True, exist_ok=True)
-    # predictions_df.to_csv(predictions_file)
+    predictions_file = Path(__file__).parent / "dist" / "predictions.csv"
+    predictions_file.parent.mkdir(parents=True, exist_ok=True)
+    predictions_df.to_csv(predictions_file)
 
-    # evaluator = TaskEvaluator(predictions_file, settings['parameters']['metrics'])
-    # result = evaluator.run()
-    # print("Evaluation results:", result)
-    # assert result is not None, "Fine-tuning does not work correctly"
+    evaluator = TaskEvaluator(predictions_file, [Metrics(metric) for metric in settings['parameters']['metrics']])
+    result = evaluator.run()
+    print("Evaluation results:", result)
+    assert result is not None, "Fine-tuning does not work correctly"
 
 
 if __name__ == "__main__":
