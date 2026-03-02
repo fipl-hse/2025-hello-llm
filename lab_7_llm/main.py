@@ -213,8 +213,10 @@ class LLMPipeline(AbstractLLMPipeline):
         for batch in dataloader:
             batch_preds = self._infer_batch(batch)
             predictions.extend(batch_preds)
-        
+
         targets = self._dataset.data[ColumnNames.TARGET].values[:len(predictions)]
+        targets = [str(t) for t in targets]
+
         return pd.DataFrame({
             "target": targets,
             "prediction": predictions
@@ -237,6 +239,7 @@ class LLMPipeline(AbstractLLMPipeline):
         else:
             texts = [item for item in sample_batch[0]]
 
+        itexts = [item[0] for item in sample_batch]  # извлекаем все тексты из батча
         inputs = self._tokenizer(
             texts,
             padding=True,
@@ -244,10 +247,9 @@ class LLMPipeline(AbstractLLMPipeline):
             max_length=self._max_length,
             return_tensors='pt'
         ).to(self._device)
-
         outputs = self._model(**inputs)
         pred_indices = torch.argmax(outputs.logits, dim=-1).cpu().tolist()
-        return pred_indices
+        return [str(idx) for idx in pred_indices]
 
 
 class TaskEvaluator(AbstractTaskEvaluator):
