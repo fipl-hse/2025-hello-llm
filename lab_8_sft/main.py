@@ -6,14 +6,18 @@ Fine-tuning Large Language Models for a downstream task.
 
 # pylint: disable=too-few-public-methods, undefined-variable, duplicate-code, unused-argument, too-many-arguments
 from pathlib import Path
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Iterable, Sequence, cast
+from unittest import result
 
+import evaluate
 import pandas as pd
 import torch
 from datasets import load_dataset
 from pandas import DataFrame
+from torch.nn import Module
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer
+from torchinfo import summary
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
@@ -141,6 +145,17 @@ def tokenize_sample(
     Returns:
         dict[str, torch.Tensor]: Tokenized sample
     """
+    tokens = tokenizer(sample[ColumnNames.SOURCE.value],
+                       return_tensors="pt",
+                       padding="max_length",
+                       truncation=True,
+                       max_length=max_length)
+    
+    return {
+        'input_ids': tokens['input_ids'][0],
+        'attention_mask': tokens['attention_mask'][0],
+        'labels': sample[ColumnNames.TARGET.value]
+    }
 
 
 class TokenizedTaskDataset(Dataset):
@@ -158,6 +173,8 @@ class TokenizedTaskDataset(Dataset):
                 tokenize the dataset
             max_length (int): max length of a sequence
         """
+        self._data = [tokenize_sample(row, tokenizer, max_length) for _, row in
+                      data.iterrows()]
 
     def __len__(self) -> int:
         """
@@ -166,6 +183,7 @@ class TokenizedTaskDataset(Dataset):
         Returns:
             int: The number of items in the dataset
         """
+        return len(self._data)
 
     def __getitem__(self, index: int) -> dict[str, torch.Tensor]:
         """
@@ -177,6 +195,7 @@ class TokenizedTaskDataset(Dataset):
         Returns:
             dict[str, torch.Tensor]: An element from the dataset
         """
+        return self._data[index]
 
 
 class LLMPipeline(AbstractLLMPipeline):
@@ -197,6 +216,11 @@ class LLMPipeline(AbstractLLMPipeline):
             batch_size (int): The size of the batch inside DataLoader.
             device (str): The device for inference.
         """
+        super().__init__(model_name, dataset, max_length, batch_size, device)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        self._model.to(self._device)
+        self._model.eval()
 
     def analyze_model(self) -> dict:
         """
@@ -205,6 +229,35 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        config = self._model.config
+        
+        max_context_length = int(config.max_length)
+        
+        input_ids = torch.ones(1, max_context_length, dtype=torch.long)
+        attention_mask = torch.ones(1, max_context_length, dtype=torch.long)
+
+        tokens = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+        }
+
+        if not isinstance(self._model, Module):
+            raise ValueError("The model has incompatible type")
+
+        result = summary(self._model, input_data=tokens, device=self._device, verbose=0)
+
+        return {
+            "input_shape": {
+                "input_ids": [1, self._model.albert.embeddings.position_embeddings.weight.shape[0]],
+                "attention_mask": [1, self._model.albert.embeddings.position_embeddings.weight.shape[0]],
+            },
+            "embedding_size": int(config.max_position_embeddings),
+            "output_shape": result.summary_list[-1].output_size,
+            "num_trainable_params": int(result.trainable_params),
+            "vocab_size": int(config.vocab_size),
+            "size": int(result.total_param_bytes),
+            "max_context_length": int(config.max_length),
+        }
 
     @report_time
     def infer_sample(self, sample: tuple[str, ...]) -> str | None:
@@ -217,6 +270,22 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
+        if self._model is None:
+            return None
+        source_text = sample[0]
+        inputs = self._tokenizer(
+            source_text, 
+            return_tensors="pt", 
+            padding=True, 
+            truncation=True, 
+            max_length=self._max_length
+        ).to(self._device)
+        
+        outputs = self._model(
+            **inputs, 
+        )
+        predictions = torch.argmax(outputs.logits, dim=-1)
+        return [str(p.item()) for p in predictions][0]
 
     @report_time
     def infer_dataset(self) -> pd.DataFrame:
