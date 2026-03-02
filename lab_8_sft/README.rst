@@ -18,7 +18,8 @@ Stage 0. Start working with laboratory work
 
 Start your implementation by selecting a new combination of model and dataset you are going
 to use for **fine-tuning**. You can find all available combinations
-in the `table <https://docs.google.com/spreadsheets/d/1PiNl1Y7jRtrFHjPY7dywOz0eTCp5VbAJVcCKShkGUcU/edit?usp=sharing>`__.
+in the `table
+<https://docs.google.com/spreadsheets/d/1UEEylqXeSjtFyUtPzyEMiFhhdCukmmuIG4d1ne0y_mU/edit?usp=drivesdk>`__.
 
 .. important:: For laboratory work №8, you need to select another task, namely, if
                there was a generation (Generation, Summarization, NMT) task,
@@ -29,8 +30,8 @@ in the `table <https://docs.google.com/spreadsheets/d/1PiNl1Y7jRtrFHjPY7dywOz0eT
 .. note:: All logic for instantiating and using needed abstractions
           should be implemented in a ``main()`` function of a ``start.py`` module.
 
-To do this, implement the functions in the ``main.py`` module in ``lab_8_sft`` folder
-and import them into ``start.py`` module in ``lab_8_sft`` folder.
+To do this, implement the class methods and functions in the ``main.py`` module in ``lab_8_sft``
+folder and import them into ``start.py`` module in ``lab_8_sft`` folder.
 
 .. code:: py
 
@@ -72,7 +73,8 @@ to adapt a general LLM to a specialized task by continuing its training on a sma
 task-specific dataset.
 
 Full fine-tuning of LLMs is computationally expensive, requiring access to large-scale
-hardware resources. Parameter-Efficient Fine-Tuning (PEFT) methods, such as LoRA (Low-Rank Adaptation),
+hardware resources. Parameter-Efficient Fine-Tuning (PEFT) methods, such as `LoRA (Low-Rank Adaptation)
+<https://huggingface.co/docs/diffusers/training/lora>`__,
 provide an alternative approach by modifying only a small subset of the model's parameters, making the
 process more memory- and compute-efficient. LoRA achieves this by introducing low-rank adaptation
 matrices to the model's pre-trained layers, significantly reducing the number of trainable parameters
@@ -168,7 +170,7 @@ See the intended instantiation:
 
     num_samples = 100
     fine_tune_samples = batch * fine_tuning_steps
-    dataset = TokenizedTaskDataset(preprocessor.data.loc[
+    dataset = TokenizedTaskDataset(preprocessor.data.iloc[
             num_samples : num_samples + fine_tune_samples
         ])
 
