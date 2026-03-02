@@ -2,6 +2,7 @@
 Useful constant variables.
 """
 
+from decimal import Decimal
 from pathlib import Path
 
 # pylint: disable=invalid-name,too-few-public-methods
@@ -45,3 +46,5 @@ GLOBAL_NUM_SAMPLES = 100
 GLOBAL_MAX_LENGTH = 120
 GLOBAL_INFERENCE_BATCH_SIZE = 3
 GLOBAL_FINE_TUNING_BATCH_SIZE = 3
+
+QUANTIZATION_EXP = Decimal("1.00000")

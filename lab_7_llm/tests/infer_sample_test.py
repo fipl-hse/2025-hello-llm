@@ -40,7 +40,7 @@ def run_model_inference_check(lab_path: Path, pipeline_class: type[AbstractLLMPi
         settings.parameters.model, fake_dataset, max_length, batch_size, device
     )
     references = ReferenceAnalysisScores(scores_type=ReferenceAnalysisScoresType.INFERENCE)
-    model_name = settings.parameters.model.replace("test_", "")
+    model_name = settings.parameters.model
     for query, prediction in references.get(model_name).items():
         if "[TEST SEP]" in query:
             first_value, second_value = query.split("[TEST SEP]")
