@@ -4,6 +4,7 @@ Starter for demonstration of laboratory work.
 
 from pathlib import Path
 
+from core_utils.llm.time_decorator import report_time
 from core_utils.project.lab_settings import LabSettings
 from lab_7_llm.main import (
     LLMPipeline,
@@ -14,10 +15,12 @@ from lab_7_llm.main import (
 )
 
 
+@report_time
 def main() -> None:
     """
     Main function that runs the lab pipeline according to the target score.
     """
+    result = None
     settings_path = Path(__file__).parent / "settings.json"
     settings = LabSettings(settings_path)
 
@@ -27,36 +30,35 @@ def main() -> None:
 
     preprocessor = RawDataPreprocessor(importer.raw_data)
     analysis = preprocessor.analyze()
+    result = analysis
     print("Dataset analysis:")
     for key, value in analysis.items():
         print(f"  {key}: {value}")
 
-    if settings.target_score < 6:
-        return
-    
-    preprocessor.transform()
-    print("Data preprocessing completed.")
+    if settings.target_score >= 6:
 
-    dataset = TaskDataset(preprocessor.data.head(100))
-    print(f"Dataset size (first 100 samples): {len(dataset)}")
+        preprocessor.transform()
+        print("Data preprocessing completed.")
 
-    # Initialize pipeline
-    pipeline = LLMPipeline(
-        model_name=settings.parameters.model,
-        dataset=dataset,
-        max_length=120,
-        batch_size=1,
-        device='cpu'
-    )
+        dataset = TaskDataset(preprocessor.data.head(100))
+        print(f"Dataset size (first 100 samples): {len(dataset)}")
 
-    model_props = pipeline.analyze_model()
-    print("Model properties:")
-    for key, value in model_props.items():
-        print(f"  {key}: {value}")
+        pipeline = LLMPipeline(
+            model_name=settings.parameters.model,
+            dataset=dataset,
+            max_length=120,
+            batch_size=1,
+            device='cpu'
+        )
 
-    sample = dataset[0]
-    prediction = pipeline.infer_sample(sample)
-    print(f"Sample inference: {prediction}")
+        model_props = pipeline.analyze_model()
+        print("Model properties:")
+        for key, value in model_props.items():
+            print(f"  {key}: {value}")
+
+        sample = dataset[0]
+        prediction = pipeline.infer_sample(sample)
+        print(f"Sample inference: {prediction}")
 
     if settings.target_score >= 8:
         
@@ -84,7 +86,7 @@ def main() -> None:
         for metric, value in metrics_results.items():
             print(f"  {metric}: {value}")
 
-    assert analysis is not None, "Demo does not work correctly"
+    assert result is not None, "Demo does not work correctly"
 
 
 if __name__ == "__main__":
