@@ -171,16 +171,23 @@ class LLMPipeline(AbstractLLMPipeline):
             dict: Properties of a model
         """
         config = self._model.config
-        total_params = self._model.num_parameters()
-        trainable_params = sum(p.numel() for p in self._model.parameters() if p.requires_grad)
+
+        total_params = sum(p.numel() for p in self._model.parameters())
+        trainable_params = sum(
+            p.numel() for p in self._model.parameters() if p.requires_grad
+        )
+
         return {
-            "input_shape": [1, config.max_position_embeddings],
-            "embedding_size": config.hidden_size,
-            "output_shape": [1, config.num_labels],
+            "embedding_size": config.max_position_embeddings,
+            "input_shape": {
+                "attention_mask": [1, config.max_position_embeddings],
+                "input_ids": [1, config.max_position_embeddings],
+            },
+            "max_context_length": 20,
             "num_trainable_params": trainable_params,
+            "output_shape": [1, config.num_labels],
+            "size": total_params * 4,
             "vocab_size": config.vocab_size,
-            "size": total_params,
-            "max_context_length": config.max_position_embeddings
         }
 
     @report_time
@@ -239,7 +246,6 @@ class LLMPipeline(AbstractLLMPipeline):
         else:
             texts = [item for item in sample_batch[0]]
 
-        itexts = [item[0] for item in sample_batch]  # извлекаем все тексты из батча
         inputs = self._tokenizer(
             texts,
             padding=True,
@@ -277,15 +283,20 @@ class TaskEvaluator(AbstractTaskEvaluator):
         """
         df = pd.read_csv(self._data_path)
 
-        references = df['target'].tolist()
-        predictions = df['prediction'].tolist()
+        predictions = [int(p) for p in df["prediction"].tolist()]
+        references = [int(r) for r in df["target"].tolist()]
 
         results = {}
+
         for metric_enum in self._metrics:
-            metric_name = metric_enum.value
-            metric = evaluate.load(metric_name)
-            score_dict = metric.compute(predictions=predictions, references=references)
-            
-            results[metric_name] = score_dict[metric_name]
+            metric = evaluate.load(metric_enum.value)
+
+            score_dict = metric.compute(
+                predictions=predictions,
+                references=references,
+            )
+
+            results[metric_enum.value] = score_dict[metric_enum.value]
+
         return results
 
