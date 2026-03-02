@@ -1,8 +1,8 @@
 {
   "parameters": {
-    "model": "",
-    "dataset": "",
-    "metrics": []
+    "model": "IlyaGusev/rubertconv_toxic_clf",
+    "dataset": "s-nlp/en_paradetox_toxicity",
+    "metrics": ["f1"]
   },
-  "target_score": 0
+  "target_score": 6
 }
