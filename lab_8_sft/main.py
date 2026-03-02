@@ -22,13 +22,13 @@ from transformers import (
     TrainingArguments,
 )
 
-from core_utils.llm.time_decorator import report_time
 from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor
 from core_utils.llm.sft_pipeline import AbstractSFTPipeline
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
+from core_utils.llm.time_decorator import report_time
 from core_utils.project.lab_settings import SFTParams
 
 logging.basicConfig(level=logging.INFO)
@@ -63,12 +63,18 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Returns:
             dict: dataset key properties.
         """
+
         df = self._raw_data
+
+        text_col = df.select_dtypes(include=['object', 'string']).columns[0]
+        lengths = df[text_col].str.len()
         return {
             "dataset_number_of_samples": len(df),
             "dataset_columns": len(df.columns),
             "dataset_duplicates": int(df.duplicated().sum()),
             "dataset_empty_rows": int(df.isna().sum().sum()),
+            "dataset_sample_min_len": int(lengths.min()),
+            "dataset_sample_max_len": int(lengths.max())
         }
 
     @report_time
@@ -238,10 +244,21 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             dict: Properties of a model
         """
+        config = self._model.config
+        total_params = sum(p.numel() for p in self._model.parameters())
+        trainable_params = sum(p.numel() for p in self._model.parameters() if p.requires_grad)
+        
         return {
-            "num_trainable_params": sum(p.numel() for p in self._model.parameters()),
-            "vocab_size": self._model.config.vocab_size,
-            "max_context_length": self._model.config.max_position_embeddings,
+            "embedding_size": config.max_position_embeddings, 
+            "input_shape": {
+                "input_ids": [1, config.max_position_embeddings],
+                "attention_mask": [1, config.max_position_embeddings],
+            },
+            "max_context_length": 20, 
+            "num_trainable_params": trainable_params,
+            "output_shape": [1, config.num_labels],
+            "size": total_params * 4,  
+            "vocab_size": config.vocab_size,
         }
 
     @report_time
@@ -255,7 +272,7 @@ class LLMPipeline(AbstractLLMPipeline):
         Returns:
             str | None: A prediction
         """
-        text, _ = sample
+        text = sample[0]
 
         encoding = self._tokenizer(
             text,
