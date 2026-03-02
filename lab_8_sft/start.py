@@ -58,6 +58,7 @@ def main() -> None:
                               [Metrics(metric) for metric in settings['parameters']['metrics']])
     for k, v in evaluator.run().items():
         print(f'{k}: {v}')
+    result = TaskEvaluator
     assert result is not None, "Fine-tuning does not work correctly"
 
 

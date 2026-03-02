@@ -74,6 +74,7 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         preprocessed = self._raw_data[["article_content", "summary"]]
         preprocessed = preprocessed.rename(columns={"summary": ColumnNames.TARGET,
                                                     "article_content": ColumnNames.SOURCE})
+        preprocessed.dropna(inplace=True)
         self._data = preprocessed.reset_index()
 
 
@@ -139,14 +140,14 @@ def tokenize_sample(
         dict[str, torch.Tensor]: Tokenized sample
         a dictionary with the input_ids, attention_mask and labels for current sample as keys
     """
-    source = tokenizer.from_pretrained(sample[ColumnNames.SOURCE],
-                                       padding="max_length",
-                                       truncation=True,
-                                       max_length=max_length)
-    target = tokenizer.from_pretrained(sample[ColumnNames.TARGET],
-                                       padding="max_length",
-                                       truncation=True,
-                                       max_length=max_length)
+    source = tokenizer(sample[ColumnNames.SOURCE],
+                       padding="max_length",
+                       truncation=True,
+                       max_length=max_length)
+    target = tokenizer(sample[ColumnNames.TARGET],
+                       padding="max_length",
+                       truncation=True,
+                       max_length=max_length)
     return {
             "input_ids": source["input_ids"],
             "attention_mask": source["attention_mask"],
@@ -290,10 +291,10 @@ class LLMPipeline(AbstractLLMPipeline):
                                  return_tensors="pt",
                                  padding=True,
                                  truncation=True,
-                                 max_length=self._max_length)
+                                 max_length=self._max_length).to(self._device)
 
         self._model.eval()
-        output = self._model.generate(**inputs)
+        output = self._model.generate(**inputs, max_length=self._max_length)
         return self._tokenizer.batch_decode(output, skip_special_tokens=True)
 
 
@@ -326,26 +327,24 @@ class TaskEvaluator(AbstractTaskEvaluator):
 
         results = {}
 
-        if Metrics.BLEU in self._metrics:
-            bleu_metric = load("bleu")
+        for metric in self._metrics:
+            if metric == Metrics.BLEU:
+                bleu_metric = load("bleu")
 
-            bleu_result = bleu_metric.compute(
-                predictions=predictions,
-                references=[[ref] for ref in references]
-            )
-            results["bleu"] = round(float(bleu_result["bleu"]), 6)
+                bleu_result = bleu_metric.compute(
+                    predictions=predictions,
+                    references=[[ref] for ref in references]
+                )
+                results["bleu"] = round(float(bleu_result["bleu"]), 6)
+            elif metric == Metrics.ROUGE:
+                rouge_metric = load("rouge", seed=77)
 
-        if Metrics.ROUGE in self._metrics:
-            rouge_metric = load("rouge", seed=77)
+                rouge_result = rouge_metric.compute(
+                    predictions=predictions,
+                    references=references,
+                    )
 
-            rouge_result = rouge_metric.compute(
-                predictions=predictions,
-                references=references,
-                use_stemmer=True,
-                use_aggregator=True
-            )
-
-            results["rouge"] = round(float(rouge_result["rougeL"]), 6)
+                results["rouge"] = round(float(rouge_result["rougeL"]), 6)
 
         return results
 
