@@ -18,8 +18,10 @@ from core_utils.llm.llm_pipeline import AbstractLLMPipeline
 from core_utils.llm.metrics import Metrics
 from core_utils.llm.raw_data_importer import AbstractRawDataImporter
 from core_utils.llm.raw_data_preprocessor import AbstractRawDataPreprocessor, ColumnNames
+from core_utils.llm.sft_pipeline import AbstractSFTPipeline
 from core_utils.llm.task_evaluator import AbstractTaskEvaluator
 from core_utils.llm.time_decorator import report_time
+from core_utils.project.lab_settings import SFTParams
 
 try:
     from transformers import AutoConfig, AutoModelForSeq2SeqLM, AutoTokenizer
@@ -85,10 +87,10 @@ class RawDataPreprocessor(AbstractRawDataPreprocessor):
         Apply preprocessing transformations to the raw dataset.
         """
         self._data = self._raw_data
+        self._data = self._data.drop_duplicates()
+        self._data = self._data.dropna(axis=0)
         self._data = self._data.drop(columns=["de", "en", "fr", "it", "nl", "pl"])
         self._data = self._data.rename(columns={"ru": ColumnNames.SOURCE, "es": ColumnNames.TARGET})
-        self._data = self._data.dropna()
-        self._data = self._data.drop_duplicates()
         self._data = self._data.reset_index(drop=True)
 
 class TaskDataset(Dataset):
@@ -213,6 +215,7 @@ class LLMPipeline(AbstractLLMPipeline):
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         self._model.to(self._device)
+        self._model.eval()
 
     def analyze_model(self) -> dict:
         """
@@ -299,7 +302,12 @@ class LLMPipeline(AbstractLLMPipeline):
         )
         encoded = {k: v.to(self._device) for k, v in encoded.items()}
         assert self._model is not None
-        generated = self._model.generate(**encoded, max_length=self._max_length)
+        generated = self._model.generate(
+            **encoded,
+            max_length=self._max_length,
+            num_beams=5,
+            early_stopping=True,
+        )
         return self._tokenizer.batch_decode(generated, skip_special_tokens=True)
 
 
@@ -341,3 +349,32 @@ class TaskEvaluator(AbstractTaskEvaluator):
             )
             result[str(metric)] = float(computed[str(metric)])
         return result
+    
+
+class SFTPipeline(AbstractSFTPipeline):
+    """
+    A class that initializes a model, fine-tuning.
+    """
+
+    def __init__(
+        self,
+        model_name: str,
+        dataset: Dataset,
+        sft_params: SFTParams,
+        data_collator: Callable[[AutoTokenizer], torch.Tensor] | None = None,
+    ) -> None:
+        """
+        Initialize an instance of ClassificationSFTPipeline.
+
+        Args:
+            model_name (str): The name of the pre-trained model.
+            dataset (torch.utils.data.dataset.Dataset): The dataset used.
+            sft_params (SFTParams): Fine-Tuning parameters.
+            data_collator (Callable[[AutoTokenizer], torch.Tensor] | None, optional): processing
+                                                                    batch. Defaults to None.
+        """
+
+    def run(self) -> None:
+        """
+        Fine-tune model.
+        """

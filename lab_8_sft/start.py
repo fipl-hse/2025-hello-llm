@@ -36,14 +36,14 @@ def main() -> None:
     for name, val in analysis.items():
         print(f"{name}: {val}")
 
-    data = preprocessor.data.head(101)
+    data = preprocessor.data.iloc[:100]
     assert data is not None, "Preprocessed data is missing"
     dataset = TaskDataset(data)
 
     pipeline = LLMPipeline(
         model_name=settings.parameters.model,
         dataset=dataset,
-        batch_size=64,
+        batch_size=1,
         max_length=120,
         device="cpu",
     )
