@@ -212,7 +212,7 @@ class LLMPipeline(AbstractLLMPipeline):
         ids = torch.ones(1, embeddings_length, dtype=torch.long, device=self._device)
         stats = summary(self._model, input_data={"input_ids": ids, "decoder_input_ids": ids},
                         device=self._device, verbose=0)
-        analysis = {'input_shape': torch.Size(stats.input_size["input_ids"]),
+        analysis = {'input_shape': list(stats.input_size["input_ids"]),
                     'embedding_size': embeddings_length,
                     'output_shape': stats.summary_list[-1].output_size,
                     'num_trainable_params': stats.trainable_params,
