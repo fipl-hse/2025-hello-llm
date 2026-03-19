@@ -138,6 +138,9 @@ Supervised Fine-Tuning (SFT) Parameters
           <https://huggingface.co/mrm8488/bert-small2bert-
           small-finetuned-cnn_daily_mail-summarization>`__
           as SFT parameters.
+          In pair with
+          `cnn_dailymail <https://huggingface.co/datasets/abisee/cnn_dailymail>`__
+          dataset, set ``fine_tuning_steps=150, rank=24, alpha=48, learning_rate=1e-5``
 
 
 Metrics

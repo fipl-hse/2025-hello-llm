@@ -1,49 +1,49 @@
 {
     "Babelscape/wikineural-multilingual-ner": {
         "Babelscape/wikineural": {
-            "accuracy": 0.99196
+            "accuracy": 0.99153
         }
     },
     "Helsinki-NLP/opus-mt-en-fr": {
         "enimai/MuST-C-fr": {
-            "bleu": 0.45484
+            "bleu": 0.45252
         }
     },
     "Helsinki-NLP/opus-mt-ru-en": {
         "shreevigneshs/iwslt-2023-en-ru-train-val-split-0.2": {
-            "bleu": 0.33289
+            "bleu": 0.33373
         }
     },
     "Helsinki-NLP/opus-mt-ru-es": {
         "nuvocare/Ted2020_en_es_fr_de_it_ca_pl_ru_nl": {
-            "bleu": 0.23925
+            "bleu": 0.24094
         }
     },
     "IlyaGusev/rubertconv_toxic_clf": {
         "Arsive/toxicity_classification_jigsaw": {
-            "f1": 0.85999
+            "f1": 0.83999
         },
         "s-nlp/en_paradetox_toxicity": {
-            "f1": 0.71999
+            "f1": 0.72999
         }
     },
     "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli": {
         "mnli": {
-            "accuracy": 0.90000
+            "accuracy": 0.89000
         }
     },
     "UrukHan/t5-russian-summarization": {
         "CarlBrendt/Summ_Dialog_News": {
-            "bleu": 0.02591,
-            "rouge": 0.08310
+            "bleu": 0.02499,
+            "rouge": 0.06668
         },
         "IlyaGusev/gazeta": {
-            "bleu": 0.03871,
-            "rouge": 0.13445
+            "bleu": 0.04568,
+            "rouge": 0.12825
         },
         "d0rj/curation-corpus-ru": {
-            "bleu": 0.03516,
-            "rouge": 0.18828
+            "bleu": 0.03687,
+            "rouge": 0.19406
         }
     },
     "XSY/albert-base-v2-imdb-calssification": {
@@ -53,15 +53,15 @@
     },
     "aiknowyou/it-emotion-analyzer": {
         "dair-ai/emotion": {
-            "f1": 0.53000
+            "f1": 0.48999
         }
     },
     "blanchefort/rubert-base-cased-sentiment-rusentiment": {
         "blinoff/healthcare_facilities_reviews": {
-            "f1": 0.94999
+            "f1": 0.95999
         },
         "blinoff/kinopoisk": {
-            "f1": 0.88000
+            "f1": 0.91000
         }
     },
     "cointegrated/rubert-base-cased-nli-threeway": {
@@ -69,12 +69,12 @@
             "accuracy": 0.78000
         },
         "xnli": {
-            "accuracy": 0.53000
+            "accuracy": 0.52000
         }
     },
     "cointegrated/rubert-tiny-bilingual-nli": {
         "terra": {
-            "accuracy": 0.41999
+            "accuracy": 0.46000
         }
     },
     "cointegrated/rubert-tiny-toxicity": {
@@ -84,12 +84,12 @@
     },
     "cointegrated/rubert-tiny2-cedr-emotion-detection": {
         "seara/ru_go_emotions": {
-            "f1": 0.54000
+            "f1": 0.52000
         }
     },
     "dslim/distilbert-NER": {
         "eriktks/conll2003": {
-            "accuracy": 0.99407
+            "accuracy": 0.99259
         }
     },
     "fabriceyhc/bert-base-uncased-ag_news": {
@@ -99,31 +99,31 @@
     },
     "google-t5/t5-small": {
         "RocioUrquijo/en_de": {
-            "bleu": 0.24974
+            "bleu": 0.24628
         }
     },
     "mrm8488/bert-mini2bert-mini-finetuned-cnn_daily_mail-summarization": {
         "ccdv/govreport-summarization": {
-            "bleu": 0.00031,
-            "rouge": 0.10537
+            "bleu": 0.00027,
+            "rouge": 0.10580
         },
         "ccdv/pubmed-summarization": {
-            "bleu": 0.01927,
-            "rouge": 0.14709
+            "bleu": 0.01656,
+            "rouge": 0.14320
         }
     },
     "mrm8488/bert-small2bert-small-finetuned-cnn_daily_mail-summarization": {
         "ccdv/govreport-summarization": {
-            "bleu": 0.00082,
-            "rouge": 0.11141
+            "bleu": 0.00085,
+            "rouge": 0.11060
         },
         "ccdv/pubmed-summarization": {
-            "bleu": 0.03737,
-            "rouge": 0.17747
+            "bleu": 0.03540,
+            "rouge": 0.17464
         },
         "cnn_dailymail": {
-            "bleu": 0.05757,
-            "rouge": 0.21911
+            "bleu": 0.05974,
+            "rouge": 0.22069
         }
     },
     "nandakishormpai/t5-small-machine-articles-tag-generation": {
@@ -133,7 +133,7 @@
         },
         "ccdv/pubmed-summarization": {
             "bleu": 0.00049,
-            "rouge": 0.07855
+            "rouge": 0.07863
         },
         "cnn_dailymail": {
             "bleu": 0.06624,
@@ -148,12 +148,12 @@
             "f1": 0.77000
         },
         "s-nlp/ru_paradetox_toxicity": {
-            "f1": 0.73999
+            "f1": 0.72999
         }
     },
     "tatiana-merz/turkic-cyrillic-classifier": {
         "tatiana-merz/cyrillic_turkic_langs": {
-            "f1": 1.00000
+            "f1": 0.98999
         }
     }
 }

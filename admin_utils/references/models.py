@@ -2,6 +2,8 @@
 Models for references comparison tool
 """
 
+# pylint: disable=too-few-public-methods
+from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
 
@@ -112,7 +114,7 @@ class JSONLoader(RootModel[dict[str, dict[str, dict[str, float]]]]):
         return loader.to_schemas()
 
 
-class JSONSerializableMixin:  # pylint: disable=R0903
+class JSONSerializableMixin:
     """
     Mixin for serializable pydantic models.
     """
@@ -124,9 +126,9 @@ class JSONSerializableMixin:  # pylint: disable=R0903
         Args:
             json_path (Path): Path to the file
         """
-        with json_path.open(mode="w", encoding="utf-8") as f:
-            content = json.loads(self.model_dump_json())
-            json.dump(content, f, indent=4, ensure_ascii=False, sort_keys=True)
+        with json_path.open("w", encoding="utf-8") as f:
+            data = self.model_dump()
+            json.dump(data, f, use_decimal=True, indent=4, ensure_ascii=False, sort_keys=True)
             f.write("\n")
 
 
@@ -141,6 +143,72 @@ class DatasetReferenceDTO(BaseModel):
     dataset_empty_rows: int
     dataset_sample_min_len: int
     dataset_sample_max_len: int
+
+
+class MetricScoresDTO(RootModel[dict[str, Decimal]]):
+    """
+    Data transfer object for metric name and score.
+    """
+
+    root: dict[str, Decimal] = {}
+
+
+class DatasetScoresDTO(RootModel[dict[str, MetricScoresDTO]]):
+    """
+    Data transfer object for dataset name and metric scores mapping.
+    """
+
+    root: dict[str, MetricScoresDTO] = {}
+
+
+class ModelAnalyticsDTO(BaseModel):
+    """
+    Data transfer object for a single model analytics
+    """
+
+    embedding_size: int
+    input_shape: dict[str, list[int]] | list[int]
+    max_context_length: int
+    num_trainable_params: int
+    output_shape: list[int]
+    size: int
+    vocab_size: int
+
+
+class ModelAnalyticsModel(RootModel[dict[str, ModelAnalyticsDTO]], JSONSerializableMixin):
+    """
+    Model for storing multiple analytics
+    """
+
+    root: dict[str, ModelAnalyticsDTO] = {}
+
+    def add(self, model_name: str, analytics: dict) -> None:
+        """
+        Add model to storage
+
+        Args:
+            model_name (str): Name of model
+            analytics (dict): Model analytics
+        """
+        self.root[model_name] = ModelAnalyticsDTO(**analytics)
+
+
+class InferenceReferencesModel(RootModel[dict[str, dict[str, str]]], JSONSerializableMixin):
+    """
+    Model for storing multiple inferences
+    """
+
+    root: dict[str, dict[str, str]] = {}
+
+    def add(self, model_name: str, predictions: dict[str, str]) -> None:
+        """
+        Add model to storage
+
+        Args:
+            model_name (str): Name of model
+            predictions (dict[str, str]): Predicted answers
+        """
+        self.root[model_name] = predictions
 
 
 class DatasetReferencesModel(RootModel[dict[str, DatasetReferenceDTO]], JSONSerializableMixin):
@@ -159,6 +227,30 @@ class DatasetReferencesModel(RootModel[dict[str, DatasetReferenceDTO]], JSONSeri
             analytics (DatasetReferenceDTO): Dataset analytics
         """
         self.root[dataset_name] = analytics
+
+
+class ReferenceScoresModel(RootModel[dict[str, DatasetScoresDTO]], JSONSerializableMixin):
+    """
+    Model for storing multiple reference scores of model, dataset and metric.
+    """
+
+    root: dict[str, DatasetScoresDTO] = {}
+
+    def add(self, model_name: str, dataset_name: str, metric: str, score: Decimal) -> None:
+        """
+        Add a single metric score.
+
+        Args:
+            model_name (str): Name of the model
+            dataset_name (str): Name of the dataset
+            metric (str): Metric name
+            score (Decimal): Metric score
+        """
+        if model_name not in self.root:
+            self.root[model_name] = DatasetScoresDTO()
+        if dataset_name not in self.root[model_name].root:
+            self.root[model_name].root[dataset_name] = MetricScoresDTO()
+        self.root[model_name].root[dataset_name].root[metric] = score
 
 
 class EvaluationReferencesModel(BaseModel):
@@ -180,7 +272,7 @@ class EvaluationReferencesModel(BaseModel):
             EvaluationReferencesModel: Loaded references
         """
         with json_path.open(encoding="utf-8") as f:
-            data = json.load(f)
+            data = json.load(f, parse_float=Decimal)
         return cls(references=data)
 
     def get_datasets(self) -> list[str]:

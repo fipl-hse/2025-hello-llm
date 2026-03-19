@@ -28,7 +28,7 @@
             "rouge": 0.04704
         },
         "jtatman/databricks-dolly-8k-qa-open-close": {
-            "bleu": 0.02376,
+            "bleu": 0.02378,
             "rouge": 0.10681
         },
         "lionelchg/dolly_open_qa": {
@@ -36,8 +36,8 @@
             "rouge": 0.08999
         },
         "tatsu-lab/alpaca": {
-            "bleu": 0.01726,
-            "rouge": 0.10478
+            "bleu": 0.01737,
+            "rouge": 0.10480
         }
     },
     "Helsinki-NLP/opus-mt-en-fr": {
@@ -255,19 +255,19 @@
     },
     "timpal0l/mdeberta-v3-base-squad2": {
         "HuggingFaceH4/no_robots": {
-            "squad": 15.44216
+            "squad": 12.68021
         },
         "RussianNLP/wikiomnia": {
-            "squad": 31.66666
+            "squad": 29.72222
         },
         "lionelchg/dolly_closed_qa": {
-            "squad": 17.87963
+            "squad": 20.42480
         },
         "sberquad": {
-            "squad": 43.75757
+            "squad": 43.75875
         },
         "starmpcc/Asclepius-Synthetic-Clinical-Notes": {
-            "squad": 2.78039
+            "squad": 5.19840
         }
     }
 }

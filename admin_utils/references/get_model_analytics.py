@@ -22,6 +22,10 @@ except ImportError:
     DataFrame = dict  # type: ignore
 
 from admin_utils.constants import DEVICE, GLOBAL_SEED
+from admin_utils.references.models import (
+    EvaluationReferencesModel,
+    ModelAnalyticsModel,
+)
 from lab_7_llm.main import LLMPipeline, TaskDataset
 
 
@@ -67,17 +71,17 @@ def main() -> None:
     references_path = references_dir / "reference_scores.json"
     destination_path = references_dir / "reference_model_analytics.json"
 
-    references = get_references(path=references_path)
-    result = {}
+    input_references = EvaluationReferencesModel.from_json(references_path).references
+    output_model = ModelAnalyticsModel()
 
-    for model_name in tqdm(sorted(references)):
+    for model_name in tqdm(sorted(input_references)):
         print(model_name, flush=True)
         pipeline = LLMPipeline(
             model_name, TaskDataset(DataFrame([])), max_length, batch_size, device
         )
         model_analysis = pipeline.analyze_model()
-        result[model_name] = model_analysis
-    save_reference(destination_path, result)
+        output_model.add(model_name, model_analysis)
+    output_model.dump(destination_path)
 
 
 if __name__ == "__main__":

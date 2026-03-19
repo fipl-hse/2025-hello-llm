@@ -286,3 +286,7 @@ Metrics
 -------
 
 -  F1-score
+
+.. important::
+
+    Use ``average = "micro"``.

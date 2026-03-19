@@ -126,6 +126,10 @@ Metrics CLOSED QA
           `this repository <https://github.com/huggingface/evaluate>`__
           in the ``metrics`` directory.
 
+.. important::
+
+    You need to use **f1 score** of two scores available in squad.
+
 Datasets OPEN QA
 ----------------
 

@@ -24,7 +24,6 @@ from admin_utils.constants import (
     GLOBAL_SEED,
     QUANTIZATION_EXP,
 )
-from admin_utils.references.get_model_analytics import get_references, save_reference
 from admin_utils.references.helpers import (
     collect_combinations,
     get_classification_models,
@@ -32,8 +31,8 @@ from admin_utils.references.helpers import (
     get_nli_models,
     get_nmt_models,
     get_summurization_models,
-    prepare_result_section,
 )
+from admin_utils.references.models import EvaluationReferencesModel, ReferenceScoresModel
 from core_utils.llm.metrics import Metrics
 from core_utils.project.lab_settings import InferenceParams, SFTParams
 
@@ -149,7 +148,7 @@ def main() -> None:
     dist_dir = project_root / "dist"
     dist_dir.mkdir(exist_ok=True)
 
-    references = get_references(path=references_path)
+    references = EvaluationReferencesModel.from_json(references_path).references
 
     combinations = collect_combinations(references)
 
@@ -195,10 +194,9 @@ def main() -> None:
         "google-t5/t5-small": 36,
     }
 
-    result = {}
+    output_model = ReferenceScoresModel()
     for model_name, dataset_name, metrics in tqdm(sorted(combinations)):
         print(model_name, dataset_name, metrics, flush=True)
-        prepare_result_section(result, model_name, dataset_name, metrics)
 
         sft_params.finetuned_model_path = dist_dir / model_name
         sft_params.max_fine_tuning_steps = specific_fine_tuning_steps.get(model_name, 50)
@@ -224,8 +222,9 @@ def main() -> None:
         sft_result = get_task(model_name, main_params, inference_params, sft_params)
         for metric in metrics:
             score = Decimal(sft_result[metric]).quantize(QUANTIZATION_EXP, ROUND_FLOOR)
-            result[model_name][dataset_name][metric] = score
-    save_reference(references_path, result)
+            output_model.add(model_name, dataset_name, metric, score)
+
+    output_model.dump(references_path)
 
 
 if __name__ == "__main__":

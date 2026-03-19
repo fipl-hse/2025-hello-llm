@@ -315,3 +315,7 @@ An example of start page might look like this:
                for which model's result will be output as an answer. If the
                ``Use base model`` option is enabled, use a
                pretrained model, otherwise use a fine-tuned one.
+
+.. note:: You can run you server using ``uvicorn PATH:app --reload`` command,
+          where ``PATH`` is a path to ``service.py`` module. Just replace slashes in path with dots.
+          Refer to the appropriate seminar listing for an example.
